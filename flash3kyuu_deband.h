@@ -8,6 +8,7 @@
 #include "avisynth.h"
 #include <string.h>
 #include <stdio.h>
+#include <assert.h>
 
 #ifdef FLASH3KYUU_DEBAND_EXPORTS
 #define FLASH3KYUU_DEBAND_API extern "C" __declspec(dllexport)
@@ -38,24 +39,28 @@ private:
 	int _ditherC_lut[64];
 
 	signed char *_h_ind_masks;
+	
+	int *_ref_px_y_lut;
+	int *_ref_px_y_2_lut;
+	int *_ref_px_c_lut;
+	int *_ref_px_c_2_lut;
+	int *_change_y_lut;
+	int *_change_cb_lut;
+	int *_change_cr_lut;
 
 	void init(void);
+	void init_frame_luts(int n);
+	void destroy_frame_luts(void);
 
 	void process_pixel_out_of_range_mode0(const unsigned char* src_px, int src_pitch, unsigned char* dst_px, int seed, int* dither_lut, int shift_bits, int ind_mask, int threshold, bool is_full_plane);
 	void process_pixel_out_of_range_mode12(const unsigned char* src_px, int src_pitch, unsigned char* dst_px, int seed, int* dither_lut, int shift_bits, int ind_mask, int threshold, bool is_full_plane);
 	
-	void process_pixel_mode0(const unsigned char* src_px, int src_pitch, unsigned char* dst_px, int seed, int* dither_lut, int shift_bits, int ind_mask, int threshold, bool is_full_plane);
-	
-	void process_pixel_mode1_noblur(const unsigned char* src_px, int src_pitch, unsigned char* dst_px, int seed, int* dither_lut, int shift_bits, int ind_mask, int threshold, bool is_full_plane);
-	void process_pixel_mode1_blur(const unsigned char* src_px, int src_pitch, unsigned char* dst_px, int seed, int* dither_lut, int shift_bits, int ind_mask, int threshold, bool is_full_plane);
-
-	void process_pixel_mode2_noblur(const unsigned char* src_px, int src_pitch, unsigned char* dst_px, int seed, int* dither_lut, int shift_bits, int ind_mask, int threshold, bool is_full_plane);
-	void process_pixel_mode2_blur(const unsigned char* src_px, int src_pitch, unsigned char* dst_px, int seed, int* dither_lut, int shift_bits, int ind_mask, int threshold, bool is_full_plane);
-
 	void process_plane(int n, PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane);
 public:
 	flash3kyuu_deband(PClip child, int range, int Y, int Cb, int Cr, 
 		int ditherY, int ditherC, int sample_mode, int seed,
 		bool blur_first, bool diff_seed_for_each_frame);
+	~flash3kyuu_deband();
+
 	PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);
 };
