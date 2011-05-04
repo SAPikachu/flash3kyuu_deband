@@ -149,13 +149,21 @@ void flash3kyuu_deband::init_frame_luts(int n)
 				*ref_px_y_2_lut = _range_lut[(seed >> 10) & 0x3F];
 			}
 
-			*change_y_lut = _range_lut[(seed >> 15) & 0x3F];
+			*change_y_lut = _ditherY_lut[(seed >> 15) & 0x3F];
 
 			if ((x & 1) == 0 && (y & 1) == 0) {
-				*ref_px_c_lut = *ref_px_y_lut >> 1;
-				*ref_px_c_2_lut = *ref_px_y_2_lut >> 1;
-				*change_cb_lut = _range_lut[(seed >> 20) & 0x3F];
-				*change_cr_lut = _range_lut[(seed >> 25) & 0x3F];
+				*ref_px_c_lut = abs(*ref_px_y_lut) >> 1;
+				if (*ref_px_y_lut < 0) 
+				{
+					*ref_px_c_lut = -*ref_px_c_lut;
+				}
+				*ref_px_c_2_lut = abs(*ref_px_y_2_lut) >> 1;
+				if (*ref_px_y_2_lut < 0) 
+				{
+					*ref_px_c_2_lut = -*ref_px_c_2_lut;
+				}
+				*change_cb_lut = _ditherC_lut[(seed >> 20) & 0x3F];
+				*change_cr_lut = _ditherC_lut[(seed >> 25) & 0x3F];
 				ref_px_c_lut++;
 				ref_px_c_2_lut++;
 				change_cb_lut++;
