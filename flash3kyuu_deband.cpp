@@ -145,8 +145,8 @@ void flash3kyuu_deband::init_frame_luts(int n)
 			{
 				*ref_px_y_lut = (_h_ind_masks[y] & _range_lut[(seed >> 10) & 0x3F]);
 			} else {
-				*ref_px_y_lut = _range_lut[(seed >> 5) & 0x3F];
-				*ref_px_y_2_lut = _range_lut[(seed >> 10) & 0x3F];
+				*ref_px_y_lut = _h_ind_masks[y] & _range_lut[(seed >> 5) & 0x3F];
+				*ref_px_y_2_lut = _h_ind_masks[y] & _range_lut[(seed >> 10) & 0x3F];
 			}
 
 			*change_y_lut = _ditherY_lut[(seed >> 15) & 0x3F];
