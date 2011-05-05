@@ -333,7 +333,7 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
 						} else {
 							int diff = *src_px - src_px[ref_px];
 							int diff_n = *src_px - src_px[-ref_px];
-							use_org_px_as_base = IS_ABOVE_THRESHOLD(diff) && IS_ABOVE_THRESHOLD(diff_n);
+							use_org_px_as_base = IS_ABOVE_THRESHOLD(diff) || IS_ABOVE_THRESHOLD(diff_n);
 						}
 					} else {
 						assert(abs(*ref_lut_1) <= j && abs(*ref_lut_1) + j < src_width);
@@ -356,9 +356,9 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
 							int diff2 = src_px[-ref_px] - *src_px;
 							int diff3 = src_px[ref_px_2] - *src_px;
 							int diff4 = src_px[-ref_px_2] - *src_px;
-							use_org_px_as_base = IS_ABOVE_THRESHOLD(diff1) && 
-												 IS_ABOVE_THRESHOLD(diff2) &&
-												 IS_ABOVE_THRESHOLD(diff3) && 
+							use_org_px_as_base = IS_ABOVE_THRESHOLD(diff1) || 
+												 IS_ABOVE_THRESHOLD(diff2) ||
+												 IS_ABOVE_THRESHOLD(diff3) || 
 												 IS_ABOVE_THRESHOLD(diff4);
 						}
 					}
