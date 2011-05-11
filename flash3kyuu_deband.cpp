@@ -241,12 +241,6 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
 	dst_width = dst->GetRowSize(plane);
 	dst_height = dst->GetHeight(plane);
 
-	int seed = 0x92D68CA2 - _seed;
-	if (_diff_seed_for_each_frame) 
-	{
-		seed -= n;
-	}
-
 	int threshold;
 	pixel_dither_info* info_ptr_base;
 	int info_stride;
