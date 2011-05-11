@@ -77,40 +77,28 @@ flash3kyuu_deband::flash3kyuu_deband(PClip child, int range, int Y, int Cb, int 
 			_blur_first(blur_first),
 			_diff_seed_for_each_frame(diff_seed_for_each_frame),
 			_h_ind_masks(NULL),
-			_ref_px_y_lut(NULL),
-			_ref_px_y_2_lut(NULL),
-			_ref_px_c_lut(NULL),
-			_ref_px_c_2_lut(NULL),
-			_change_y_lut(NULL),
-			_change_cb_lut(NULL),
-			_change_cr_lut(NULL)
+			_y_info(NULL),
+			_cb_info(NULL),
+			_cr_info(NULL)
 {
 	this->init();
 }
 
 void flash3kyuu_deband::destroy_frame_luts(void)
 {
-	delete [] _ref_px_y_lut;
-	delete [] _ref_px_y_2_lut;
-	delete [] _ref_px_c_lut;
-	delete [] _ref_px_c_2_lut;
-	delete [] _change_y_lut;
-	delete [] _change_cb_lut;
-	delete [] _change_cr_lut;
+	_aligned_free(_y_info);
+	_aligned_free(_cb_info);
+	_aligned_free(_cr_info);
 	
-	_ref_px_y_lut = NULL;
-	_ref_px_y_2_lut = NULL;
-    _ref_px_c_lut = NULL;
-    _ref_px_c_2_lut = NULL;
-	_change_y_lut = NULL;
-	_change_cb_lut = NULL;
-	_change_cr_lut = NULL;
+	_y_info = NULL;
+	_cb_info = NULL;
+	_cr_info = NULL;
 }
 
 void flash3kyuu_deband::init_frame_luts(int n)
 {
 	destroy_frame_luts();
-	
+
 	int seed = 0x92D68CA2 - _seed;
 	if (_diff_seed_for_each_frame) 
 	{
@@ -118,60 +106,66 @@ void flash3kyuu_deband::init_frame_luts(int n)
 	}
 
 	const VideoInfo& vi = GetVideoInfo();
-	_ref_px_y_lut = new int[vi.width * vi.height];
-	_ref_px_y_2_lut = new int[vi.width * vi.height];
-	_ref_px_c_lut = new int[vi.width * vi.height / 4];
-	_ref_px_c_2_lut = new int[vi.width * vi.height / 4];
-	_change_y_lut = new int[vi.width * vi.height];
-	_change_cb_lut = new int[vi.width * vi.height / 4];
-	_change_cr_lut = new int[vi.width * vi.height / 4];
-	
-	int* ref_px_y_lut = _ref_px_y_lut;
-	int* ref_px_y_2_lut = _ref_px_y_2_lut;
-	int* ref_px_c_lut = _ref_px_c_lut;
-	int* ref_px_c_2_lut = _ref_px_c_2_lut;
-	int* change_y_lut = _change_y_lut;
-	int* change_cb_lut = _change_cb_lut;
-	int* change_cr_lut = _change_cr_lut;
+
+	int y_stride = FRAME_LUT_STRIDE(vi.width);
+	int y_size = sizeof(pixel_dither_info) * y_stride * vi.height;
+	_y_info = (pixel_dither_info*)_aligned_malloc(y_size, FRAME_LUT_ALIGNMENT);
+
+	int c_stride = FRAME_LUT_STRIDE(vi.width / 2);
+	int c_size = sizeof(pixel_dither_info) * c_stride * (vi.height / 2);
+	_cb_info = (pixel_dither_info*)_aligned_malloc(c_size, FRAME_LUT_ALIGNMENT);
+	_cr_info = (pixel_dither_info*)_aligned_malloc(c_size, FRAME_LUT_ALIGNMENT);
+
+	// ensure unused items are also initialized
+	memset(_y_info, 0, y_size);
+	memset(_cb_info, 0, c_size);
+	memset(_cr_info, 0, c_size);
+
+	pixel_dither_info *y_info_ptr, *cb_info_ptr, *cr_info_ptr;
 
 	for (int y = 0; y < vi.height; y++)
 	{
+		y_info_ptr = _y_info + y * y_stride;
+		cb_info_ptr = _cb_info + (y / 2) * c_stride;
+		cr_info_ptr = _cr_info + (y / 2) * c_stride;
 		for (int x = 0; x < vi.width; x++)
 		{
 			int seed_tmp = (((seed << 13) ^ (unsigned int)seed) >> 17) ^ (seed << 13) ^ seed;
 			seed = 32 * seed_tmp ^ seed_tmp;
 
+			if (x < _range_raw || vi.width - x <= _range_raw) {
+				continue;
+			}
+
+			pixel_dither_info info_y = {0, 0, 0, 0};
+
 			if (_sample_mode < 2)
 			{
-				*ref_px_y_lut = (_h_ind_masks[y] & _range_lut[(seed >> 10) & 0x3F]);
+				info_y.ref1 = (signed char)(_h_ind_masks[y] & _range_lut[(seed >> 10) & 0x3F]);
 			} else {
-				*ref_px_y_lut = _h_ind_masks[y] & _range_lut[(seed >> 5) & 0x3F];
-				*ref_px_y_2_lut = _h_ind_masks[y] & _range_lut[(seed >> 10) & 0x3F];
+				info_y.ref1 = (signed char)(_h_ind_masks[y] & _range_lut[(seed >> 5) & 0x3F]);
+				info_y.ref2 = (signed char)(_h_ind_masks[y] & _range_lut[(seed >> 10) & 0x3F]);
 			}
 
-			*change_y_lut = _ditherY_lut[(seed >> 15) & 0x3F];
+			info_y.change = (signed char)_ditherY_lut[(seed >> 15) & 0x3F];
+			*y_info_ptr = info_y;
 
 			if ((x & 1) == 0 && (y & 1) == 0) {
-				*ref_px_c_lut = abs(*ref_px_y_lut) >> 1;
-				if (*ref_px_y_lut < 0) 
-				{
-					*ref_px_c_lut = -*ref_px_c_lut;
-				}
-				*ref_px_c_2_lut = abs(*ref_px_y_2_lut) >> 1;
-				if (*ref_px_y_2_lut < 0) 
-				{
-					*ref_px_c_2_lut = -*ref_px_c_2_lut;
-				}
-				*change_cb_lut = _ditherC_lut[(seed >> 20) & 0x3F];
-				*change_cr_lut = _ditherC_lut[(seed >> 25) & 0x3F];
-				ref_px_c_lut++;
-				ref_px_c_2_lut++;
-				change_cb_lut++;
-				change_cr_lut++;
+				pixel_dither_info info_c = {0, 0, 0, 0};
+				// use absolute value to calulate correct ref, and restore sign
+				info_c.ref1 = (abs(info_y.ref1) >> 1) * (info_y.ref1 >> 7);
+				info_c.ref2 = (abs(info_y.ref2) >> 1) * (info_y.ref2 >> 7);
+
+				info_c.change = _ditherC_lut[(seed >> 20) & 0x3F];
+				*cb_info_ptr = info_c;
+
+				info_c.change = _ditherC_lut[(seed >> 25) & 0x3F];
+				*cr_info_ptr = info_c;
+				
+				cb_info_ptr++;
+				cr_info_ptr++;
 			}
-			ref_px_y_lut++;
-			ref_px_y_2_lut++;
-			change_y_lut++;
+			y_info_ptr++;
 		}
 	}
 }
@@ -232,16 +226,6 @@ inline unsigned char sadd8(unsigned char a, int b)
 }
 
 
-void flash3kyuu_deband::process_pixel_out_of_range_mode0(const unsigned char* src_px, int src_pitch, unsigned char* dst_px, int seed, int* dither_lut, int shift_bits, int ind_mask, int threshold, bool is_full_plane)
-{
-	*dst_px = *src_px;
-}
-
-void flash3kyuu_deband::process_pixel_out_of_range_mode12(const unsigned char* src_px, int src_pitch, unsigned char* dst_px, int seed, int* dither_lut, int shift_bits, int ind_mask, int threshold, bool is_full_plane)
-{
-	*dst_px = sadd8(*src_px, dither_lut[(seed >> shift_bits) & 0x3F]);
-}
-
 void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane)
 {
 	const unsigned char* srcp = src->GetReadPtr(plane);
@@ -264,54 +248,58 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
 	}
 
 	int threshold;
-	int* ref_lut_1;
-	int* ref_lut_2;
-	int* change_lut;
+	pixel_dither_info* info_ptr_base;
+	int info_stride;
 
 	switch (plane & 7)
 	{
 	case PLANAR_Y:
-		ref_lut_1 = _ref_px_y_lut;
-        ref_lut_2 = _ref_px_y_2_lut;
-		change_lut = _change_y_lut;
+		info_ptr_base = _y_info;
+		info_stride = FRAME_LUT_STRIDE(vi.width);
 		threshold = _Y;
 		break;
 	case PLANAR_U:
-		ref_lut_1 = _ref_px_c_lut;
-		ref_lut_2 = _ref_px_c_2_lut;
-		change_lut = _change_cb_lut;
+		info_ptr_base = _cb_info;
+		info_stride = FRAME_LUT_STRIDE(vi.width / 2);
 		threshold = _Cb;
 		break;
 	case PLANAR_V:
-		ref_lut_1 = _ref_px_c_lut;
-		ref_lut_2 = _ref_px_c_2_lut;
-		change_lut = _change_cr_lut;
+		info_ptr_base = _cr_info;
+		info_stride = FRAME_LUT_STRIDE(vi.width / 2);
 		threshold = _Cr;
 		break;
+	default:
+		abort();
 	}
 
 	int range = (plane == PLANAR_Y ? _range_raw : _range_raw >> 1);
+	pixel_dither_info* info_ptr;
 	for (int i = 0; i < src_height; i++)
 	{
 		const unsigned char* src_px = srcp + src_pitch * i;
 		unsigned char* dst_px = dstp + dst_pitch * i;
 
+		info_ptr = info_ptr_base + info_stride * i;
+
 		for (int j = 0; j < src_width; j++)
 		{
+			pixel_dither_info info = *info_ptr;
 			if (j < range || src_width - j <= range) 
 			{
 				if (_sample_mode == 0) 
 				{
 					*dst_px = *src_px;
 				} else {
-					*dst_px = sadd8(*src_px, *change_lut);
+					*dst_px = sadd8(*src_px, info.change);
 				}
 			} else {
 #define IS_ABOVE_THRESHOLD(diff) ( (diff ^ (diff >> 31)) - (diff >> 31) >= threshold )
-				assert(abs(*ref_lut_1) <= i && abs(*ref_lut_1) + i < src_height);
+
+				assert(abs(info.ref1) <= i && abs(info.ref1) + i < src_height);
+
 				if (_sample_mode == 0) 
 				{
-					int ref_px = *ref_lut_1 * src_pitch;
+					int ref_px = info.ref1 * src_pitch;
 					int diff = *src_px - src_px[ref_px];
 					if (IS_ABOVE_THRESHOLD(diff)) {
 						*dst_px = *src_px;
@@ -324,7 +312,7 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
 					int ref_px, ref_px_2;
 					if (_sample_mode == 1)
 					{
-						ref_px = *ref_lut_1 * src_pitch;
+						ref_px = info.ref1 * src_pitch;
 						avg = ((int)src_px[ref_px] + (int)src_px[-ref_px]) >> 1;
 						if (_blur_first)
 						{
@@ -336,12 +324,12 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
 							use_org_px_as_base = IS_ABOVE_THRESHOLD(diff) || IS_ABOVE_THRESHOLD(diff_n);
 						}
 					} else {
-						assert(abs(*ref_lut_1) <= j && abs(*ref_lut_1) + j < src_width);
-						assert(abs(*ref_lut_2) <= i && abs(*ref_lut_2) + i < src_height);
-						assert(abs(*ref_lut_2) <= j && abs(*ref_lut_2) + j < src_width);
+						assert(abs(info.ref1) <= j && abs(info.ref1) + j < src_width);
+						assert(abs(info.ref2) <= i && abs(info.ref2) + i < src_height);
+						assert(abs(info.ref2) <= j && abs(info.ref2) + j < src_width);
 						
-						ref_px = src_pitch * *ref_lut_1 + *ref_lut_2;
-						ref_px_2 = *ref_lut_2 - src_pitch * *ref_lut_1;
+						ref_px = src_pitch * info.ref1 + info.ref2;
+						ref_px_2 = info.ref2 - src_pitch * info.ref1;
 
 						avg = (((int)src_px[ref_px] + 
 							    (int)src_px[-ref_px] + 
@@ -363,17 +351,15 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
 						}
 					}
 					if (use_org_px_as_base) {
-						*dst_px = sadd8(*src_px, *change_lut);
+						*dst_px = sadd8(*src_px, info.change);
 					} else {
-						*dst_px = sadd8(avg, *change_lut);
+						*dst_px = sadd8(avg, info.change);
 					}
 				}
 			}
 			src_px++;
 			dst_px++;
-			ref_lut_1++;
-			ref_lut_2++;
-			change_lut++;
+			info_ptr++;
 		}
 	}
 }

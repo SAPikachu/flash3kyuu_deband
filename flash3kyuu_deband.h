@@ -9,6 +9,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
+#include <memory.h>
+#include <malloc.h>
 
 #ifdef FLASH3KYUU_DEBAND_EXPORTS
 #define FLASH3KYUU_DEBAND_API extern "C" __declspec(dllexport)
@@ -19,6 +21,18 @@
 AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScriptEnvironment* env);
 
 FLASH3KYUU_DEBAND_API const char* __stdcall AvisynthPluginInit2(IScriptEnvironment* env);
+
+
+typedef __declspec(align(4)) struct _pixel_dither_info {
+	signed char ref1, ref2, change;
+	signed char unused;
+} pixel_dither_info;
+
+// align lut for SSE operations
+#define FRAME_LUT_ALIGNMENT 16
+
+// whole multiples of alignment, so SSE codes don't need to check boundaries
+#define FRAME_LUT_STRIDE(width) (((width - 1) | (FRAME_LUT_ALIGNMENT - 1)) + 1)
 
 class flash3kyuu_deband : public GenericVideoFilter {
 private:
@@ -40,20 +54,13 @@ private:
 
 	signed char *_h_ind_masks;
 	
-	int *_ref_px_y_lut;
-	int *_ref_px_y_2_lut;
-	int *_ref_px_c_lut;
-	int *_ref_px_c_2_lut;
-	int *_change_y_lut;
-	int *_change_cb_lut;
-	int *_change_cr_lut;
+	pixel_dither_info *_y_info;
+	pixel_dither_info *_cb_info;
+	pixel_dither_info *_cr_info;
 
 	void init(void);
 	void init_frame_luts(int n);
 	void destroy_frame_luts(void);
-
-	void process_pixel_out_of_range_mode0(const unsigned char* src_px, int src_pitch, unsigned char* dst_px, int seed, int* dither_lut, int shift_bits, int ind_mask, int threshold, bool is_full_plane);
-	void process_pixel_out_of_range_mode12(const unsigned char* src_px, int src_pitch, unsigned char* dst_px, int seed, int* dither_lut, int shift_bits, int ind_mask, int threshold, bool is_full_plane);
 	
 	void process_plane(int n, PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane);
 public:
