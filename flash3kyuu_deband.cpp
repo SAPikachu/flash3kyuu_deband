@@ -226,47 +226,12 @@ inline unsigned char sadd8(unsigned char a, int b)
 }
 
 
-void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane)
-{
-	const unsigned char* srcp = src->GetReadPtr(plane);
-	const int src_pitch = src->GetPitch(plane);
-	const int src_width = src->GetRowSize(plane);
-	const int src_height = src->GetHeight(plane);
 	
-	int dst_pitch;
-	int dst_width;
-	int dst_height;
 
-	dst_pitch = dst->GetPitch(plane);
-	dst_width = dst->GetRowSize(plane);
-	dst_height = dst->GetHeight(plane);
 
-	int threshold;
-	pixel_dither_info* info_ptr_base;
-	int info_stride;
 
-	switch (plane & 7)
-	{
-	case PLANAR_Y:
-		info_ptr_base = _y_info;
-		info_stride = FRAME_LUT_STRIDE(vi.width);
-		threshold = _Y;
-		break;
-	case PLANAR_U:
-		info_ptr_base = _cb_info;
-		info_stride = FRAME_LUT_STRIDE(vi.width / 2);
-		threshold = _Cb;
-		break;
-	case PLANAR_V:
-		info_ptr_base = _cr_info;
-		info_stride = FRAME_LUT_STRIDE(vi.width / 2);
-		threshold = _Cr;
-		break;
-	default:
-		abort();
-	}
-
-	int range = (plane == PLANAR_Y ? _range_raw : _range_raw >> 1);
+void flash3kyuu_deband::process_plane_plainc(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, int threshold, pixel_dither_info *info_ptr_base, int info_stride, int range)
+{
 	pixel_dither_info* info_ptr;
 	for (int i = 0; i < src_height; i++)
 	{
@@ -321,8 +286,8 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
 						assert(abs(info.ref1) <= j && abs(info.ref1) + j < src_width);
 						assert(abs(info.ref2) <= i && abs(info.ref2) + i < src_height);
 						assert(abs(info.ref2) <= j && abs(info.ref2) + j < src_width);
-						
-						ref_px = src_pitch * info.ref1 + info.ref2;
+
+						ref_px = src_pitch * info.ref2 + info.ref1;
 						ref_px_2 = info.ref2 - src_pitch * info.ref1;
 
 						avg = (((int)src_px[ref_px] + 
@@ -357,11 +322,54 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
 		}
 	}
 }
+void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane)
+{
+	const unsigned char* srcp = src->GetReadPtr(plane);
+	const int src_pitch = src->GetPitch(plane);
+	const int src_width = src->GetRowSize(plane);
+	const int src_height = src->GetHeight(plane);
+
+	int dst_pitch;
+	int dst_width;
+	int dst_height;
+
+	dst_pitch = dst->GetPitch(plane);
+	dst_width = dst->GetRowSize(plane);
+	dst_height = dst->GetHeight(plane);
+
+	int threshold;
+	pixel_dither_info* info_ptr_base;
+	int info_stride;
+
+	switch (plane & 7)
+	{
+	case PLANAR_Y:
+		info_ptr_base = _y_info;
+		info_stride = FRAME_LUT_STRIDE(vi.width);
+		threshold = _Y;
+		break;
+	case PLANAR_U:
+		info_ptr_base = _cb_info;
+		info_stride = FRAME_LUT_STRIDE(vi.width / 2);
+		threshold = _Cb;
+		break;
+	case PLANAR_V:
+		info_ptr_base = _cr_info;
+		info_stride = FRAME_LUT_STRIDE(vi.width / 2);
+		threshold = _Cr;
+		break;
+	default:
+		abort();
+	}
+
+	int range = (plane == PLANAR_Y ? _range_raw : _range_raw >> 1);
+	process_plane_plainc(srcp, src_width, src_height, src_pitch, dstp, dst_pitch, threshold, info_ptr_base, info_stride, range);
+}
 
 PVideoFrame __stdcall flash3kyuu_deband::GetFrame(int n, IScriptEnvironment* env)
 {
 	PVideoFrame src = child->GetFrame(n, env);
-	PVideoFrame dst = env->NewVideoFrame(vi);
+	PVideoFrame dst = env->NewVideoFrame(vi, 16);
 	
 	if (_diff_seed_for_each_frame)
 	{
