@@ -12,8 +12,6 @@
 #include <memory.h>
 #include <malloc.h>
 
-#include <smmintrin.h>
-
 #ifdef FLASH3KYUU_DEBAND_EXPORTS
 #define FLASH3KYUU_DEBAND_API extern "C" __declspec(dllexport)
 #else
