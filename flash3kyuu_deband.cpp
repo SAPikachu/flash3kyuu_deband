@@ -347,8 +347,10 @@ static void __cdecl process_plane_mode2_noblur_sse4(unsigned char const*srcp, in
 	__m128i src_addr_increment_vector = _mm_set1_epi32(4);
 
 	__m128i src_pitch_vector = _mm_set1_epi32(src_pitch);
+	
+	__m128i change_extract_mask = _mm_set1_epi32(0x00FF0000);
 
-	__m128i change_mask = _mm_set1_epi32(0x00FF0000);
+	__m128i change_shuffle_mask = _mm_set_epi32(0x0f0b0703, 0x0e0a0602, 0x0d090501, 0x0c080400);
 
 	// general-purpose constant
 	__m128i minus_one = _mm_set1_epi32(-1);
@@ -365,14 +367,6 @@ static void __cdecl process_plane_mode2_noblur_sse4(unsigned char const*srcp, in
 
 		while (remaining_pixels > 0)
 		{
-			// data needed
-			__m128i src_pixels;
-
-			__m128i ref_pixels_1;
-			__m128i ref_pixels_2;
-			__m128i ref_pixels_3;
-			__m128i ref_pixels_4;
-			
 			__m128i change = _mm_setzero_si128();
 
 			__declspec(align(16))
@@ -390,7 +384,7 @@ static void __cdecl process_plane_mode2_noblur_sse4(unsigned char const*srcp, in
 			src_addrs = _mm_add_epi32(src_addrs, src_addr_offset_vector);
 			
 #define EXTRACT_REF_PIXELS(n) \
-			process_plane_mode2_sse4_extract_pixels<n>(info_ptr, src_addrs, src_pitch_vector, src_addr_increment_vector, change, change_mask, minus_one, ref_pixels_1_components, ref_pixels_2_components, ref_pixels_3_components, ref_pixels_4_components);
+			process_plane_mode2_sse4_extract_pixels<n>(info_ptr, src_addrs, src_pitch_vector, src_addr_increment_vector, change, change_extract_mask, minus_one, ref_pixels_1_components, ref_pixels_2_components, ref_pixels_3_components, ref_pixels_4_components);
 			
 			EXTRACT_REF_PIXELS(0);
 			EXTRACT_REF_PIXELS(1);
@@ -398,6 +392,15 @@ static void __cdecl process_plane_mode2_noblur_sse4(unsigned char const*srcp, in
 			EXTRACT_REF_PIXELS(3);
 
 #undef EXTRACT_REF_PIXELS
+
+			// shuffle delta values to correct place
+			change = _mm_shuffle_epi8(change, change_shuffle_mask);
+
+			__m128i src_pixels = _mm_load_si128((__m128i*)src_px);
+
+			__m128i use_orig_pixel_blend_mask;
+
+			__m128i ref_pixels = _mm_load_si128((__m128i*)ref_pixels_1_components);
 
 
 		}
