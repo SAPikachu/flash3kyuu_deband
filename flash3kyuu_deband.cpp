@@ -226,7 +226,7 @@ inline unsigned char sadd8(unsigned char a, int b)
 }
 
 template <int ref_part_index>
-static __inline void process_plane_mode2_noblur_sse4_extract_pixels(
+static __inline void process_plane_mode2_sse4_extract_pixels(
     pixel_dither_info *&info_ptr, 
     __m128i &src_addrs, 
     const __m128i &src_pitch_vector, 
@@ -250,14 +250,18 @@ static __inline void process_plane_mode2_noblur_sse4_extract_pixels(
 	switch (ref_part_index)
 	{
 	case 0:
+		// right-shift 16 bits
 		change_temp = _mm_srli_epi32(change_temp, 16);
 		break;
 	case 1:
+		// right-shift 8 bits
 		change_temp = _mm_srli_epi32(change_temp, 8);
 		break;
 	case 2:
+		// already in correct place, do nothing
 		break;
 	case 3:
+		// left-shift 8 bits
 		change_temp = _mm_slli_epi32(change_temp, 8);
 		break;
 	default:
@@ -309,7 +313,7 @@ static __inline void process_plane_mode2_noblur_sse4_extract_pixels(
 	ref_pixels_2_components[2 * ref_part_index] = *(address_buffer_2[2]);
 	ref_pixels_2_components[3 * ref_part_index] = *(address_buffer_2[3]);
 
-	// another direction
+	// another direction, negates all offsets
 	ref_offset1 = _mm_sign_epi32(ref_offset1, minus_one);
 	_mm_store_si128((__m128i*)address_buffer_1, _mm_add_epi32(src_addrs, ref_offset1));
 
@@ -386,7 +390,7 @@ static void __cdecl process_plane_mode2_noblur_sse4(unsigned char const*srcp, in
 			src_addrs = _mm_add_epi32(src_addrs, src_addr_offset_vector);
 			
 #define EXTRACT_REF_PIXELS(n) \
-			process_plane_mode2_noblur_sse4_extract_pixels<n>(info_ptr, src_addrs, src_pitch_vector, src_addr_increment_vector, change, change_mask, minus_one, ref_pixels_1_components, ref_pixels_2_components, ref_pixels_3_components, ref_pixels_4_components);
+			process_plane_mode2_sse4_extract_pixels<n>(info_ptr, src_addrs, src_pitch_vector, src_addr_increment_vector, change, change_mask, minus_one, ref_pixels_1_components, ref_pixels_2_components, ref_pixels_3_components, ref_pixels_4_components);
 			
 			EXTRACT_REF_PIXELS(0);
 			EXTRACT_REF_PIXELS(1);
