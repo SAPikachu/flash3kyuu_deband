@@ -225,13 +225,116 @@ inline unsigned char sadd8(unsigned char a, int b)
     return (unsigned char)(s < 0 ? 0 : s > 0xFF ? 0xFF : s);
 }
 
+template <int ref_part_index>
+static __inline void process_plane_mode2_noblur_sse4_extract_pixels(
+    pixel_dither_info *&info_ptr, 
+    __m128i &src_addrs, 
+    const __m128i &src_pitch_vector, 
+    const __m128i &src_addr_increment_vector, 
+    __m128i &change, 
+    const __m128i &change_mask, 
+    const __m128i &minus_one, 
+    unsigned char ref_pixels_1_components[16], 
+    unsigned char ref_pixels_2_components[16], 
+    unsigned char ref_pixels_3_components[16], 
+    unsigned char ref_pixels_4_components[16])
+{
+	__m128i info_block = _mm_load_si128((__m128i*)info_ptr);
 
+	// change: bit 16-23
+	// merge it into the variable, and shuffle it to correct place after all 16 elements are loaded
+	__m128i change_temp = info_block;
+	change_temp = _mm_and_si128(change_temp, change_mask);
+
+	// this switch should be optimized out
+	switch (ref_part_index)
+	{
+	case 0:
+		change_temp = _mm_srli_epi32(change_temp, 16);
+		break;
+	case 1:
+		change_temp = _mm_srli_epi32(change_temp, 8);
+		break;
+	case 2:
+		break;
+	case 3:
+		change_temp = _mm_slli_epi32(change_temp, 8);
+		break;
+	default:
+		// CODING ERROR!
+		abort();
+	}
+	
+	change = _mm_or_si128(change, change_temp); // combine them
+
+	// ref1: bit 0-7
+	// left-shift & right-shift 24bits to remove other elements and preserve sign
+	__m128i ref1 = info_block;
+	ref1 = _mm_slli_epi32(ref1, 24); // << 24
+	ref1 = _mm_srai_epi32(ref1, 24); // >> 24
+
+	// ref2: bit 8-15
+	// similar to above
+	__m128i ref2 = info_block;
+	ref2 = _mm_slli_epi32(ref1, 16); // << 16
+	ref2 = _mm_srai_epi32(ref1, 24); // >> 24
+
+	// temporarily store computed addresses
+	__declspec(align(16))
+	int* address_buffer_1[4];
+
+	__declspec(align(16))
+	int* address_buffer_2[4];
+
+	// ref_px = src_pitch * info.ref2 + info.ref1;
+	__m128i ref_offset1 = _mm_mullo_epi32(src_pitch_vector, ref2); // packed DWORD multiplication
+	ref_offset1 = _mm_add_epi32(ref_offset1, ref1);
+
+	_mm_store_si128((__m128i*)address_buffer_1, _mm_add_epi32(src_addrs, ref_offset1));
+
+	// ref_px_2 = info.ref2 - src_pitch * info.ref1;
+	__m128i ref_offset2 = _mm_mullo_epi32(src_pitch_vector, ref1); // packed DWORD multiplication
+	ref_offset2 = _mm_sub_epi32(ref2, ref_offset2);
+
+	_mm_store_si128((__m128i*)address_buffer_2, _mm_add_epi32(src_addrs, ref_offset2));
+
+	// load ref bytes
+	ref_pixels_1_components[0 * ref_part_index] = *(address_buffer_1[0]);
+	ref_pixels_1_components[1 * ref_part_index] = *(address_buffer_1[1]);
+	ref_pixels_1_components[2 * ref_part_index] = *(address_buffer_1[2]);
+	ref_pixels_1_components[3 * ref_part_index] = *(address_buffer_1[3]);
+
+	ref_pixels_2_components[0 * ref_part_index] = *(address_buffer_2[0]);
+	ref_pixels_2_components[1 * ref_part_index] = *(address_buffer_2[1]);
+	ref_pixels_2_components[2 * ref_part_index] = *(address_buffer_2[2]);
+	ref_pixels_2_components[3 * ref_part_index] = *(address_buffer_2[3]);
+
+	// another direction
+	ref_offset1 = _mm_sign_epi32(ref_offset1, minus_one);
+	_mm_store_si128((__m128i*)address_buffer_1, _mm_add_epi32(src_addrs, ref_offset1));
+
+	ref_offset2 = _mm_sign_epi32(ref_offset2, minus_one);
+	_mm_store_si128((__m128i*)address_buffer_2, _mm_add_epi32(src_addrs, ref_offset2));
+
+	ref_pixels_3_components[0 * ref_part_index] = *(address_buffer_1[0]);
+	ref_pixels_3_components[1 * ref_part_index] = *(address_buffer_1[1]);
+	ref_pixels_3_components[2 * ref_part_index] = *(address_buffer_1[2]);
+	ref_pixels_3_components[3 * ref_part_index] = *(address_buffer_1[3]);
+
+	ref_pixels_4_components[0 * ref_part_index] = *(address_buffer_2[0]);
+	ref_pixels_4_components[1 * ref_part_index] = *(address_buffer_2[1]);
+	ref_pixels_4_components[2 * ref_part_index] = *(address_buffer_2[2]);
+	ref_pixels_4_components[3 * ref_part_index] = *(address_buffer_2[3]);
+
+	info_ptr += 4;
+	src_addrs = _mm_add_epi32(src_addrs, src_addr_increment_vector);
+}
 static void __cdecl process_plane_mode2_noblur_sse4(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, int threshold, pixel_dither_info *info_ptr_base, int info_stride, int range)
 {
 	// By default, frame buffers are guaranteed to be mod16, and full pitch is always available for every line
 	// so even width is not mod16, we don't need to treat remaining pixels as special case
 	// see avisynth source code -> core.cpp -> NewPlanarVideoFrame for details
-	
+
 	pixel_dither_info* info_ptr;
 
 	// used to compute 4 consecutive addresses
@@ -240,7 +343,7 @@ static void __cdecl process_plane_mode2_noblur_sse4(unsigned char const*srcp, in
 	__m128i src_addr_increment_vector = _mm_set1_epi32(4);
 
 	__m128i src_pitch_vector = _mm_set1_epi32(src_pitch);
- 
+
 	__m128i change_mask = _mm_set1_epi32(0x00FF0000);
 
 	// general-purpose constant
@@ -267,7 +370,7 @@ static void __cdecl process_plane_mode2_noblur_sse4(unsigned char const*srcp, in
 			__m128i ref_pixels_4;
 			
 			__m128i change = _mm_setzero_si128();
-			
+
 			__declspec(align(16))
 			unsigned char ref_pixels_1_components[16];
 			__declspec(align(16))
@@ -281,77 +384,18 @@ static void __cdecl process_plane_mode2_noblur_sse4(unsigned char const*srcp, in
 			__m128i src_addrs = _mm_set1_epi32((int)src_px);
 			// add offset
 			src_addrs = _mm_add_epi32(src_addrs, src_addr_offset_vector);
-
-			__m128i info_block = _mm_load_si128((__m128i*)info_ptr);
 			
-			// change: bit 16-23
-			// merge it into the variable, and shuffle it to correct place after all 16 elements are loaded
- 			__m128i change_temp = info_block;
-			change_temp = _mm_and_si128(change_temp, change_mask);
-			change_temp = _mm_srli_epi32(ref1, 24); // logical shift to first byte
-			change = _mm_or_si128(change, change_temp); // combine them
-
-			// ref1: bit 0-7
-			// left-shift & right-shift 24bits to remove other elements and preserve sign
- 			__m128i ref1 = info_block;
-			ref1 = _mm_slli_epi32(ref1, 24); // << 24
-			ref1 = _mm_srai_epi32(ref1, 24); // >> 24
-
-			// ref2: bit 8-15
-			// similar to above
- 			__m128i ref2 = info_block;
-			ref2 = _mm_slli_epi32(ref1, 16); // << 16
-			ref2 = _mm_srai_epi32(ref1, 24); // >> 24
-
-			// temporary store computed addresses
-			__declspec(align(16))
-			int* address_buffer_1[4];
-
-			__declspec(align(16))
-			int* address_buffer_2[4];
+#define EXTRACT_REF_PIXELS(n) \
+			process_plane_mode2_noblur_sse4_extract_pixels<n>(info_ptr, src_addrs, src_pitch_vector, src_addr_increment_vector, change, change_mask, minus_one, ref_pixels_1_components, ref_pixels_2_components, ref_pixels_3_components, ref_pixels_4_components);
 			
-			// ref_px = src_pitch * info.ref2 + info.ref1;
-			__m128i ref_offset1 = _mm_mullo_epi32(src_pitch_vector, ref2); // packed DWORD multiplication
-			ref_offset1 = _mm_add_epi32(ref_offset1, ref1);
+			EXTRACT_REF_PIXELS(0);
+			EXTRACT_REF_PIXELS(1);
+			EXTRACT_REF_PIXELS(2);
+			EXTRACT_REF_PIXELS(3);
 
-			_mm_store_si128(address_buffer_1, _mm_add_epi32(src_addrs, ref_offset1));
+#undef EXTRACT_REF_PIXELS
 
-			// ref_px_2 = info.ref2 - src_pitch * info.ref1;
-			__m128i ref_offset2 = _mm_mullo_epi32(src_pitch_vector, ref1); // packed DWORD multiplication
-			ref_offset2 = _mm_add_epi32(ref2, ref_offset1);
-			
-			_mm_store_si128(address_buffer_2, _mm_add_epi32(src_addrs, ref_offset2));
-			
-			// load ref bytes
-			ref_pixels_1_components[0] = *(address_buffer_1[0]);
-			ref_pixels_1_components[1] = *(address_buffer_1[1]);
-			ref_pixels_1_components[2] = *(address_buffer_1[2]);
-			ref_pixels_1_components[3] = *(address_buffer_1[3]);
 
-			ref_pixels_2_components[0] = *(address_buffer_2[0]);
-			ref_pixels_2_components[1] = *(address_buffer_2[1]);
-			ref_pixels_2_components[2] = *(address_buffer_2[2]);
-			ref_pixels_2_components[3] = *(address_buffer_2[3]);
-			
-			// another direction
-			ref_offset1 = _mm_sign_epi32(ref_offset1, minus_one);
-			_mm_store_si128(address_buffer_1, _mm_add_epi32(src_addrs, ref_offset1));
-
-			ref_offset2 = _mm_sign_epi32(ref_offset2, minus_one);
-			_mm_store_si128(address_buffer_2, _mm_add_epi32(src_addrs, ref_offset2));
-
-			ref_pixels_3_components[0] = *(address_buffer_1[0]);
-			ref_pixels_3_components[1] = *(address_buffer_1[1]);
-			ref_pixels_3_components[2] = *(address_buffer_1[2]);
-			ref_pixels_3_components[3] = *(address_buffer_1[3]);
-
-			ref_pixels_4_components[0] = *(address_buffer_2[0]);
-			ref_pixels_4_components[1] = *(address_buffer_2[1]);
-			ref_pixels_4_components[2] = *(address_buffer_2[2]);
-			ref_pixels_4_components[3] = *(address_buffer_2[3]);
-
-			info_ptr += 4;
-			src_addrs = _mm_add_epi32(src_addrs, src_addr_increment_vector);
 		}
 	}
 }
