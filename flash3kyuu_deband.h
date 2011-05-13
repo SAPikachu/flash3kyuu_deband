@@ -12,6 +12,8 @@
 #include <memory.h>
 #include <malloc.h>
 
+#include <smmintrin.h>
+
 #ifdef FLASH3KYUU_DEBAND_EXPORTS
 #define FLASH3KYUU_DEBAND_API extern "C" __declspec(dllexport)
 #else
@@ -63,6 +65,8 @@ private:
 	void destroy_frame_luts(void);
 	
 	void process_plane(int n, PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane);
+	void process_plane_plainc(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, int threshold, pixel_dither_info *info_ptr_base, int info_stride, int range);
+
 public:
 	flash3kyuu_deband(PClip child, int range, int Y, int Cb, int Cr, 
 		int ditherY, int ditherC, int sample_mode, int seed,
