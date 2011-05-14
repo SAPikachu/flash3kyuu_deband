@@ -147,7 +147,7 @@ namespace sse4 {
 		
 		__m128i threshold_vector = _mm_set1_epi8(threshold);
 
-		__m128i sign_convert_vector = _mm_set1_epi8(0x80);
+		__m128i sign_convert_vector = _mm_set1_epi8(0x80u);
 
 		// general-purpose constant
 		__m128i minus_one = _mm_set1_epi32(-1);
