@@ -38,7 +38,7 @@ class flash3kyuu_deband : public GenericVideoFilter {
 private:
 	int _range_raw; 
 	int _range; 
-	int _Y, _Cb, _Cr;
+	unsigned char _Y, _Cb, _Cr;
 	int _ditherY, _ditherC;
 
 	int _sample_mode;
@@ -63,10 +63,10 @@ private:
 	void destroy_frame_luts(void);
 	
 	void process_plane(int n, PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane);
-	void process_plane_plainc(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, int threshold, pixel_dither_info *info_ptr_base, int info_stride, int range);
+	void process_plane_plainc(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range);
 
 public:
-	flash3kyuu_deband(PClip child, int range, int Y, int Cb, int Cr, 
+	flash3kyuu_deband(PClip child, int range, unsigned char Y, unsigned char Cb, unsigned char Cr, 
 		int ditherY, int ditherC, int sample_mode, int seed,
 		bool blur_first, bool diff_seed_for_each_frame);
 	~flash3kyuu_deband();

@@ -1,3 +1,7 @@
+
+
+#include "stdafx.h"
+
 #include "flash3kyuu_deband.h"
 
 #include <smmintrin.h>
@@ -111,13 +115,24 @@ namespace sse4 {
 		info_ptr += 4;
 		src_addrs = _mm_add_epi32(src_addrs, src_addr_increment_vector);
 	}
-	static void __cdecl process_plane_mode2_noblur(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, int threshold, pixel_dither_info *info_ptr_base, int info_stride, int range)
+
+	static __inline __m128i clamped_absolute_difference(__m128i a, __m128i b, __m128i difference_limit)
+	{
+		// we need to clamp the result for 2 reasons:
+		// 1. there is no integer >= operator in SSE
+		// 2. comparison instructions accept only signed integers,
+		//    so if difference is bigger than 0x7f, the compare result will be invalid
+		__m128i diff = _mm_sub_epi8(_mm_max_epu8(a, b), _mm_min_epu8(a, b));
+		return _mm_min_epu8(diff, difference_limit);
+	}
+
+	static void __cdecl process_plane_mode2_noblur(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range)
 	{
 		// By default, frame buffers are guaranteed to be mod16, and full pitch is always available for every line
 		// so even width is not mod16, we don't need to treat remaining pixels as special case
 		// see avisynth source code -> core.cpp -> NewPlanarVideoFrame for details
 
-		pixel_dither_info* info_ptr;
+		pixel_dither_info* info_ptr = info_ptr_base;
 
 		// used to compute 4 consecutive addresses
 		__m128i src_addr_offset_vector = _mm_set_epi32(3, 2, 1, 0);
@@ -129,9 +144,15 @@ namespace sse4 {
 		__m128i change_extract_mask = _mm_set1_epi32(0x00FF0000);
 
 		__m128i change_shuffle_mask = _mm_set_epi32(0x0f0b0703, 0x0e0a0602, 0x0d090501, 0x0c080400);
+		
+		__m128i threshold_vector = _mm_set1_epi8(threshold);
+
+		__m128i sign_convert_vector = _mm_set1_epi8(0x80);
 
 		// general-purpose constant
 		__m128i minus_one = _mm_set1_epi32(-1);
+
+		__m128i one_i8 = _mm_set1_epi8(1);
 	
 
 		for (int row = 0; row < src_height; row++)
@@ -139,9 +160,15 @@ namespace sse4 {
 			const unsigned char* src_px = srcp + src_pitch * row;
 			unsigned char* dst_px = dstp + dst_pitch * row;
 
-			info_ptr = info_ptr_base + info_stride * row;
+			// info_ptr = info_ptr_base + info_stride * row;
+			// doesn't need here, since info_stride equals to count of pixels that are needed to process in each row
 
 			int remaining_pixels = info_stride;
+
+			// 4 addresses at a time
+			__m128i src_addrs = _mm_set1_epi32((int)src_px);
+			// add offset
+			src_addrs = _mm_add_epi32(src_addrs, src_addr_offset_vector);
 
 			while (remaining_pixels > 0)
 			{
@@ -156,10 +183,6 @@ namespace sse4 {
 				__declspec(align(16))
 				unsigned char ref_pixels_4_components[16];
 
-				// 4 addresses at a time
-				__m128i src_addrs = _mm_set1_epi32((int)src_px);
-				// add offset
-				src_addrs = _mm_add_epi32(src_addrs, src_addr_offset_vector);
 			
 	#define EXTRACT_REF_PIXELS(n) \
 				process_plane_mode2_extract_pixels<n>(info_ptr, src_addrs, src_pitch_vector, src_addr_increment_vector, change, change_extract_mask, minus_one, ref_pixels_1_components, ref_pixels_2_components, ref_pixels_3_components, ref_pixels_4_components);
@@ -175,12 +198,51 @@ namespace sse4 {
 				change = _mm_shuffle_epi8(change, change_shuffle_mask);
 
 				__m128i src_pixels = _mm_load_si128((__m128i*)src_px);
-
 				__m128i use_orig_pixel_blend_mask;
-
 				__m128i ref_pixels = _mm_load_si128((__m128i*)ref_pixels_1_components);
+				__m128i difference = clamped_absolute_difference(src_pixels, ref_pixels, threshold_vector);
+				// mask: if difference >= threshold, set to 0xff, otherwise 0x00
+				// difference is already clamped to threshold, so we compare for equality here
+				use_orig_pixel_blend_mask = _mm_cmpeq_epi8(difference, threshold_vector);
 
+				__m128i ref_pixels_2 = _mm_load_si128((__m128i*)ref_pixels_2_components);
+				difference = clamped_absolute_difference(src_pixels, ref_pixels_2, threshold_vector);
+				// use OR to combine the masks
+				use_orig_pixel_blend_mask = _mm_or_si128(_mm_cmpeq_epi8(difference, threshold_vector), use_orig_pixel_blend_mask);
 
+				__m128i avg = _mm_avg_epu8(ref_pixels, ref_pixels_2);
+
+				ref_pixels = _mm_load_si128((__m128i*)ref_pixels_3_components);
+				difference = clamped_absolute_difference(src_pixels, ref_pixels, threshold_vector);
+				use_orig_pixel_blend_mask = _mm_or_si128(_mm_cmpeq_epi8(difference, threshold_vector), use_orig_pixel_blend_mask);
+
+				ref_pixels_2 = _mm_load_si128((__m128i*)ref_pixels_4_components);
+				difference = clamped_absolute_difference(src_pixels, ref_pixels_2, threshold_vector);
+				use_orig_pixel_blend_mask = _mm_or_si128(_mm_cmpeq_epi8(difference, threshold_vector), use_orig_pixel_blend_mask);
+
+				// PAVGB adds 1 before calculating average, so we subtract 1 here to be consistent with c version
+				avg = _mm_subs_epu8(avg, one_i8);
+
+				avg = _mm_avg_epu8(avg, _mm_avg_epu8(ref_pixels, ref_pixels_2));
+
+				// if mask is 0xff (over threshold), select second operand, otherwise select first
+				src_pixels = _mm_blendv_epi8(avg, src_pixels, use_orig_pixel_blend_mask);
+
+				// convert to signed form, since change is signed
+				src_pixels = _mm_sub_epi8(src_pixels, sign_convert_vector);
+
+				// saturated add
+				src_pixels = _mm_adds_epi8(src_pixels, change);
+
+				// convert back to unsigned
+				src_pixels = _mm_add_epi8(src_pixels, sign_convert_vector);
+
+				// write back the result
+				_mm_store_si128((__m128i*)dst_px, src_pixels);
+
+				src_px += 16;
+				dst_px += 16;
+				remaining_pixels -= 16;
 			}
 		}
 	}

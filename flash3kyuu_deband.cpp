@@ -24,9 +24,9 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 	}
 
 	int range = args[1].AsInt(15);
-	int Y = args[2].AsInt(1);
-	int Cb = args[3].AsInt(1);
-	int Cr = args[4].AsInt(1);
+	unsigned char Y = (unsigned char)args[2].AsInt(1);
+	unsigned char Cb = (unsigned char)args[3].AsInt(1);
+	unsigned char Cr = (unsigned char)args[4].AsInt(1);
 	int ditherY = args[5].AsInt(1);
 	int ditherC = args[6].AsInt(1);
 	int sample_mode = args[7].AsInt(1);
@@ -61,7 +61,7 @@ FLASH3KYUU_DEBAND_API const char* __stdcall AvisynthPluginInit2(IScriptEnvironme
 	return "flash3kyuu_deband";
 }
 
-flash3kyuu_deband::flash3kyuu_deband(PClip child, int range, int Y, int Cb, int Cr, 
+flash3kyuu_deband::flash3kyuu_deband(PClip child, int range, unsigned char Y, unsigned char Cb, unsigned char Cr, 
 		int ditherY, int ditherC, int sample_mode, int seed,
 		bool blur_first, bool diff_seed_for_each_frame) :
 			GenericVideoFilter(child),
@@ -225,7 +225,7 @@ inline unsigned char sadd8(unsigned char a, int b)
     return (unsigned char)(s < 0 ? 0 : s > 0xFF ? 0xFF : s);
 }
 
-void flash3kyuu_deband::process_plane_plainc(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, int threshold, pixel_dither_info *info_ptr_base, int info_stride, int range)
+void flash3kyuu_deband::process_plane_plainc(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range)
 {
 	pixel_dither_info* info_ptr;
 	for (int i = 0; i < src_height; i++)
@@ -285,10 +285,11 @@ void flash3kyuu_deband::process_plane_plainc(unsigned char const*srcp, int const
 						ref_px = src_pitch * info.ref2 + info.ref1;
 						ref_px_2 = info.ref2 - src_pitch * info.ref1;
 
+						// add 2 to decrease rounding bias
 						avg = (((int)src_px[ref_px] + 
 							    (int)src_px[-ref_px] + 
 								(int)src_px[ref_px_2] + 
-								(int)src_px[-ref_px_2]) >> 2);
+								(int)src_px[-ref_px_2] + 2) >> 2);
 						if (_blur_first)
 						{
 							int diff = avg - *src_px;
@@ -332,7 +333,7 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
 	dst_width = dst->GetRowSize(plane);
 	dst_height = dst->GetHeight(plane);
 
-	int threshold;
+	unsigned char threshold;
 	pixel_dither_info* info_ptr_base;
 	int info_stride;
 
