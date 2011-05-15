@@ -127,7 +127,7 @@ static __inline __m128i clamped_absolute_difference(__m128i a, __m128i b, __m128
 	return _mm_min_epu8(diff, difference_limit);
 }
 
-template<int, int>
+template<int, bool>
 void __cdecl process_plane_mode2_noblur(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range)
 {
 	// By default, frame buffers are guaranteed to be mod16, and full pitch is always available for every line

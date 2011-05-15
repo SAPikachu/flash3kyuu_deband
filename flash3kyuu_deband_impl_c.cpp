@@ -8,7 +8,7 @@ static inline unsigned char sadd8(unsigned char a, int b)
     return (unsigned char)(s < 0 ? 0 : s > 0xFF ? 0xFF : s);
 }
 
-template <int sample_mode, int blur_first>
+template <int sample_mode, bool blur_first>
 void __cdecl process_plane_plainc(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range)
 {
 	pixel_dither_info* info_ptr;
