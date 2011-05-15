@@ -53,5 +53,8 @@
     <ClCompile Include="avisynth_init.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="correctness_test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -54,7 +54,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 
 flash3kyuu_deband::flash3kyuu_deband(PClip child, int range, unsigned char Y, unsigned char Cb, unsigned char Cr, 
 		int ditherY, int ditherC, int sample_mode, int seed,
-		bool blur_first, bool diff_seed_for_each_frame) :
+		bool blur_first, bool diff_seed_for_each_frame, int opt) :
 			GenericVideoFilter(child),
 			_range_raw(range),
 			_range(range),
@@ -71,6 +71,7 @@ flash3kyuu_deband::flash3kyuu_deband(PClip child, int range, unsigned char Y, un
 			_y_info(NULL),
 			_cb_info(NULL),
 			_cr_info(NULL),
+			_opt(opt),
 			_process_plane_impl(NULL)
 {
 	this->init();
@@ -266,7 +267,7 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
 PVideoFrame __stdcall flash3kyuu_deband::GetFrame(int n, IScriptEnvironment* env)
 {
 	PVideoFrame src = child->GetFrame(n, env);
-	PVideoFrame dst = env->NewVideoFrame(vi, 16);
+	PVideoFrame dst = env->NewVideoFrame(vi, PLANE_ALIGNMENT);
 	
 	if (_diff_seed_for_each_frame)
 	{

@@ -29,8 +29,9 @@ typedef __declspec(align(4)) struct _pixel_dither_info {
 	signed char unused;
 } pixel_dither_info;
 
-// align lut for SSE operations
+// alignment for SSE operations
 #define FRAME_LUT_ALIGNMENT 16
+#define PLANE_ALIGNMENT 16
 
 // whole multiples of alignment, so SSE codes don't need to check boundaries
 #define FRAME_LUT_STRIDE(width) (((width - 1) | (FRAME_LUT_ALIGNMENT - 1)) + 1)
@@ -51,7 +52,12 @@ private:
 	bool _blur_first;
 	bool _diff_seed_for_each_frame;
 
+	int _opt;
+
 	process_plane_impl_t _process_plane_impl;
+
+	// used by test code
+	void* other_data;
 	
 	int _range_lut[64];
 	int _ditherY_lut[64];
@@ -72,7 +78,7 @@ private:
 public:
 	flash3kyuu_deband(PClip child, int range, unsigned char Y, unsigned char Cb, unsigned char Cr, 
 		int ditherY, int ditherC, int sample_mode, int seed,
-		bool blur_first, bool diff_seed_for_each_frame);
+		bool blur_first, bool diff_seed_for_each_frame, int opt);
 	~flash3kyuu_deband();
 
 	PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);
