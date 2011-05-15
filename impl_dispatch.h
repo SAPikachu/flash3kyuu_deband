@@ -28,3 +28,11 @@ const extern process_plane_impl_t process_plane_impl_c[];
 
 const extern process_plane_impl_t process_plane_impl_sse4[];
 
+__inline int select_impl_index(int sample_mode, bool blur_first)
+{
+	if (sample_mode == 0)
+	{
+		return 0;
+	}
+	return sample_mode * 2 + (blur_first ? 0 : 1) - 1;
+}

@@ -171,11 +171,7 @@ flash3kyuu_deband::~flash3kyuu_deband()
 static process_plane_impl_t get_process_plane_impl(int sample_mode, bool blur_first)
 {
 	const process_plane_impl_t* impl_table = process_plane_impl_c;
-	if (sample_mode == 0)
-	{
-		return impl_table[0];
-	}
-	return impl_table[sample_mode * 2 + (blur_first ? 0 : 1) - 1];
+	return impl_table[select_impl_index(sample_mode, blur_first)];
 }
 
 void flash3kyuu_deband::init(void) 
