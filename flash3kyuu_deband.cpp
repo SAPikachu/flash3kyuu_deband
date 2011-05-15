@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "flash3kyuu_deband.h"
+#include "impl_dispatch.h"
 
 void check_parameter_range(int value, int lower_bound, int upper_bound, char* param_name, IScriptEnvironment* env) {
 	if (value < lower_bound || value > upper_bound) {
@@ -79,7 +80,8 @@ flash3kyuu_deband::flash3kyuu_deband(PClip child, int range, unsigned char Y, un
 			_h_ind_masks(NULL),
 			_y_info(NULL),
 			_cb_info(NULL),
-			_cr_info(NULL)
+			_cr_info(NULL),
+			_process_plane_impl(NULL)
 {
 	this->init();
 }
@@ -176,6 +178,16 @@ flash3kyuu_deband::~flash3kyuu_deband()
 	destroy_frame_luts();
 }
 
+static process_plane_impl_t get_process_plane_impl(int sample_mode, bool blur_first)
+{
+	const process_plane_impl_t* impl_table = process_plane_impl_c;
+	if (sample_mode == 0)
+	{
+		return impl_table[0];
+	}
+	return impl_table[sample_mode * 2 + (blur_first ? 0 : 1) - 1];
+}
+
 void flash3kyuu_deband::init(void) 
 {
 	int new_Y, new_Cb, new_Cr;
@@ -217,107 +229,10 @@ void flash3kyuu_deband::init(void)
 	_ditherC = new_ditherC;
 
 	init_frame_luts(0);
+
+	_process_plane_impl = get_process_plane_impl(_sample_mode, _blur_first);
 }
 
-inline unsigned char sadd8(unsigned char a, int b)
-{
-    int s = (int)a+b;
-    return (unsigned char)(s < 0 ? 0 : s > 0xFF ? 0xFF : s);
-}
-
-void flash3kyuu_deband::process_plane_plainc(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range)
-{
-	pixel_dither_info* info_ptr;
-	for (int i = 0; i < src_height; i++)
-	{
-		const unsigned char* src_px = srcp + src_pitch * i;
-		unsigned char* dst_px = dstp + dst_pitch * i;
-
-		info_ptr = info_ptr_base + info_stride * i;
-
-		for (int j = 0; j < src_width; j++)
-		{
-			pixel_dither_info info = *info_ptr;
-			if (j < range || src_width - j <= range) 
-			{
-				if (_sample_mode == 0) 
-				{
-					*dst_px = *src_px;
-				} else {
-					*dst_px = sadd8(*src_px, info.change);
-				}
-			} else {
-#define IS_ABOVE_THRESHOLD(diff) ( (diff ^ (diff >> 31)) - (diff >> 31) >= threshold )
-
-				assert(abs(info.ref1) <= i && abs(info.ref1) + i < src_height);
-
-				if (_sample_mode == 0) 
-				{
-					int ref_px = info.ref1 * src_pitch;
-					int diff = *src_px - src_px[ref_px];
-					if (IS_ABOVE_THRESHOLD(diff)) {
-						*dst_px = *src_px;
-					} else {
-						*dst_px = src_px[ref_px];
-					}
-				} else {
-					int avg;
-					bool use_org_px_as_base;
-					int ref_px, ref_px_2;
-					if (_sample_mode == 1)
-					{
-						ref_px = info.ref1 * src_pitch;
-						avg = ((int)src_px[ref_px] + (int)src_px[-ref_px]) >> 1;
-						if (_blur_first)
-						{
-							int diff = avg - *src_px;
-							use_org_px_as_base = IS_ABOVE_THRESHOLD(diff);
-						} else {
-							int diff = *src_px - src_px[ref_px];
-							int diff_n = *src_px - src_px[-ref_px];
-							use_org_px_as_base = IS_ABOVE_THRESHOLD(diff) || IS_ABOVE_THRESHOLD(diff_n);
-						}
-					} else {
-						assert(abs(info.ref1) <= j && abs(info.ref1) + j < src_width);
-						assert(abs(info.ref2) <= i && abs(info.ref2) + i < src_height);
-						assert(abs(info.ref2) <= j && abs(info.ref2) + j < src_width);
-
-						ref_px = src_pitch * info.ref2 + info.ref1;
-						ref_px_2 = info.ref2 - src_pitch * info.ref1;
-
-						// add 2 to decrease rounding bias
-						avg = (((int)src_px[ref_px] + 
-							    (int)src_px[-ref_px] + 
-								(int)src_px[ref_px_2] + 
-								(int)src_px[-ref_px_2] + 2) >> 2);
-						if (_blur_first)
-						{
-							int diff = avg - *src_px;
-							use_org_px_as_base = IS_ABOVE_THRESHOLD(diff);
-						} else {
-							int diff1 = src_px[ref_px] - *src_px;
-							int diff2 = src_px[-ref_px] - *src_px;
-							int diff3 = src_px[ref_px_2] - *src_px;
-							int diff4 = src_px[-ref_px_2] - *src_px;
-							use_org_px_as_base = IS_ABOVE_THRESHOLD(diff1) || 
-												 IS_ABOVE_THRESHOLD(diff2) ||
-												 IS_ABOVE_THRESHOLD(diff3) || 
-												 IS_ABOVE_THRESHOLD(diff4);
-						}
-					}
-					if (use_org_px_as_base) {
-						*dst_px = sadd8(*src_px, info.change);
-					} else {
-						*dst_px = sadd8(avg, info.change);
-					}
-				}
-			}
-			src_px++;
-			dst_px++;
-			info_ptr++;
-		}
-	}
-}
 void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane)
 {
 	const unsigned char* srcp = src->GetReadPtr(plane);
@@ -359,7 +274,7 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
 	}
 
 	int range = (plane == PLANAR_Y ? _range_raw : _range_raw >> 1);
-	process_plane_plainc(srcp, src_width, src_height, src_pitch, dstp, dst_pitch, threshold, info_ptr_base, info_stride, range);
+	_process_plane_impl(srcp, src_width, src_height, src_pitch, dstp, dst_pitch, threshold, info_ptr_base, info_stride, range);
 }
 
 PVideoFrame __stdcall flash3kyuu_deband::GetFrame(int n, IScriptEnvironment* env)

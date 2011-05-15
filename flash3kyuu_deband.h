@@ -5,6 +5,7 @@
 // FLASH3KYUU_DEBAND_API functions as being imported from a DLL, whereas this DLL sees symbols
 // defined with this macro as being exported.
 
+#pragma once
 #include "avisynth.h"
 #include <string.h>
 #include <stdio.h>
@@ -34,6 +35,9 @@ typedef __declspec(align(4)) struct _pixel_dither_info {
 // whole multiples of alignment, so SSE codes don't need to check boundaries
 #define FRAME_LUT_STRIDE(width) (((width - 1) | (FRAME_LUT_ALIGNMENT - 1)) + 1)
 
+typedef void (__cdecl *process_plane_impl_t)(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range);
+
+
 class flash3kyuu_deband : public GenericVideoFilter {
 private:
 	int _range_raw; 
@@ -47,6 +51,7 @@ private:
 	bool _blur_first;
 	bool _diff_seed_for_each_frame;
 
+	process_plane_impl_t _process_plane_impl;
 	
 	int _range_lut[64];
 	int _ditherY_lut[64];
@@ -63,7 +68,6 @@ private:
 	void destroy_frame_luts(void);
 	
 	void process_plane(int n, PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane);
-	void process_plane_plainc(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range);
 
 public:
 	flash3kyuu_deband(PClip child, int range, unsigned char Y, unsigned char Cb, unsigned char Cr, 
