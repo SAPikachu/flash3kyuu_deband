@@ -26,3 +26,5 @@
 
 const extern process_plane_impl_t process_plane_impl_c[];
 
+const extern process_plane_impl_t process_plane_impl_sse4[];
+
