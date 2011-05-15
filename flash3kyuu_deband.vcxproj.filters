@@ -50,5 +50,8 @@
     <ClCompile Include="flash3kyuu_deband_impl_c.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="avisynth_init.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

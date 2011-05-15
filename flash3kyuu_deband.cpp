@@ -5,7 +5,7 @@
 #include "flash3kyuu_deband.h"
 #include "impl_dispatch.h"
 
-void check_parameter_range(int value, int lower_bound, int upper_bound, char* param_name, IScriptEnvironment* env) {
+static void check_parameter_range(int value, int lower_bound, int upper_bound, char* param_name, IScriptEnvironment* env) {
 	if (value < lower_bound || value > upper_bound) {
 		char msg[1024];
 		sprintf_s(msg, "flash3kyuu_deband: Invalid value for parameter %s: %d, must be %d ~ %d.",
@@ -50,16 +50,6 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 	return new flash3kyuu_deband(child, range, Y, Cb, Cr, 
 		ditherY, ditherC, sample_mode, seed, 
 		blur_first, diff_seed_for_each_frame);
-}
-
-FLASH3KYUU_DEBAND_API const char* __stdcall AvisynthPluginInit2(IScriptEnvironment* env)
-{
-	env->AddFunction("flash3kyuu_deband", 
-		"c[range]i[Y]i[Cb]i[Cr]i[ditherY]i[ditherC]i[sample_mode]i[seed]i[blur_first]b[diff_seed]b", 
-		Create_flash3kyuu_deband, 
-		NULL);
-
-	return "flash3kyuu_deband";
 }
 
 flash3kyuu_deband::flash3kyuu_deband(PClip child, int range, unsigned char Y, unsigned char Cb, unsigned char Cr, 
