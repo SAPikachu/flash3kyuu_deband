@@ -34,6 +34,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 	int seed = args[8].AsInt(0);
 	bool blur_first = args[9].AsBool(true);
 	bool diff_seed_for_each_frame = args[10].AsBool(false);
+	int opt = args[11].AsInt(-1);
 
 #define CHECK_PARAM(value, lower_bound, upper_bound) \
 	check_parameter_range(value, lower_bound, upper_bound, #value, env);
@@ -46,10 +47,11 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 	CHECK_PARAM(ditherC, 0, 31);
 	CHECK_PARAM(sample_mode, 0, 2);
 	CHECK_PARAM(seed, 0, 127);
+	CHECK_PARAM(opt, -1, 2);
 
 	return new flash3kyuu_deband(child, range, Y, Cb, Cr, 
 		ditherY, ditherC, sample_mode, seed, 
-		blur_first, diff_seed_for_each_frame);
+		blur_first, diff_seed_for_each_frame, opt);
 }
 
 flash3kyuu_deband::flash3kyuu_deband(PClip child, int range, unsigned char Y, unsigned char Cb, unsigned char Cr, 
@@ -169,9 +171,13 @@ flash3kyuu_deband::~flash3kyuu_deband()
 	destroy_frame_luts();
 }
 
-static process_plane_impl_t get_process_plane_impl(int sample_mode, bool blur_first)
+static process_plane_impl_t get_process_plane_impl(int sample_mode, bool blur_first, int opt)
 {
-	const process_plane_impl_t* impl_table = process_plane_impl_c;
+	if (opt == -1) {
+		// TODO: should select optimization mode based on cpu
+		opt = 0;
+	}
+	const process_plane_impl_t* impl_table = process_plane_impls[opt];
 	return impl_table[select_impl_index(sample_mode, blur_first)];
 }
 
@@ -217,7 +223,7 @@ void flash3kyuu_deband::init(void)
 
 	init_frame_luts(0);
 
-	_process_plane_impl = get_process_plane_impl(_sample_mode, _blur_first);
+	_process_plane_impl = get_process_plane_impl(_sample_mode, _blur_first, _opt);
 }
 
 void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane)
