@@ -86,15 +86,15 @@ static __inline void process_plane_mode2_extract_pixels(
 	_mm_store_si128((__m128i*)address_buffer_2, _mm_add_epi32(src_addrs, ref_offset2));
 
 	// load ref bytes
-	ref_pixels_1_components[0 * ref_part_index] = *(address_buffer_1[0]);
-	ref_pixels_1_components[1 * ref_part_index] = *(address_buffer_1[1]);
-	ref_pixels_1_components[2 * ref_part_index] = *(address_buffer_1[2]);
-	ref_pixels_1_components[3 * ref_part_index] = *(address_buffer_1[3]);
+	ref_pixels_1_components[4 * ref_part_index + 0] = *(address_buffer_1[0]);
+	ref_pixels_1_components[4 * ref_part_index + 1] = *(address_buffer_1[1]);
+	ref_pixels_1_components[4 * ref_part_index + 2] = *(address_buffer_1[2]);
+	ref_pixels_1_components[4 * ref_part_index + 3] = *(address_buffer_1[3]);
 
-	ref_pixels_2_components[0 * ref_part_index] = *(address_buffer_2[0]);
-	ref_pixels_2_components[1 * ref_part_index] = *(address_buffer_2[1]);
-	ref_pixels_2_components[2 * ref_part_index] = *(address_buffer_2[2]);
-	ref_pixels_2_components[3 * ref_part_index] = *(address_buffer_2[3]);
+	ref_pixels_2_components[4 * ref_part_index + 0] = *(address_buffer_2[0]);
+	ref_pixels_2_components[4 * ref_part_index + 1] = *(address_buffer_2[1]);
+	ref_pixels_2_components[4 * ref_part_index + 2] = *(address_buffer_2[2]);
+	ref_pixels_2_components[4 * ref_part_index + 3] = *(address_buffer_2[3]);
 
 	// another direction, negates all offsets
 	ref_offset1 = _mm_sign_epi32(ref_offset1, minus_one);
@@ -103,15 +103,15 @@ static __inline void process_plane_mode2_extract_pixels(
 	ref_offset2 = _mm_sign_epi32(ref_offset2, minus_one);
 	_mm_store_si128((__m128i*)address_buffer_2, _mm_add_epi32(src_addrs, ref_offset2));
 
-	ref_pixels_3_components[0 * ref_part_index] = *(address_buffer_1[0]);
-	ref_pixels_3_components[1 * ref_part_index] = *(address_buffer_1[1]);
-	ref_pixels_3_components[2 * ref_part_index] = *(address_buffer_1[2]);
-	ref_pixels_3_components[3 * ref_part_index] = *(address_buffer_1[3]);
+	ref_pixels_3_components[4 * ref_part_index + 0] = *(address_buffer_1[0]);
+	ref_pixels_3_components[4 * ref_part_index + 1] = *(address_buffer_1[1]);
+	ref_pixels_3_components[4 * ref_part_index + 2] = *(address_buffer_1[2]);
+	ref_pixels_3_components[4 * ref_part_index + 3] = *(address_buffer_1[3]);
 
-	ref_pixels_4_components[0 * ref_part_index] = *(address_buffer_2[0]);
-	ref_pixels_4_components[1 * ref_part_index] = *(address_buffer_2[1]);
-	ref_pixels_4_components[2 * ref_part_index] = *(address_buffer_2[2]);
-	ref_pixels_4_components[3 * ref_part_index] = *(address_buffer_2[3]);
+	ref_pixels_4_components[4 * ref_part_index + 0] = *(address_buffer_2[0]);
+	ref_pixels_4_components[4 * ref_part_index + 1] = *(address_buffer_2[1]);
+	ref_pixels_4_components[4 * ref_part_index + 2] = *(address_buffer_2[2]);
+	ref_pixels_4_components[4 * ref_part_index + 3] = *(address_buffer_2[3]);
 
 	info_ptr += 4;
 	src_addrs = _mm_add_epi32(src_addrs, src_addr_increment_vector);
