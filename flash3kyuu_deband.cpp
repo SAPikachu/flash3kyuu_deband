@@ -47,7 +47,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 	CHECK_PARAM(ditherC, 0, 31);
 	CHECK_PARAM(sample_mode, 0, 2);
 	CHECK_PARAM(seed, 0, 127);
-	CHECK_PARAM(opt, -1, 2);
+	CHECK_PARAM(opt, -1, (sizeof(process_plane_impls) - 1) );
 
 	return new flash3kyuu_deband(child, range, Y, Cb, Cr, 
 		ditherY, ditherC, sample_mode, seed, 

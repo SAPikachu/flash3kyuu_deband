@@ -3,9 +3,14 @@
 
 #include "impl_dispatch.h"
 
+#include "intrin.h"
+
+
 #define DELEGATE_IMPL_CALL(impl, dest_buffer) impl(srcp, src_width, src_height, src_pitch, dest_buffer, dst_pitch, threshold, info_ptr_base, info_stride, range)
 
 #define GUARD_CONST 0xDEADBEEF
+
+#define READ_TSC(ret_var) do { __asm {cpuid}; ret_var = __rdtsc(); __asm {cpuid}; } while(0)
 
 static unsigned char * create_guarded_buffer(int const height, int const pitch, unsigned char * &data_start)
 {

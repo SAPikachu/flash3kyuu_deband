@@ -30,10 +30,13 @@ const extern process_plane_impl_t process_plane_impl_sse4[];
 
 const extern process_plane_impl_t process_plane_impl_sse4_correctness_test[];
 
+const extern process_plane_impl_t process_plane_impl_sse4_benchmark[];
+
 static const process_plane_impl_t* process_plane_impls[] = {
 	process_plane_impl_c,
 	process_plane_impl_sse4,
-	process_plane_impl_sse4_correctness_test
+	process_plane_impl_sse4_correctness_test,
+	process_plane_impl_sse4_benchmark
 };
 
 static __inline int select_impl_index(int sample_mode, bool blur_first)

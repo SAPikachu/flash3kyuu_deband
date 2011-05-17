@@ -9,7 +9,7 @@
 #include <smmintrin.h>
 
 template <int ref_part_index>
-static __inline void process_plane_mode2_extract_pixels(
+static __forceinline void process_plane_mode2_extract_pixels(
 	pixel_dither_info *&info_ptr, 
 	__m128i &src_addrs, 
 	const __m128i &src_pitch_vector, 
