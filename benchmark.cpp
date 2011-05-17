@@ -33,7 +33,7 @@ void __cdecl process_plane_sse4_benchmark(unsigned char const*srcp, int const sr
 	printf("-----------------------------------\n");
 
 	int total_bytes = src_width * src_height;
-	printf("Width: %d, Height: %d, Total: %d bytes", src_width, src_height, total_bytes);
+	printf("Width: %d, Height: %d, Total: %d bytes\n", src_width, src_height, total_bytes);
 
 	process_plane_impl_t c_impl = process_plane_impl_c[select_impl_index(2, false)];
 	process_plane_impl_t sse_impl = process_plane_impl_sse4[select_impl_index(2, false)];
@@ -74,13 +74,13 @@ void __cdecl process_plane_sse4_benchmark(unsigned char const*srcp, int const sr
 		{ \
 			printf("%-15lld ", results[i]); \
 		} \
-		printf("\n\n"); \
+		printf("\n"); \
 		printf("Cycles per byte:\n"); \
 		for (int i = 0; i < BENCHMARK_ROUNDS; i++) \
  		{ \
 			printf("%-15.2f ", (double)results[i] / total_bytes); \
 		} \
-		printf("\n\n"); \
+		printf("\n"); \
 		DWORD64 avg_cycles = avg(results); \
 		printf("Average cycles: %lld (%.2f cycles per byte)\n", avg_cycles, (double)avg_cycles / total_bytes); \
 		printf("\n\n"); \
