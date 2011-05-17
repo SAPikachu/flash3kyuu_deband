@@ -63,15 +63,15 @@ static __inline void process_plane_mode2_extract_pixels(
 	// ref2: bit 8-15
 	// similar to above
 	__m128i ref2 = info_block;
-	ref2 = _mm_slli_epi32(ref1, 16); // << 16
-	ref2 = _mm_srai_epi32(ref1, 24); // >> 24
+	ref2 = _mm_slli_epi32(ref2, 16); // << 16
+	ref2 = _mm_srai_epi32(ref2, 24); // >> 24
 
 	// temporarily store computed addresses
 	__declspec(align(16))
-	int* address_buffer_1[4];
+	unsigned char* address_buffer_1[4];
 
 	__declspec(align(16))
-	int* address_buffer_2[4];
+	unsigned char* address_buffer_2[4];
 
 	// ref_px = src_pitch * info.ref2 + info.ref1;
 	__m128i ref_offset1 = _mm_mullo_epi32(src_pitch_vector, ref2); // packed DWORD multiplication
@@ -223,9 +223,14 @@ void __cdecl process_plane_mode2_noblur(unsigned char const*srcp, int const src_
 			use_orig_pixel_blend_mask = _mm_or_si128(_mm_cmpeq_epi8(difference, threshold_vector), use_orig_pixel_blend_mask);
 
 			// PAVGB adds 1 before calculating average, so we subtract 1 here to be consistent with c version
+
+			__m128i avg2_tmp = _mm_avg_epu8(ref_pixels, ref_pixels_2);
+			__m128i avg2 = _mm_min_epu8(avg, avg2_tmp);
+
+			avg = _mm_max_epu8(avg, avg2_tmp);
 			avg = _mm_subs_epu8(avg, one_i8);
 
-			avg = _mm_avg_epu8(avg, _mm_avg_epu8(ref_pixels, ref_pixels_2));
+			avg = _mm_avg_epu8(avg, avg2);
 
 			// if mask is 0xff (over threshold), select second operand, otherwise select first
 			src_pixels = _mm_blendv_epi8(avg, src_pixels, use_orig_pixel_blend_mask);
