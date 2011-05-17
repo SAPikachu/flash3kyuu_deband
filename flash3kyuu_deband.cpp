@@ -128,21 +128,19 @@ void flash3kyuu_deband::init_frame_luts(int n)
 			int seed_tmp = (((seed << 13) ^ (unsigned int)seed) >> 17) ^ (seed << 13) ^ seed;
 			seed = 32 * seed_tmp ^ seed_tmp;
 
-			if (x < _range_raw || vi.width - x <= _range_raw) {
-				continue;
-			}
-
 			pixel_dither_info info_y = {0, 0, 0, 0};
+			info_y.change = (signed char)_ditherY_lut[(seed >> 15) & 0x3F];
 
-			if (_sample_mode < 2)
-			{
-				info_y.ref1 = (signed char)(_h_ind_masks[y] & _range_lut[(seed >> 10) & 0x3F]);
-			} else {
-				info_y.ref1 = (signed char)(_h_ind_masks[y] & _range_lut[(seed >> 5) & 0x3F]);
-				info_y.ref2 = (signed char)(_h_ind_masks[y] & _range_lut[(seed >> 10) & 0x3F]);
+			if (!(x < _range_raw || vi.width - x <= _range_raw)) {
+				if (_sample_mode < 2)
+				{
+					info_y.ref1 = (signed char)(_h_ind_masks[y] & _range_lut[(seed >> 10) & 0x3F]);
+				} else {
+					info_y.ref1 = (signed char)(_h_ind_masks[y] & _range_lut[(seed >> 5) & 0x3F]);
+					info_y.ref2 = (signed char)(_h_ind_masks[y] & _range_lut[(seed >> 10) & 0x3F]);
+				}
 			}
 
-			info_y.change = (signed char)_ditherY_lut[(seed >> 15) & 0x3F];
 			*y_info_ptr = info_y;
 
 			if ((x & 1) == 0 && (y & 1) == 0) {

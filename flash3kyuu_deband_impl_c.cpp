@@ -69,11 +69,11 @@ void __cdecl process_plane_plainc(unsigned char const*srcp, int const src_width,
 						ref_px = src_pitch * info.ref2 + info.ref1;
 						ref_px_2 = info.ref2 - src_pitch * info.ref1;
 
-						// add 2 to decrease rounding bias
-						avg = (((int)src_px[ref_px] + 
-							    (int)src_px[-ref_px] + 
-								(int)src_px[ref_px_2] + 
-								(int)src_px[-ref_px_2] + 2) >> 2);
+						// consistent with SSE code
+						int avg1 = ((int)src_px[ref_px] + (int)src_px[ref_px_2] + 1) >> 1;
+						int avg2 = ((int)src_px[-ref_px] + (int)src_px[-ref_px_2] + 1) >> 1;
+						avg = (avg1 + avg2) >> 1;
+
 						if (blur_first)
 						{
 							int diff = avg - *src_px;
@@ -84,9 +84,9 @@ void __cdecl process_plane_plainc(unsigned char const*srcp, int const src_width,
 							int diff3 = src_px[ref_px_2] - *src_px;
 							int diff4 = src_px[-ref_px_2] - *src_px;
 							use_org_px_as_base = IS_ABOVE_THRESHOLD(diff1) || 
-												 IS_ABOVE_THRESHOLD(diff2) ||
-												 IS_ABOVE_THRESHOLD(diff3) || 
-												 IS_ABOVE_THRESHOLD(diff4);
+								IS_ABOVE_THRESHOLD(diff2) ||
+								IS_ABOVE_THRESHOLD(diff3) || 
+								IS_ABOVE_THRESHOLD(diff4);
 						}
 					}
 					if (use_org_px_as_base) {
