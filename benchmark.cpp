@@ -16,7 +16,7 @@ T avg(T (&elems)[element_count])
 }
 
 template<int, bool>
-void __cdecl process_plane_sse4_benchmark(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range)
+void __cdecl process_plane_sse4_benchmark(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
 {
 	HANDLE process_handle = GetCurrentProcess();
 	HANDLE thread_handle = GetCurrentThread();
@@ -43,7 +43,7 @@ void __cdecl process_plane_sse4_benchmark(unsigned char const*srcp, int const sr
 	double cycles_per_byte;
 
 #define TIMED_RUN(impl) do { READ_TSC(tsc_before); \
-							 DELEGATE_IMPL_CALL(impl, dstp); \
+							 DELEGATE_IMPL_CALL(impl, dstp, context); \
 							 READ_TSC(tsc_after); \
 							 cycles_elapsed = tsc_after - tsc_before; \
 							 cycles_per_byte = (double)cycles_elapsed / total_bytes; \

@@ -20,7 +20,8 @@ static __forceinline void process_plane_mode2_extract_pixels(
 	unsigned char ref_pixels_1_components[16], 
 	unsigned char ref_pixels_2_components[16], 
 	unsigned char ref_pixels_3_components[16], 
-	unsigned char ref_pixels_4_components[16])
+	unsigned char ref_pixels_4_components[16],
+	char*& info_data_stream)
 {
 	__m128i info_block = _mm_load_si128((__m128i*)info_ptr);
 
@@ -82,9 +83,16 @@ static __forceinline void process_plane_mode2_extract_pixels(
 	// ref_px_2 = info.ref2 - src_pitch * info.ref1;
 	__m128i ref_offset2 = _mm_mullo_epi32(src_pitch_vector, ref1); // packed DWORD multiplication
 	ref_offset2 = _mm_sub_epi32(ref2, ref_offset2);
-
+	
 	_mm_store_si128((__m128i*)address_buffer_2, _mm_add_epi32(src_addrs, ref_offset2));
 
+	if (info_data_stream){
+		_mm_store_si128((__m128i*)info_data_stream, ref_offset1);
+		info_data_stream += 16;
+
+		_mm_store_si128((__m128i*)info_data_stream, ref_offset2);
+		info_data_stream += 16;
+	}
 	// load ref bytes
 	ref_pixels_1_components[4 * ref_part_index + 0] = *(address_buffer_1[0]);
 	ref_pixels_1_components[4 * ref_part_index + 1] = *(address_buffer_1[1]);
@@ -127,8 +135,23 @@ static __inline __m128i clamped_absolute_difference(__m128i a, __m128i b, __m128
 	return _mm_min_epu8(diff, difference_limit);
 }
 
+typedef struct _info_cache
+{
+	int pitch;
+	char* data_stream;
+} info_cache;
+
+void destroy_cache(void* data)
+{
+	assert(data);
+
+	info_cache* cache = (info_cache*) data;
+	_aligned_free(cache->data_stream);
+	free(data);
+}
+
 template<int, bool>
-void __cdecl process_plane_mode2_noblur(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range)
+void __cdecl process_plane_mode2_noblur(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
 {
 	// By default, frame buffers are guaranteed to be mod16, and full pitch is always available for every line
 	// so even width is not mod16, we don't need to treat remaining pixels as special case
@@ -156,6 +179,24 @@ void __cdecl process_plane_mode2_noblur(unsigned char const*srcp, int const src_
 
 	__m128i one_i8 = _mm_set1_epi8(1);
 	
+	bool use_cached_info = false;
+
+	char* info_data_stream = NULL;
+
+	if (context->data) {
+		info_cache* cache = (info_cache*) context->data;
+		if (cache->pitch == src_pitch) {
+			info_data_stream = cache->data_stream;
+			use_cached_info = true;
+		}
+	} else {
+		info_cache* cache = (info_cache*)malloc(sizeof(info_cache));
+		info_data_stream = (char*)_aligned_malloc(info_stride * (4 * 2 + 1) * src_height, FRAME_LUT_ALIGNMENT);
+		cache->data_stream = info_data_stream;
+		cache->pitch = src_pitch;
+		context->destroy = destroy_cache;
+		context->data = cache;
+	}
 
 	for (int row = 0; row < src_height; row++)
 	{
@@ -174,7 +215,7 @@ void __cdecl process_plane_mode2_noblur(unsigned char const*srcp, int const src_
 
 		while (remaining_pixels > 0)
 		{
-			__m128i change = _mm_setzero_si128();
+			__m128i change;
 
 			__declspec(align(16))
 			unsigned char ref_pixels_1_components[16];
@@ -185,19 +226,39 @@ void __cdecl process_plane_mode2_noblur(unsigned char const*srcp, int const src_
 			__declspec(align(16))
 			unsigned char ref_pixels_4_components[16];
 
+			if (use_cached_info) {
+				for (int i = 0; i < 16; i++)
+				{
+					ref_pixels_1_components[i] = *(src_px + i + *(int*)(info_data_stream + 4 * (i + i / 4 * 4)));
+					ref_pixels_2_components[i] = *(src_px + i + *(int*)(info_data_stream + 4 * (i + i / 4 * 4 + 4)));
+					ref_pixels_3_components[i] = *(src_px + i + -*(int*)(info_data_stream + 4 * (i + i / 4 * 4)));
+					ref_pixels_4_components[i] = *(src_px + i + -*(int*)(info_data_stream + 4 * (i + i / 4 * 4 + 4)));
+				}
+				info_data_stream += 128;
+				change = _mm_load_si128((__m128i*)info_data_stream);
+				info_data_stream += 16;
+			} else {
+				change = _mm_setzero_si128();
 			
-#define EXTRACT_REF_PIXELS(n) \
-			process_plane_mode2_extract_pixels<n>(info_ptr, src_addrs, src_pitch_vector, src_addr_increment_vector, change, change_extract_mask, minus_one, ref_pixels_1_components, ref_pixels_2_components, ref_pixels_3_components, ref_pixels_4_components);
+	#define EXTRACT_REF_PIXELS(n) \
+				process_plane_mode2_extract_pixels<n>(info_ptr, src_addrs, src_pitch_vector, src_addr_increment_vector, change, change_extract_mask, minus_one, ref_pixels_1_components, ref_pixels_2_components, ref_pixels_3_components, ref_pixels_4_components, info_data_stream);
 			
-			EXTRACT_REF_PIXELS(0);
-			EXTRACT_REF_PIXELS(1);
-			EXTRACT_REF_PIXELS(2);
-			EXTRACT_REF_PIXELS(3);
+				EXTRACT_REF_PIXELS(0);
+				EXTRACT_REF_PIXELS(1);
+				EXTRACT_REF_PIXELS(2);
+				EXTRACT_REF_PIXELS(3);
 
-#undef EXTRACT_REF_PIXELS
+	#undef EXTRACT_REF_PIXELS
 
-			// shuffle delta values to correct place
-			change = _mm_shuffle_epi8(change, change_shuffle_mask);
+				// shuffle delta values to correct place
+				change = _mm_shuffle_epi8(change, change_shuffle_mask);
+
+				if (info_data_stream) {
+					_mm_store_si128((__m128i*)info_data_stream, change);
+					info_data_stream += 16;
+				}
+
+			}
 
 			__m128i src_pixels = _mm_load_si128((__m128i*)src_px);
 			__m128i use_orig_pixel_blend_mask;

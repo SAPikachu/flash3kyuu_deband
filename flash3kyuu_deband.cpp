@@ -167,6 +167,10 @@ flash3kyuu_deband::~flash3kyuu_deband()
 {
 	delete [] _h_ind_masks;
 	destroy_frame_luts();
+	
+	destroy_context(&_y_context);
+	destroy_context(&_cb_context);
+	destroy_context(&_cr_context);
 }
 
 static process_plane_impl_t get_process_plane_impl(int sample_mode, bool blur_first, int opt)
@@ -220,6 +224,10 @@ void flash3kyuu_deband::init(void)
 	_ditherC = new_ditherC;
 
 	init_frame_luts(0);
+	
+	init_context(&_y_context);
+	init_context(&_cb_context);
+	init_context(&_cr_context);
 
 	_process_plane_impl = get_process_plane_impl(_sample_mode, _blur_first, _opt);
 }
@@ -242,6 +250,7 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
 	unsigned char threshold;
 	pixel_dither_info* info_ptr_base;
 	int info_stride;
+	process_plane_context* context;
 
 	switch (plane & 7)
 	{
@@ -249,23 +258,26 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
 		info_ptr_base = _y_info;
 		info_stride = FRAME_LUT_STRIDE(vi.width);
 		threshold = _Y;
+		context = &_y_context;
 		break;
 	case PLANAR_U:
 		info_ptr_base = _cb_info;
 		info_stride = FRAME_LUT_STRIDE(vi.width / 2);
 		threshold = _Cb;
+		context = &_cb_context;
 		break;
 	case PLANAR_V:
 		info_ptr_base = _cr_info;
 		info_stride = FRAME_LUT_STRIDE(vi.width / 2);
 		threshold = _Cr;
+		context = &_cr_context;
 		break;
 	default:
 		abort();
 	}
 
 	int range = (plane == PLANAR_Y ? _range_raw : _range_raw >> 1);
-	_process_plane_impl(srcp, src_width, src_height, src_pitch, dstp, dst_pitch, threshold, info_ptr_base, info_stride, range);
+	_process_plane_impl(srcp, src_width, src_height, src_pitch, dstp, dst_pitch, threshold, info_ptr_base, info_stride, range, context);
 }
 
 PVideoFrame __stdcall flash3kyuu_deband::GetFrame(int n, IScriptEnvironment* env)

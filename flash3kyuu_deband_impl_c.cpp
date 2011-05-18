@@ -9,7 +9,7 @@ static inline unsigned char sadd8(unsigned char a, int b)
 }
 
 template <int sample_mode, bool blur_first>
-void __cdecl process_plane_plainc(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range)
+void __cdecl process_plane_plainc(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
 {
 	pixel_dither_info* info_ptr;
 	for (int i = 0; i < src_height; i++)
