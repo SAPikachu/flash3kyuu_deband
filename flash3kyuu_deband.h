@@ -6,7 +6,18 @@
 // defined with this macro as being exported.
 
 #pragma once
+
+#ifdef __INTEL_COMPILER
+#pragma warning( push )
+#pragma warning( disable: 693 )
+#endif
+
 #include "avisynth.h"
+
+#ifdef __INTEL_COMPILER
+#pragma warning( pop )
+#endif
+
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>

@@ -9,7 +9,7 @@
 #include <smmintrin.h>
 
 template <int ref_part_index>
-static __forceinline void process_plane_mode2_extract_pixels(
+static __forceinline void process_plane_info_block(
 	pixel_dither_info *&info_ptr, 
 	__m128i &src_addrs, 
 	const __m128i &src_pitch_vector, 
@@ -150,7 +150,7 @@ void destroy_cache(void* data)
 	free(data);
 }
 
-template<int, bool>
+template<int sample_mode, bool blur_first>
 void __cdecl process_plane_mode2_noblur(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
 {
 	// By default, frame buffers are guaranteed to be mod16, and full pitch is always available for every line
@@ -183,13 +183,17 @@ void __cdecl process_plane_mode2_noblur(unsigned char const*srcp, int const src_
 
 	char* info_data_stream = NULL;
 
+	// initialize storage for pre-calculated pixel offsets
 	if (context->data) {
 		info_cache* cache = (info_cache*) context->data;
+		// we need to ensure src_pitch is the same, otherwise offsets will be completely wrong
+		// also, if pitch changes, don't waste time to update the cache since it is likely to change again
 		if (cache->pitch == src_pitch) {
 			info_data_stream = cache->data_stream;
 			use_cached_info = true;
 		}
 	} else {
+		// set up buffer for cache
 		info_cache* cache = (info_cache*)malloc(sizeof(info_cache));
 		info_data_stream = (char*)_aligned_malloc(info_stride * (4 * 2 + 1) * src_height, FRAME_LUT_ALIGNMENT);
 		cache->data_stream = info_data_stream;
@@ -227,6 +231,16 @@ void __cdecl process_plane_mode2_noblur(unsigned char const*srcp, int const src_
 			unsigned char ref_pixels_4_components[16];
 
 			if (use_cached_info) {
+				// cache layout: 16 offset groups (1 or 2 offsets / group depending on sample mode) in a pack, 
+				//               followed by 16 bytes of change values
+				// in the case of 2 offsets / group, offsets are stored like this:
+				// [1 1 1 1 
+				//  2 2 2 2
+				//  1 1 1 1
+				//  2 2 2 2
+				//  .. snip
+				//  1 1 1 1
+				//  2 2 2 2]
 				for (int i = 0; i < 16; i++)
 				{
 					ref_pixels_1_components[i] = *(src_px + i + *(int*)(info_data_stream + 4 * (i + i / 4 * 4)));
@@ -238,17 +252,18 @@ void __cdecl process_plane_mode2_noblur(unsigned char const*srcp, int const src_
 				change = _mm_load_si128((__m128i*)info_data_stream);
 				info_data_stream += 16;
 			} else {
+				// we need to process the info block
 				change = _mm_setzero_si128();
 			
-	#define EXTRACT_REF_PIXELS(n) \
-				process_plane_mode2_extract_pixels<n>(info_ptr, src_addrs, src_pitch_vector, src_addr_increment_vector, change, change_extract_mask, minus_one, ref_pixels_1_components, ref_pixels_2_components, ref_pixels_3_components, ref_pixels_4_components, info_data_stream);
+	#define PROCESS_INFO_BLOCK(n) \
+				process_plane_info_block<n>(info_ptr, src_addrs, src_pitch_vector, src_addr_increment_vector, change, change_extract_mask, minus_one, ref_pixels_1_components, ref_pixels_2_components, ref_pixels_3_components, ref_pixels_4_components, info_data_stream);
 			
-				EXTRACT_REF_PIXELS(0);
-				EXTRACT_REF_PIXELS(1);
-				EXTRACT_REF_PIXELS(2);
-				EXTRACT_REF_PIXELS(3);
+				PROCESS_INFO_BLOCK(0);
+				PROCESS_INFO_BLOCK(1);
+				PROCESS_INFO_BLOCK(2);
+				PROCESS_INFO_BLOCK(3);
 
-	#undef EXTRACT_REF_PIXELS
+	#undef PROCESS_INFO_BLOCK
 
 				// shuffle delta values to correct place
 				change = _mm_shuffle_epi8(change, change_shuffle_mask);
