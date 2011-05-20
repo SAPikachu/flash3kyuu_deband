@@ -25,35 +25,38 @@ static __forceinline void process_plane_info_block(
 {
 	__m128i info_block = _mm_load_si128((__m128i*)info_ptr);
 
-	// change: bit 16-23
-	// merge it into the variable, and shuffle it to correct place after all 16 elements are loaded
-	__m128i change_temp = info_block;
-	change_temp = _mm_and_si128(change_temp, change_mask);
+	if (sample_mode > 0) {
+		// change: bit 16-23
+		// merge it into the variable, and shuffle it to correct place after all 16 elements are loaded
+		__m128i change_temp;
+		change_temp = info_block;
+		change_temp = _mm_and_si128(change_temp, change_mask);
 
-	// this switch should be optimized out
-	switch (ref_part_index)
-	{
-	case 0:
-		// right-shift 16 bits
-		change_temp = _mm_srli_epi32(change_temp, 16);
-		break;
-	case 1:
-		// right-shift 8 bits
-		change_temp = _mm_srli_epi32(change_temp, 8);
-		break;
-	case 2:
-		// already in correct place, do nothing
-		break;
-	case 3:
-		// left-shift 8 bits
-		change_temp = _mm_slli_epi32(change_temp, 8);
-		break;
-	default:
-		// CODING ERROR!
-		abort();
-	}
+		// this switch should be optimized out
+		switch (ref_part_index)
+		{
+		case 0:
+			// right-shift 16 bits
+			change_temp = _mm_srli_epi32(change_temp, 16);
+			break;
+		case 1:
+			// right-shift 8 bits
+			change_temp = _mm_srli_epi32(change_temp, 8);
+			break;
+		case 2:
+			// already in correct place, do nothing
+			break;
+		case 3:
+			// left-shift 8 bits
+			change_temp = _mm_slli_epi32(change_temp, 8);
+			break;
+		default:
+			// CODING ERROR!
+			abort();
+		}
 	
-	change = _mm_or_si128(change, change_temp); // combine them
+		change = _mm_or_si128(change, change_temp); // combine them
+	}
 
 	// ref1: bit 0-7
 	// left-shift & right-shift 24bits to remove other elements and preserve sign
@@ -74,6 +77,9 @@ static __forceinline void process_plane_info_block(
 
 	switch (sample_mode)
 	{
+	case 0:
+		ref_offset1 = _mm_mullo_epi32(src_pitch_vector, ref1); // packed DWORD multiplication
+		break;
 	case 1:
 		ref_offset1 = _mm_mullo_epi32(src_pitch_vector, ref1); // packed DWORD multiplication
 
@@ -100,7 +106,10 @@ static __forceinline void process_plane_info_block(
 		abort();
 	}
 	_mm_store_si128((__m128i*)address_buffer_1, _mm_add_epi32(src_addrs, ref_offset1));
-	_mm_store_si128((__m128i*)address_buffer_2, _mm_add_epi32(src_addrs, ref_offset2));
+
+	if (sample_mode > 0) {
+		_mm_store_si128((__m128i*)address_buffer_2, _mm_add_epi32(src_addrs, ref_offset2));
+	}
 
 	if (info_data_stream){
 		_mm_store_si128((__m128i*)info_data_stream, ref_offset1);
@@ -117,10 +126,12 @@ static __forceinline void process_plane_info_block(
 	ref_pixels_1_components[4 * ref_part_index + 2] = *(address_buffer_1[2]);
 	ref_pixels_1_components[4 * ref_part_index + 3] = *(address_buffer_1[3]);
 
-	ref_pixels_2_components[4 * ref_part_index + 0] = *(address_buffer_2[0]);
-	ref_pixels_2_components[4 * ref_part_index + 1] = *(address_buffer_2[1]);
-	ref_pixels_2_components[4 * ref_part_index + 2] = *(address_buffer_2[2]);
-	ref_pixels_2_components[4 * ref_part_index + 3] = *(address_buffer_2[3]);
+	if (sample_mode > 0) {
+		ref_pixels_2_components[4 * ref_part_index + 0] = *(address_buffer_2[0]);
+		ref_pixels_2_components[4 * ref_part_index + 1] = *(address_buffer_2[1]);
+		ref_pixels_2_components[4 * ref_part_index + 2] = *(address_buffer_2[2]);
+		ref_pixels_2_components[4 * ref_part_index + 3] = *(address_buffer_2[3]);
+	}
 
 	if (sample_mode == 2) {
 
@@ -169,6 +180,26 @@ void destroy_cache(void* data)
 	info_cache* cache = (info_cache*) data;
 	_aligned_free(cache->data_stream);
 	free(data);
+}
+
+static __m128i __inline process_pixels_mode0(__m128i src_pixels, __m128i threshold_vector, __m128i sign_convert_vector, __m128i one_i8, __m128i change, unsigned char ref_pixels_1_components[16], unsigned char ref_pixels_2_components[16], unsigned char ref_pixels_3_components[16], unsigned char ref_pixels_4_components[16])
+{
+	__m128i dst_pixels;
+	__m128i blend_mask;
+
+	__m128i ref_pixels = _mm_load_si128((__m128i*)ref_pixels_1_components);
+
+	__m128i difference;
+
+	difference = clamped_absolute_difference(src_pixels, ref_pixels, threshold_vector);
+	// mask: if difference >= threshold, set to 0xff, otherwise 0x00
+	// difference is already clamped to threshold, so we compare for equality here
+	blend_mask = _mm_cmpeq_epi8(difference, threshold_vector);
+
+	// if mask is 0xff (over threshold), select second operand, otherwise select first
+	dst_pixels = _mm_blendv_epi8(ref_pixels, src_pixels, blend_mask);
+
+	return dst_pixels;
 }
 
 template<int sample_mode, bool blur_first>
@@ -250,6 +281,9 @@ static __m128i __inline process_pixels(__m128i src_pixels, __m128i threshold_vec
 {
 	switch (sample_mode)
 	{
+	case 0:
+		return process_pixels_mode0(src_pixels, threshold_vector, sign_convert_vector, one_i8, change, ref_pixels_1_components, ref_pixels_2_components, ref_pixels_3_components, ref_pixels_4_components);
+		break;
 	case 1:
 	case 2:
 		return process_pixels_mode12<sample_mode, blur_first>(src_pixels, threshold_vector, sign_convert_vector, one_i8, change, ref_pixels_1_components, ref_pixels_2_components, ref_pixels_3_components, ref_pixels_4_components);
@@ -355,20 +389,28 @@ void __cdecl process_plane_sse(unsigned char const*srcp, int const src_width, in
 				for (int i = 0; i < 16; i++)
 				{
 
-					if (sample_mode == 1) {
+					switch (sample_mode)
+					{
+					case 0:
+						ref_pixels_1_components[i] = *(src_px + i + *(int*)(info_data_stream + 4 * i));
+						break;
+					case 1:
 						ref_pixels_1_components[i] = *(src_px + i + *(int*)(info_data_stream + 4 * i));
 						ref_pixels_2_components[i] = *(src_px + i + -*(int*)(info_data_stream + 4 * i));
-					}
-					else if (sample_mode == 2) {
+						break;
+					case 2:
 						ref_pixels_1_components[i] = *(src_px + i + *(int*)(info_data_stream + 4 * (i + i / 4 * 4)));
 						ref_pixels_2_components[i] = *(src_px + i + *(int*)(info_data_stream + 4 * (i + i / 4 * 4 + 4)));
 						ref_pixels_3_components[i] = *(src_px + i + -*(int*)(info_data_stream + 4 * (i + i / 4 * 4)));
 						ref_pixels_4_components[i] = *(src_px + i + -*(int*)(info_data_stream + 4 * (i + i / 4 * 4 + 4)));
+						break;
 					}
 				}
 				info_data_stream += (sample_mode == 2 ? 128 : 64);
-				change = _mm_load_si128((__m128i*)info_data_stream);
-				info_data_stream += 16;
+				if (sample_mode > 0) {
+					change = _mm_load_si128((__m128i*)info_data_stream);
+					info_data_stream += 16;
+				}
 			} else {
 				// we need to process the info block
 				change = _mm_setzero_si128();
@@ -383,14 +425,15 @@ void __cdecl process_plane_sse(unsigned char const*srcp, int const src_width, in
 
 	#undef PROCESS_INFO_BLOCK
 
-				// shuffle delta values to correct place
-				change = _mm_shuffle_epi8(change, change_shuffle_mask);
+				if (sample_mode > 0) {
+					// shuffle delta values to correct place
+					change = _mm_shuffle_epi8(change, change_shuffle_mask);
 
-				if (info_data_stream) {
-					_mm_store_si128((__m128i*)info_data_stream, change);
-					info_data_stream += 16;
+					if (info_data_stream) {
+						_mm_store_si128((__m128i*)info_data_stream, change);
+						info_data_stream += 16;
+					}
 				}
-
 			}
 
 			__m128i src_pixels = _mm_load_si128((__m128i*)src_px);
