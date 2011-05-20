@@ -51,7 +51,7 @@ void __cdecl process_plane_plainc(unsigned char const*srcp, int const src_width,
 					if (sample_mode == 1)
 					{
 						ref_px = info.ref1 * src_pitch;
-						avg = ((int)src_px[ref_px] + (int)src_px[-ref_px]) >> 1;
+						avg = ((int)src_px[ref_px] + (int)src_px[-ref_px] + 1) >> 1;
 						if (blur_first)
 						{
 							int diff = avg - *src_px;

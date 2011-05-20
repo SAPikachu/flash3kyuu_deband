@@ -8,7 +8,7 @@
 
 #include <smmintrin.h>
 
-template <int ref_part_index>
+template <int sample_mode, int ref_part_index>
 static __forceinline void process_plane_info_block(
 	pixel_dither_info *&info_ptr, 
 	__m128i &src_addrs, 
@@ -61,11 +61,6 @@ static __forceinline void process_plane_info_block(
 	ref1 = _mm_slli_epi32(ref1, 24); // << 24
 	ref1 = _mm_srai_epi32(ref1, 24); // >> 24
 
-	// ref2: bit 8-15
-	// similar to above
-	__m128i ref2 = info_block;
-	ref2 = _mm_slli_epi32(ref2, 16); // << 16
-	ref2 = _mm_srai_epi32(ref2, 24); // >> 24
 
 	// temporarily store computed addresses
 	__declspec(align(16))
@@ -74,16 +69,37 @@ static __forceinline void process_plane_info_block(
 	__declspec(align(16))
 	unsigned char* address_buffer_2[4];
 
-	// ref_px = src_pitch * info.ref2 + info.ref1;
-	__m128i ref_offset1 = _mm_mullo_epi32(src_pitch_vector, ref2); // packed DWORD multiplication
-	ref_offset1 = _mm_add_epi32(ref_offset1, ref1);
+	__m128i ref_offset1;
+	__m128i ref_offset2;
 
+	switch (sample_mode)
+	{
+	case 1:
+		ref_offset1 = _mm_mullo_epi32(src_pitch_vector, ref1); // packed DWORD multiplication
+
+		ref_offset2 = _mm_sign_epi32(ref_offset1, minus_one); // negates all offsets
+		break;
+	case 2:
+		// ref2: bit 8-15
+		// similar to above
+		__m128i ref2;
+		ref2 = info_block;
+		ref2 = _mm_slli_epi32(ref2, 16); // << 16
+		ref2 = _mm_srai_epi32(ref2, 24); // >> 24
+
+		// ref_px = src_pitch * info.ref2 + info.ref1;
+		ref_offset1 = _mm_mullo_epi32(src_pitch_vector, ref2); // packed DWORD multiplication
+		ref_offset1 = _mm_add_epi32(ref_offset1, ref1);
+
+		// ref_px_2 = info.ref2 - src_pitch * info.ref1;
+		ref_offset2 = _mm_mullo_epi32(src_pitch_vector, ref1); // packed DWORD multiplication
+		ref_offset2 = _mm_sub_epi32(ref2, ref_offset2);
+
+		break;
+	default:
+		abort();
+	}
 	_mm_store_si128((__m128i*)address_buffer_1, _mm_add_epi32(src_addrs, ref_offset1));
-
-	// ref_px_2 = info.ref2 - src_pitch * info.ref1;
-	__m128i ref_offset2 = _mm_mullo_epi32(src_pitch_vector, ref1); // packed DWORD multiplication
-	ref_offset2 = _mm_sub_epi32(ref2, ref_offset2);
-	
 	_mm_store_si128((__m128i*)address_buffer_2, _mm_add_epi32(src_addrs, ref_offset2));
 
 	if (info_data_stream){
@@ -104,23 +120,26 @@ static __forceinline void process_plane_info_block(
 	ref_pixels_2_components[4 * ref_part_index + 2] = *(address_buffer_2[2]);
 	ref_pixels_2_components[4 * ref_part_index + 3] = *(address_buffer_2[3]);
 
-	// another direction, negates all offsets
-	ref_offset1 = _mm_sign_epi32(ref_offset1, minus_one);
-	_mm_store_si128((__m128i*)address_buffer_1, _mm_add_epi32(src_addrs, ref_offset1));
+	if (sample_mode == 2) {
 
-	ref_offset2 = _mm_sign_epi32(ref_offset2, minus_one);
-	_mm_store_si128((__m128i*)address_buffer_2, _mm_add_epi32(src_addrs, ref_offset2));
+		// another direction, negates all offsets
+		ref_offset1 = _mm_sign_epi32(ref_offset1, minus_one);
+		_mm_store_si128((__m128i*)address_buffer_1, _mm_add_epi32(src_addrs, ref_offset1));
 
-	ref_pixels_3_components[4 * ref_part_index + 0] = *(address_buffer_1[0]);
-	ref_pixels_3_components[4 * ref_part_index + 1] = *(address_buffer_1[1]);
-	ref_pixels_3_components[4 * ref_part_index + 2] = *(address_buffer_1[2]);
-	ref_pixels_3_components[4 * ref_part_index + 3] = *(address_buffer_1[3]);
+		ref_offset2 = _mm_sign_epi32(ref_offset2, minus_one);
+		_mm_store_si128((__m128i*)address_buffer_2, _mm_add_epi32(src_addrs, ref_offset2));
 
-	ref_pixels_4_components[4 * ref_part_index + 0] = *(address_buffer_2[0]);
-	ref_pixels_4_components[4 * ref_part_index + 1] = *(address_buffer_2[1]);
-	ref_pixels_4_components[4 * ref_part_index + 2] = *(address_buffer_2[2]);
-	ref_pixels_4_components[4 * ref_part_index + 3] = *(address_buffer_2[3]);
+		ref_pixels_3_components[4 * ref_part_index + 0] = *(address_buffer_1[0]);
+		ref_pixels_3_components[4 * ref_part_index + 1] = *(address_buffer_1[1]);
+		ref_pixels_3_components[4 * ref_part_index + 2] = *(address_buffer_1[2]);
+		ref_pixels_3_components[4 * ref_part_index + 3] = *(address_buffer_1[3]);
 
+		ref_pixels_4_components[4 * ref_part_index + 0] = *(address_buffer_2[0]);
+		ref_pixels_4_components[4 * ref_part_index + 1] = *(address_buffer_2[1]);
+		ref_pixels_4_components[4 * ref_part_index + 2] = *(address_buffer_2[2]);
+		ref_pixels_4_components[4 * ref_part_index + 3] = *(address_buffer_2[3]);
+
+	}
 	info_ptr += 4;
 	src_addrs = _mm_add_epi32(src_addrs, src_addr_increment_vector);
 }
@@ -150,9 +169,8 @@ void destroy_cache(void* data)
 	free(data);
 }
 
-
-template<bool blur_first>
-static __m128i __inline process_pixels_mode2(__m128i src_pixels, __m128i threshold_vector, __m128i sign_convert_vector, __m128i one_i8, __m128i change, unsigned char ref_pixels_1_components[16], unsigned char ref_pixels_2_components[16], unsigned char ref_pixels_3_components[16], unsigned char ref_pixels_4_components[16])
+template<int sample_mode, bool blur_first>
+static __m128i __inline process_pixels_mode12(__m128i src_pixels, __m128i threshold_vector, __m128i sign_convert_vector, __m128i one_i8, __m128i change, unsigned char ref_pixels_1_components[16], unsigned char ref_pixels_2_components[16], unsigned char ref_pixels_3_components[16], unsigned char ref_pixels_4_components[16])
 {
 	__m128i dst_pixels;
 	__m128i use_orig_pixel_blend_mask;
@@ -178,27 +196,32 @@ static __m128i __inline process_pixels_mode2(__m128i src_pixels, __m128i thresho
 
 	avg = _mm_avg_epu8(ref_pixels, ref_pixels_2);
 
-	ref_pixels = _mm_load_si128((__m128i*)ref_pixels_3_components);
-
-	ref_pixels_2 = _mm_load_si128((__m128i*)ref_pixels_4_components);
-
-	if (!blur_first)
+	if (sample_mode == 2)
 	{
-		difference = clamped_absolute_difference(src_pixels, ref_pixels, threshold_vector);
-		use_orig_pixel_blend_mask = _mm_or_si128(_mm_cmpeq_epi8(difference, threshold_vector), use_orig_pixel_blend_mask);
 
-		difference = clamped_absolute_difference(src_pixels, ref_pixels_2, threshold_vector);
-		use_orig_pixel_blend_mask = _mm_or_si128(_mm_cmpeq_epi8(difference, threshold_vector), use_orig_pixel_blend_mask);
+		ref_pixels = _mm_load_si128((__m128i*)ref_pixels_3_components);
+
+		ref_pixels_2 = _mm_load_si128((__m128i*)ref_pixels_4_components);
+
+		if (!blur_first)
+		{
+			difference = clamped_absolute_difference(src_pixels, ref_pixels, threshold_vector);
+			use_orig_pixel_blend_mask = _mm_or_si128(_mm_cmpeq_epi8(difference, threshold_vector), use_orig_pixel_blend_mask);
+
+			difference = clamped_absolute_difference(src_pixels, ref_pixels_2, threshold_vector);
+			use_orig_pixel_blend_mask = _mm_or_si128(_mm_cmpeq_epi8(difference, threshold_vector), use_orig_pixel_blend_mask);
+		}
+		// PAVGB adds 1 before calculating average, so we subtract 1 here to be consistent with c version
+
+		__m128i avg2_tmp = _mm_avg_epu8(ref_pixels, ref_pixels_2);
+		__m128i avg2 = _mm_min_epu8(avg, avg2_tmp);
+
+		avg = _mm_max_epu8(avg, avg2_tmp);
+		avg = _mm_subs_epu8(avg, one_i8);
+
+		avg = _mm_avg_epu8(avg, avg2);
+
 	}
-	// PAVGB adds 1 before calculating average, so we subtract 1 here to be consistent with c version
-
-	__m128i avg2_tmp = _mm_avg_epu8(ref_pixels, ref_pixels_2);
-	__m128i avg2 = _mm_min_epu8(avg, avg2_tmp);
-
-	avg = _mm_max_epu8(avg, avg2_tmp);
-	avg = _mm_subs_epu8(avg, one_i8);
-
-	avg = _mm_avg_epu8(avg, avg2);
 
 	if (blur_first)
 	{
@@ -225,8 +248,9 @@ static __m128i __inline process_pixels(__m128i src_pixels, __m128i threshold_vec
 {
 	switch (sample_mode)
 	{
+	case 1:
 	case 2:
-		return process_pixels_mode2<blur_first>(src_pixels, threshold_vector, sign_convert_vector, one_i8, change, ref_pixels_1_components, ref_pixels_2_components, ref_pixels_3_components, ref_pixels_4_components);
+		return process_pixels_mode12<sample_mode, blur_first>(src_pixels, threshold_vector, sign_convert_vector, one_i8, change, ref_pixels_1_components, ref_pixels_2_components, ref_pixels_3_components, ref_pixels_4_components);
 		break;
 	default:
 		abort();
@@ -330,10 +354,13 @@ void __cdecl process_plane_sse(unsigned char const*srcp, int const src_width, in
 				{
 					ref_pixels_1_components[i] = *(src_px + i + *(int*)(info_data_stream + 4 * (i + i / 4 * 4)));
 					ref_pixels_2_components[i] = *(src_px + i + *(int*)(info_data_stream + 4 * (i + i / 4 * 4 + 4)));
-					ref_pixels_3_components[i] = *(src_px + i + -*(int*)(info_data_stream + 4 * (i + i / 4 * 4)));
-					ref_pixels_4_components[i] = *(src_px + i + -*(int*)(info_data_stream + 4 * (i + i / 4 * 4 + 4)));
+
+					if (sample_mode == 2) {
+						ref_pixels_3_components[i] = *(src_px + i + -*(int*)(info_data_stream + 4 * (i + i / 4 * 4)));
+						ref_pixels_4_components[i] = *(src_px + i + -*(int*)(info_data_stream + 4 * (i + i / 4 * 4 + 4)));
+					}
 				}
-				info_data_stream += 128;
+				info_data_stream += (sample_mode == 2 ? 128 : 64);
 				change = _mm_load_si128((__m128i*)info_data_stream);
 				info_data_stream += 16;
 			} else {
@@ -341,7 +368,7 @@ void __cdecl process_plane_sse(unsigned char const*srcp, int const src_width, in
 				change = _mm_setzero_si128();
 			
 	#define PROCESS_INFO_BLOCK(n) \
-				process_plane_info_block<n>(info_ptr, src_addrs, src_pitch_vector, src_addr_increment_vector, change, change_extract_mask, minus_one, ref_pixels_1_components, ref_pixels_2_components, ref_pixels_3_components, ref_pixels_4_components, info_data_stream);
+				process_plane_info_block<sample_mode, n>(info_ptr, src_addrs, src_pitch_vector, src_addr_increment_vector, change, change_extract_mask, minus_one, ref_pixels_1_components, ref_pixels_2_components, ref_pixels_3_components, ref_pixels_4_components, info_data_stream);
 			
 				PROCESS_INFO_BLOCK(0);
 				PROCESS_INFO_BLOCK(1);

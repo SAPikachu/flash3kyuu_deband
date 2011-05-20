@@ -28,8 +28,8 @@ void __cdecl process_plane_benchmark(unsigned char const*srcp, int const src_wid
 	SetThreadPriority(thread_handle, THREAD_PRIORITY_HIGHEST);
 
 	DWORD_PTR old_affinity = SetThreadAffinityMask(thread_handle, (DWORD_PTR)1);
-
-	printf("process_plane_sse4_benchmark\n");
+	
+	printf(__FUNCTION__ ", sample_mode=%d, blur_first=%d\n", sample_mode, blur_first);
 	printf("-----------------------------------\n");
 
 	int total_bytes = src_width * src_height;

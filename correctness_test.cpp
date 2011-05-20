@@ -6,7 +6,7 @@
 template<int sample_mode, bool blur_first>
 void __cdecl process_plane_correctness_test(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
 {
-	printf("process_plane_sse4_correctness_test\n");
+	printf(__FUNCTION__ ", sample_mode=%d, blur_first=%d\n", sample_mode, blur_first);
 	printf("-----------------------------------\n");
 	process_plane_impl_t reference_impl = process_plane_impl_c[select_impl_index(sample_mode, blur_first)];
 	process_plane_impl_t test_impl = process_plane_impl_sse4[select_impl_index(sample_mode, blur_first)];
