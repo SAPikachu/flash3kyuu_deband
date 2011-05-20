@@ -88,6 +88,7 @@
   <ItemGroup>
     <ClInclude Include="avisynth.h" />
     <ClInclude Include="flash3kyuu_deband.h" />
+    <ClInclude Include="flash3kyuu_deband_sse_base.h" />
     <ClInclude Include="impl_dispatch.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />

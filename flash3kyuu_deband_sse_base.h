@@ -1,12 +1,6 @@
-
-
-#include "stdafx.h"
-
 #include "flash3kyuu_deband.h"
 
 #include "impl_dispatch.h"
-
-#include <smmintrin.h>
 
 template <int sample_mode, int ref_part_index>
 static __forceinline void process_plane_info_block(
@@ -296,7 +290,7 @@ static __m128i __inline process_pixels(__m128i src_pixels, __m128i threshold_vec
 
 
 template<int sample_mode, bool blur_first>
-void __cdecl process_plane_sse(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
+static void __cdecl process_plane_sse_impl(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
 {
 	// By default, frame buffers are guaranteed to be mod16, and full pitch is always available for every line
 	// so even width is not mod16, we don't need to treat remaining pixels as special case
@@ -448,4 +442,5 @@ void __cdecl process_plane_sse(unsigned char const*srcp, int const src_width, in
 	}
 }
 
-DEFINE_TEMPLATE_IMPL(sse4, process_plane_sse);
+#define DEFINE_SSE_IMPL(name) \
+	DEFINE_TEMPLATE_IMPL(name, process_plane_sse_impl);
