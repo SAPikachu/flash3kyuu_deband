@@ -360,7 +360,7 @@ void __cdecl process_plane_sse(unsigned char const*srcp, int const src_width, in
 						ref_pixels_4_components[i] = *(src_px + i + -*(int*)(info_data_stream + 4 * (i + i / 4 * 4 + 4)));
 					}
 				}
-				info_data_stream += (sample_mode == 2 ? 128 : 64);
+				info_data_stream += 128;
 				change = _mm_load_si128((__m128i*)info_data_stream);
 				info_data_stream += 16;
 			} else {
