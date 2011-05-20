@@ -150,8 +150,93 @@ void destroy_cache(void* data)
 	free(data);
 }
 
+
+template<bool blur_first>
+static __m128i __inline process_pixels_mode2(__m128i src_pixels, __m128i threshold_vector, __m128i sign_convert_vector, __m128i one_i8, __m128i change, unsigned char ref_pixels_1_components[16], unsigned char ref_pixels_2_components[16], unsigned char ref_pixels_3_components[16], unsigned char ref_pixels_4_components[16])
+{
+	__m128i dst_pixels;
+	__m128i use_orig_pixel_blend_mask;
+	__m128i avg;
+
+	__m128i ref_pixels = _mm_load_si128((__m128i*)ref_pixels_1_components);
+
+	__m128i ref_pixels_2 = _mm_load_si128((__m128i*)ref_pixels_2_components);
+
+	__m128i difference;
+
+	if (!blur_first)
+	{
+		difference = clamped_absolute_difference(src_pixels, ref_pixels, threshold_vector);
+		// mask: if difference >= threshold, set to 0xff, otherwise 0x00
+		// difference is already clamped to threshold, so we compare for equality here
+		use_orig_pixel_blend_mask = _mm_cmpeq_epi8(difference, threshold_vector);
+
+		difference = clamped_absolute_difference(src_pixels, ref_pixels_2, threshold_vector);
+		// use OR to combine the masks
+		use_orig_pixel_blend_mask = _mm_or_si128(_mm_cmpeq_epi8(difference, threshold_vector), use_orig_pixel_blend_mask);
+	}
+
+	avg = _mm_avg_epu8(ref_pixels, ref_pixels_2);
+
+	ref_pixels = _mm_load_si128((__m128i*)ref_pixels_3_components);
+
+	ref_pixels_2 = _mm_load_si128((__m128i*)ref_pixels_4_components);
+
+	if (!blur_first)
+	{
+		difference = clamped_absolute_difference(src_pixels, ref_pixels, threshold_vector);
+		use_orig_pixel_blend_mask = _mm_or_si128(_mm_cmpeq_epi8(difference, threshold_vector), use_orig_pixel_blend_mask);
+
+		difference = clamped_absolute_difference(src_pixels, ref_pixels_2, threshold_vector);
+		use_orig_pixel_blend_mask = _mm_or_si128(_mm_cmpeq_epi8(difference, threshold_vector), use_orig_pixel_blend_mask);
+	}
+	// PAVGB adds 1 before calculating average, so we subtract 1 here to be consistent with c version
+
+	__m128i avg2_tmp = _mm_avg_epu8(ref_pixels, ref_pixels_2);
+	__m128i avg2 = _mm_min_epu8(avg, avg2_tmp);
+
+	avg = _mm_max_epu8(avg, avg2_tmp);
+	avg = _mm_subs_epu8(avg, one_i8);
+
+	avg = _mm_avg_epu8(avg, avg2);
+
+	if (blur_first)
+	{
+		difference = clamped_absolute_difference(src_pixels, avg, threshold_vector);
+		use_orig_pixel_blend_mask = _mm_cmpeq_epi8(difference, threshold_vector);
+	}
+
+	// if mask is 0xff (over threshold), select second operand, otherwise select first
+	src_pixels = _mm_blendv_epi8(avg, src_pixels, use_orig_pixel_blend_mask);
+
+	// convert to signed form, since change is signed
+	src_pixels = _mm_sub_epi8(src_pixels, sign_convert_vector);
+
+	// saturated add
+	src_pixels = _mm_adds_epi8(src_pixels, change);
+
+	// convert back to unsigned
+	dst_pixels = _mm_add_epi8(src_pixels, sign_convert_vector);
+	return dst_pixels;
+}
+
 template<int sample_mode, bool blur_first>
-void __cdecl process_plane_mode2_noblur(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
+static __m128i __inline process_pixels(__m128i src_pixels, __m128i threshold_vector, __m128i sign_convert_vector, __m128i one_i8, __m128i change, unsigned char ref_pixels_1_components[16], unsigned char ref_pixels_2_components[16], unsigned char ref_pixels_3_components[16], unsigned char ref_pixels_4_components[16])
+{
+	switch (sample_mode)
+	{
+	case 2:
+		return process_pixels_mode2<blur_first>(src_pixels, threshold_vector, sign_convert_vector, one_i8, change, ref_pixels_1_components, ref_pixels_2_components, ref_pixels_3_components, ref_pixels_4_components);
+		break;
+	default:
+		abort();
+	}
+	return src_pixels;
+}
+
+
+template<int sample_mode, bool blur_first>
+void __cdecl process_plane_sse(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
 {
 	// By default, frame buffers are guaranteed to be mod16, and full pitch is always available for every line
 	// so even width is not mod16, we don't need to treat remaining pixels as special case
@@ -276,52 +361,9 @@ void __cdecl process_plane_mode2_noblur(unsigned char const*srcp, int const src_
 			}
 
 			__m128i src_pixels = _mm_load_si128((__m128i*)src_px);
-			__m128i use_orig_pixel_blend_mask;
-			__m128i ref_pixels = _mm_load_si128((__m128i*)ref_pixels_1_components);
-			__m128i difference = clamped_absolute_difference(src_pixels, ref_pixels, threshold_vector);
-			// mask: if difference >= threshold, set to 0xff, otherwise 0x00
-			// difference is already clamped to threshold, so we compare for equality here
-			use_orig_pixel_blend_mask = _mm_cmpeq_epi8(difference, threshold_vector);
-
-			__m128i ref_pixels_2 = _mm_load_si128((__m128i*)ref_pixels_2_components);
-			difference = clamped_absolute_difference(src_pixels, ref_pixels_2, threshold_vector);
-			// use OR to combine the masks
-			use_orig_pixel_blend_mask = _mm_or_si128(_mm_cmpeq_epi8(difference, threshold_vector), use_orig_pixel_blend_mask);
-
-			__m128i avg = _mm_avg_epu8(ref_pixels, ref_pixels_2);
-
-			ref_pixels = _mm_load_si128((__m128i*)ref_pixels_3_components);
-			difference = clamped_absolute_difference(src_pixels, ref_pixels, threshold_vector);
-			use_orig_pixel_blend_mask = _mm_or_si128(_mm_cmpeq_epi8(difference, threshold_vector), use_orig_pixel_blend_mask);
-
-			ref_pixels_2 = _mm_load_si128((__m128i*)ref_pixels_4_components);
-			difference = clamped_absolute_difference(src_pixels, ref_pixels_2, threshold_vector);
-			use_orig_pixel_blend_mask = _mm_or_si128(_mm_cmpeq_epi8(difference, threshold_vector), use_orig_pixel_blend_mask);
-
-			// PAVGB adds 1 before calculating average, so we subtract 1 here to be consistent with c version
-
-			__m128i avg2_tmp = _mm_avg_epu8(ref_pixels, ref_pixels_2);
-			__m128i avg2 = _mm_min_epu8(avg, avg2_tmp);
-
-			avg = _mm_max_epu8(avg, avg2_tmp);
-			avg = _mm_subs_epu8(avg, one_i8);
-
-			avg = _mm_avg_epu8(avg, avg2);
-
-			// if mask is 0xff (over threshold), select second operand, otherwise select first
-			src_pixels = _mm_blendv_epi8(avg, src_pixels, use_orig_pixel_blend_mask);
-
-			// convert to signed form, since change is signed
-			src_pixels = _mm_sub_epi8(src_pixels, sign_convert_vector);
-
-			// saturated add
-			src_pixels = _mm_adds_epi8(src_pixels, change);
-
-			// convert back to unsigned
-			src_pixels = _mm_add_epi8(src_pixels, sign_convert_vector);
-
+			__m128i dst_pixels = process_pixels<sample_mode, blur_first>(src_pixels, threshold_vector, sign_convert_vector, one_i8, change, ref_pixels_1_components, ref_pixels_2_components, ref_pixels_3_components, ref_pixels_4_components);
 			// write back the result
-			_mm_store_si128((__m128i*)dst_px, src_pixels);
+			_mm_store_si128((__m128i*)dst_px, dst_pixels);
 
 			src_px += 16;
 			dst_px += 16;
@@ -330,4 +372,4 @@ void __cdecl process_plane_mode2_noblur(unsigned char const*srcp, int const src_
 	}
 }
 
-DEFINE_TEMPLATE_IMPL(sse4, process_plane_mode2_noblur);
+DEFINE_TEMPLATE_IMPL(sse4, process_plane_sse);
