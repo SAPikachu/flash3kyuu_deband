@@ -15,8 +15,8 @@ T avg(T (&elems)[element_count])
 	return total / element_count;
 }
 
-template<int, bool>
-void __cdecl process_plane_sse4_benchmark(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
+template<int sample_mode, bool blur_first>
+void __cdecl process_plane_benchmark(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
 {
 	HANDLE process_handle = GetCurrentProcess();
 	HANDLE thread_handle = GetCurrentThread();
@@ -35,8 +35,8 @@ void __cdecl process_plane_sse4_benchmark(unsigned char const*srcp, int const sr
 	int total_bytes = src_width * src_height;
 	printf("Width: %d, Height: %d, Total: %d bytes\n", src_width, src_height, total_bytes);
 
-	process_plane_impl_t c_impl = process_plane_impl_c[select_impl_index(2, false)];
-	process_plane_impl_t sse_impl = process_plane_impl_sse4[select_impl_index(2, false)];
+	process_plane_impl_t c_impl = process_plane_impl_c[select_impl_index(sample_mode, blur_first)];
+	process_plane_impl_t sse_impl = process_plane_impl_sse4[select_impl_index(sample_mode, blur_first)];
 
 	DWORD64 tsc_before, tsc_after;
 	DWORD64 cycles_elapsed;
@@ -97,4 +97,4 @@ void __cdecl process_plane_sse4_benchmark(unsigned char const*srcp, int const sr
 	SetThreadPriority(thread_handle, old_thread_priority);
 }
 
-DEFINE_TEMPLATE_IMPL(sse4_benchmark, process_plane_sse4_benchmark);
+DEFINE_TEMPLATE_IMPL(benchmark, process_plane_benchmark);
