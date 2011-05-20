@@ -167,7 +167,7 @@ typedef struct _info_cache
 	char* data_stream;
 } info_cache;
 
-void destroy_cache(void* data)
+static void destroy_cache(void* data)
 {
 	assert(data);
 
