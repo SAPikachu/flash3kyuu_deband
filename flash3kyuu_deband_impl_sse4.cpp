@@ -106,8 +106,10 @@ static __forceinline void process_plane_info_block(
 		_mm_store_si128((__m128i*)info_data_stream, ref_offset1);
 		info_data_stream += 16;
 
-		_mm_store_si128((__m128i*)info_data_stream, ref_offset2);
-		info_data_stream += 16;
+		if (sample_mode == 2) {
+			_mm_store_si128((__m128i*)info_data_stream, ref_offset2);
+			info_data_stream += 16;
+		}
 	}
 	// load ref bytes
 	ref_pixels_1_components[4 * ref_part_index + 0] = *(address_buffer_1[0]);
@@ -352,15 +354,19 @@ void __cdecl process_plane_sse(unsigned char const*srcp, int const src_width, in
 				//  2 2 2 2]
 				for (int i = 0; i < 16; i++)
 				{
-					ref_pixels_1_components[i] = *(src_px + i + *(int*)(info_data_stream + 4 * (i + i / 4 * 4)));
-					ref_pixels_2_components[i] = *(src_px + i + *(int*)(info_data_stream + 4 * (i + i / 4 * 4 + 4)));
 
-					if (sample_mode == 2) {
+					if (sample_mode == 1) {
+						ref_pixels_1_components[i] = *(src_px + i + *(int*)(info_data_stream + 4 * i));
+						ref_pixels_2_components[i] = *(src_px + i + -*(int*)(info_data_stream + 4 * i));
+					}
+					else if (sample_mode == 2) {
+						ref_pixels_1_components[i] = *(src_px + i + *(int*)(info_data_stream + 4 * (i + i / 4 * 4)));
+						ref_pixels_2_components[i] = *(src_px + i + *(int*)(info_data_stream + 4 * (i + i / 4 * 4 + 4)));
 						ref_pixels_3_components[i] = *(src_px + i + -*(int*)(info_data_stream + 4 * (i + i / 4 * 4)));
 						ref_pixels_4_components[i] = *(src_px + i + -*(int*)(info_data_stream + 4 * (i + i / 4 * 4 + 4)));
 					}
 				}
-				info_data_stream += 128;
+				info_data_stream += (sample_mode == 2 ? 128 : 64);
 				change = _mm_load_si128((__m128i*)info_data_stream);
 				info_data_stream += 16;
 			} else {
