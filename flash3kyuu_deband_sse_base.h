@@ -176,7 +176,7 @@ static void destroy_cache(void* data)
 	free(data);
 }
 
-static __m128i __inline process_pixels_mode0(__m128i src_pixels, __m128i threshold_vector, __m128i sign_convert_vector, __m128i one_i8, __m128i change, unsigned char ref_pixels_1_components[16], unsigned char ref_pixels_2_components[16], unsigned char ref_pixels_3_components[16], unsigned char ref_pixels_4_components[16])
+static __m128i __inline process_pixels_mode0(__m128i src_pixels, __m128i threshold_vector, __m128i sign_convert_vector, __m128i& one_i8, __m128i& change, unsigned char ref_pixels_1_components[16], unsigned char ref_pixels_2_components[16], unsigned char ref_pixels_3_components[16], unsigned char ref_pixels_4_components[16])
 {
 	__m128i dst_pixels;
 	__m128i blend_mask;
@@ -197,7 +197,7 @@ static __m128i __inline process_pixels_mode0(__m128i src_pixels, __m128i thresho
 }
 
 template<int sample_mode, bool blur_first>
-static __m128i __inline process_pixels_mode12(__m128i src_pixels, __m128i threshold_vector, __m128i sign_convert_vector, __m128i one_i8, __m128i change, unsigned char ref_pixels_1_components[16], unsigned char ref_pixels_2_components[16], unsigned char ref_pixels_3_components[16], unsigned char ref_pixels_4_components[16])
+static __m128i __inline process_pixels_mode12(__m128i src_pixels, __m128i threshold_vector, __m128i sign_convert_vector, __m128i& one_i8, __m128i& change, unsigned char ref_pixels_1_components[16], unsigned char ref_pixels_2_components[16], unsigned char ref_pixels_3_components[16], unsigned char ref_pixels_4_components[16])
 {
 	__m128i dst_pixels;
 	__m128i use_orig_pixel_blend_mask;
@@ -271,7 +271,7 @@ static __m128i __inline process_pixels_mode12(__m128i src_pixels, __m128i thresh
 }
 
 template<int sample_mode, bool blur_first>
-static __m128i __inline process_pixels(__m128i src_pixels, __m128i threshold_vector, __m128i sign_convert_vector, __m128i one_i8, __m128i change, unsigned char ref_pixels_1_components[16], unsigned char ref_pixels_2_components[16], unsigned char ref_pixels_3_components[16], unsigned char ref_pixels_4_components[16])
+static __m128i __inline process_pixels(__m128i src_pixels, __m128i threshold_vector, __m128i sign_convert_vector, __m128i& one_i8, __m128i& change, unsigned char ref_pixels_1_components[16], unsigned char ref_pixels_2_components[16], unsigned char ref_pixels_3_components[16], unsigned char ref_pixels_4_components[16])
 {
 	switch (sample_mode)
 	{

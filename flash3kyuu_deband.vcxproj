@@ -73,6 +73,7 @@
       <GenerateAlternateCodePaths>None</GenerateAlternateCodePaths>
       <UseProcessorExtensions>None</UseProcessorExtensions>
       <AdditionalOptions>/Qopenmp-link:static %(AdditionalOptions)</AdditionalOptions>
+      <UseMSVC>false</UseMSVC>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -109,6 +110,7 @@
     <ClCompile Include="flash3kyuu_deband.cpp" />
     <ClCompile Include="flash3kyuu_deband_impl_c.cpp" />
     <ClCompile Include="flash3kyuu_deband_impl_sse4.cpp" />
+    <ClCompile Include="flash3kyuu_deband_impl_ssse3.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
