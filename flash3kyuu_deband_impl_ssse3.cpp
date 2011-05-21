@@ -15,7 +15,7 @@ static __m128i __inline _mm_blendv_epi8(
 	return _mm_or_si128(a_mask, b_mask);
 }
 
-static __m128i _mm_mullo_epi32(__m128i a, __m128i b)
+static __m128i __inline _mm_mullo_epi32(__m128i a, __m128i b)
 {
 	// input can always be fit in 16bit
 

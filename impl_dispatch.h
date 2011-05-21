@@ -24,23 +24,43 @@
 				(&impl_func<2, true>), \
 				(&impl_func<2, false>) );
 
+#define DEFINE_TEMPLATE_IMPL_1(name, impl_func, param) \
+	DEFINE_IMPL(name, \
+				(&impl_func<0, true, param>), \
+				(&impl_func<1, true, param>), \
+				(&impl_func<1, false, param>), \
+				(&impl_func<2, true, param>), \
+				(&impl_func<2, false, param>) );
+
 const extern process_plane_impl_t process_plane_impl_c[];
 
 const extern process_plane_impl_t process_plane_impl_sse4[];
 
 const extern process_plane_impl_t process_plane_impl_ssse3[];
 
-const extern process_plane_impl_t process_plane_impl_correctness_test[];
+const extern process_plane_impl_t process_plane_impl_correctness_test_sse2[];
+
+const extern process_plane_impl_t process_plane_impl_correctness_test_ssse3[];
+
+const extern process_plane_impl_t process_plane_impl_correctness_test_sse4[];
 
 const extern process_plane_impl_t process_plane_impl_benchmark[];
 
 static const process_plane_impl_t* process_plane_impls[] = {
 	process_plane_impl_c,
-	process_plane_impl_sse4,
+	NULL,
 	process_plane_impl_ssse3,
-	process_plane_impl_correctness_test,
+	process_plane_impl_sse4,
+	process_plane_impl_correctness_test_sse2,
+	process_plane_impl_correctness_test_ssse3,
+	process_plane_impl_correctness_test_sse4,
 	process_plane_impl_benchmark
 };
+
+#define IMPL_C 0
+#define IMPL_SSE2 1
+#define IMPL_SSSE3 2
+#define IMPL_SSE4 3
 
 static __inline int select_impl_index(int sample_mode, bool blur_first)
 {
