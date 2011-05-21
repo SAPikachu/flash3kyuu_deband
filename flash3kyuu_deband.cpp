@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "flash3kyuu_deband.h"
 #include "impl_dispatch.h"
+#include <intrin.h>
 
 static void check_parameter_range(int value, int lower_bound, int upper_bound, char* param_name, IScriptEnvironment* env) {
 	if (value < lower_bound || value > upper_bound) {
@@ -176,8 +177,17 @@ flash3kyuu_deband::~flash3kyuu_deband()
 static process_plane_impl_t get_process_plane_impl(int sample_mode, bool blur_first, int opt)
 {
 	if (opt == -1) {
-		// TODO: should select optimization mode based on cpu
-		opt = 0;
+		int cpu_info[4] = {-1};
+		__cpuid(cpu_info, 1);
+		if (cpu_info[2] & 0x80000) {
+			opt = IMPL_SSE4;
+		} else if (cpu_info[2] & 0x200) {
+			opt = IMPL_SSSE3;
+		} else if (cpu_info[3] & 0x04000000) {
+			opt = IMPL_SSE2;
+		} else {
+			opt = IMPL_C;
+		}
 	}
 	const process_plane_impl_t* impl_table = process_plane_impls[opt];
 	return impl_table[select_impl_index(sample_mode, blur_first)];
