@@ -4,6 +4,31 @@
 
 #include "sse_compat.h"
 
+typedef struct _info_cache
+{
+	int pitch;
+	char* data_stream;
+} info_cache;
+
+static void destroy_cache(void* data)
+{
+	assert(data);
+
+	info_cache* cache = (info_cache*) data;
+	_aligned_free(cache->data_stream);
+	free(data);
+}
+
+static __inline __m128i clamped_absolute_difference(__m128i a, __m128i b, __m128i difference_limit)
+{
+	// we need to clamp the result for 2 reasons:
+	// 1. there is no integer >= operator in SSE
+	// 2. comparison instructions accept only signed integers,
+	//    so if difference is bigger than 0x7f, the compare result will be invalid
+	__m128i diff = _mm_sub_epi8(_mm_max_epu8(a, b), _mm_min_epu8(a, b));
+	return _mm_min_epu8(diff, difference_limit);
+}
+
 template <int sample_mode, int ref_part_index>
 static __forceinline void process_plane_info_block(
 	pixel_dither_info *&info_ptr, 
@@ -130,30 +155,6 @@ static __forceinline void process_plane_info_block(
 	src_addrs = _mm_add_epi32(src_addrs, src_addr_increment_vector);
 }
 
-static __inline __m128i clamped_absolute_difference(__m128i a, __m128i b, __m128i difference_limit)
-{
-	// we need to clamp the result for 2 reasons:
-	// 1. there is no integer >= operator in SSE
-	// 2. comparison instructions accept only signed integers,
-	//    so if difference is bigger than 0x7f, the compare result will be invalid
-	__m128i diff = _mm_sub_epi8(_mm_max_epu8(a, b), _mm_min_epu8(a, b));
-	return _mm_min_epu8(diff, difference_limit);
-}
-
-typedef struct _info_cache
-{
-	int pitch;
-	char* data_stream;
-} info_cache;
-
-static void destroy_cache(void* data)
-{
-	assert(data);
-
-	info_cache* cache = (info_cache*) data;
-	_aligned_free(cache->data_stream);
-	free(data);
-}
 
 static __m128i __inline process_pixels_mode0(__m128i src_pixels, __m128i threshold_vector, __m128i sign_convert_vector, __m128i& one_i8, __m128i& change, unsigned char ref_pixels_1_components[16], unsigned char ref_pixels_2_components[16], unsigned char ref_pixels_3_components[16], unsigned char ref_pixels_4_components[16])
 {
