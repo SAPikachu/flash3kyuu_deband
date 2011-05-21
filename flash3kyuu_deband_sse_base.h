@@ -2,6 +2,8 @@
 
 #include "impl_dispatch.h"
 
+#include "sse_compat.h"
+
 template <int sample_mode, int ref_part_index>
 static __forceinline void process_plane_info_block(
 	pixel_dither_info *&info_ptr, 
@@ -72,10 +74,10 @@ static __forceinline void process_plane_info_block(
 	switch (sample_mode)
 	{
 	case 0:
-		ref_offset1 = _mm_mullo_epi32(src_pitch_vector, ref1); // packed DWORD multiplication
+		ref_offset1 = _cmm_mullo_limit16_epi32(src_pitch_vector, ref1); // packed DWORD multiplication
 		break;
 	case 1:
-		ref_offset1 = _mm_mullo_epi32(src_pitch_vector, ref1); // packed DWORD multiplication
+		ref_offset1 = _cmm_mullo_limit16_epi32(src_pitch_vector, ref1); // packed DWORD multiplication
 
 		ref_offset2 = _mm_sign_epi32(ref_offset1, minus_one); // negates all offsets
 		break;
@@ -88,11 +90,11 @@ static __forceinline void process_plane_info_block(
 		ref2 = _mm_srai_epi32(ref2, 24); // >> 24
 
 		// ref_px = src_pitch * info.ref2 + info.ref1;
-		ref_offset1 = _mm_mullo_epi32(src_pitch_vector, ref2); // packed DWORD multiplication
+		ref_offset1 = _cmm_mullo_limit16_epi32(src_pitch_vector, ref2); // packed DWORD multiplication
 		ref_offset1 = _mm_add_epi32(ref_offset1, ref1);
 
 		// ref_px_2 = info.ref2 - src_pitch * info.ref1;
-		ref_offset2 = _mm_mullo_epi32(src_pitch_vector, ref1); // packed DWORD multiplication
+		ref_offset2 = _cmm_mullo_limit16_epi32(src_pitch_vector, ref1); // packed DWORD multiplication
 		ref_offset2 = _mm_sub_epi32(ref2, ref_offset2);
 
 		break;
@@ -191,7 +193,7 @@ static __m128i __inline process_pixels_mode0(__m128i src_pixels, __m128i thresho
 	blend_mask = _mm_cmpeq_epi8(difference, threshold_vector);
 
 	// if mask is 0xff (over threshold), select second operand, otherwise select first
-	dst_pixels = _mm_blendv_epi8(ref_pixels, src_pixels, blend_mask);
+	dst_pixels = _cmm_blendv_by_cmp_mask_epi8(ref_pixels, src_pixels, blend_mask);
 
 	return dst_pixels;
 }
@@ -257,7 +259,7 @@ static __m128i __inline process_pixels_mode12(__m128i src_pixels, __m128i thresh
 	}
 
 	// if mask is 0xff (over threshold), select second operand, otherwise select first
-	src_pixels = _mm_blendv_epi8(avg, src_pixels, use_orig_pixel_blend_mask);
+	src_pixels = _cmm_blendv_by_cmp_mask_epi8(avg, src_pixels, use_orig_pixel_blend_mask);
 
 	// convert to signed form, since change is signed
 	src_pixels = _mm_sub_epi8(src_pixels, sign_convert_vector);
