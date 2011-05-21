@@ -110,6 +110,7 @@
     </ClCompile>
     <ClCompile Include="flash3kyuu_deband.cpp" />
     <ClCompile Include="flash3kyuu_deband_impl_c.cpp" />
+    <ClCompile Include="flash3kyuu_deband_impl_sse2.cpp" />
     <ClCompile Include="flash3kyuu_deband_impl_sse4.cpp" />
     <ClCompile Include="flash3kyuu_deband_impl_ssse3.cpp" />
     <ClCompile Include="stdafx.cpp">

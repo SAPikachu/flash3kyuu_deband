@@ -27,31 +27,8 @@ static __forceinline void process_plane_info_block(
 		__m128i change_temp;
 		change_temp = info_block;
 		change_temp = _mm_and_si128(change_temp, change_mask);
-
-		// this switch should be optimized out
-		switch (ref_part_index)
-		{
-		case 0:
-			// right-shift 16 bits
-			change_temp = _mm_srli_epi32(change_temp, 16);
-			break;
-		case 1:
-			// right-shift 8 bits
-			change_temp = _mm_srli_epi32(change_temp, 8);
-			break;
-		case 2:
-			// already in correct place, do nothing
-			break;
-		case 3:
-			// left-shift 8 bits
-			change_temp = _mm_slli_epi32(change_temp, 8);
-			break;
-		default:
-			// CODING ERROR!
-			abort();
-		}
 	
-		change = _mm_or_si128(change, change_temp); // combine them
+		change = process_change_part<ref_part_index>(change, change_temp);
 	}
 
 	// ref1: bit 0-7
@@ -79,7 +56,7 @@ static __forceinline void process_plane_info_block(
 	case 1:
 		ref_offset1 = _cmm_mullo_limit16_epi32(src_pitch_vector, ref1); // packed DWORD multiplication
 
-		ref_offset2 = _mm_sign_epi32(ref_offset1, minus_one); // negates all offsets
+		ref_offset2 = _cmm_negate_all_epi32(ref_offset1, minus_one); // negates all offsets
 		break;
 	case 2:
 		// ref2: bit 8-15
@@ -132,10 +109,10 @@ static __forceinline void process_plane_info_block(
 	if (sample_mode == 2) {
 
 		// another direction, negates all offsets
-		ref_offset1 = _mm_sign_epi32(ref_offset1, minus_one);
+		ref_offset1 = _cmm_negate_all_epi32(ref_offset1, minus_one);
 		_mm_store_si128((__m128i*)address_buffer_1, _mm_add_epi32(src_addrs, ref_offset1));
 
-		ref_offset2 = _mm_sign_epi32(ref_offset2, minus_one);
+		ref_offset2 = _cmm_negate_all_epi32(ref_offset2, minus_one);
 		_mm_store_si128((__m128i*)address_buffer_2, _mm_add_epi32(src_addrs, ref_offset2));
 
 		ref_pixels_3_components[4 * ref_part_index + 0] = *(address_buffer_1[0]);
@@ -422,8 +399,7 @@ static void __cdecl process_plane_sse_impl(unsigned char const*srcp, int const s
 	#undef PROCESS_INFO_BLOCK
 
 				if (sample_mode > 0) {
-					// shuffle delta values to correct place
-					change = _mm_shuffle_epi8(change, change_shuffle_mask);
+					change = postprocess_change_value(change, change_shuffle_mask);
 
 					if (info_data_stream) {
 						_mm_store_si128((__m128i*)info_data_stream, change);

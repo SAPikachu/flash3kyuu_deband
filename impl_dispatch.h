@@ -34,9 +34,11 @@
 
 const extern process_plane_impl_t process_plane_impl_c[];
 
-const extern process_plane_impl_t process_plane_impl_sse4[];
+const extern process_plane_impl_t process_plane_impl_sse2[];
 
 const extern process_plane_impl_t process_plane_impl_ssse3[];
+
+const extern process_plane_impl_t process_plane_impl_sse4[];
 
 const extern process_plane_impl_t process_plane_impl_correctness_test_sse2[];
 
@@ -48,7 +50,7 @@ const extern process_plane_impl_t process_plane_impl_benchmark[];
 
 static const process_plane_impl_t* process_plane_impls[] = {
 	process_plane_impl_c,
-	NULL,
+	process_plane_impl_sse2,
 	process_plane_impl_ssse3,
 	process_plane_impl_sse4,
 	process_plane_impl_correctness_test_sse2,
