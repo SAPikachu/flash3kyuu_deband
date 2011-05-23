@@ -12,6 +12,8 @@ value of referenced pixels, and optionally dithers them.
 Currently, all calculation are done in 8-bit. 12-bit dithering may be 
 implemented in future.
 
+Only YV12 progressive sources are supported.
+
 Parameters:		
 
 range
