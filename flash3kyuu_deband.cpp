@@ -242,9 +242,11 @@ void flash3kyuu_deband::init(void)
 	init_context(&_cr_context);
 
 	_process_plane_impl = get_process_plane_impl(_sample_mode, _blur_first, _opt);
+
+	___intel_cpu_indicator_init();
 }
 
-void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane)
+void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane, IScriptEnvironment* env)
 {
 	const unsigned char* srcp = src->GetReadPtr(plane);
 	const int src_pitch = src->GetPitch(plane);
@@ -288,6 +290,12 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
 		abort();
 	}
 
+	if (threshold == 0) {
+		// no need to process
+        env->BitBlt(dstp, dst_pitch, srcp, src_pitch, src_width, src_height);
+		return;
+	}
+
 	int range = (plane == PLANAR_Y ? _range_raw : _range_raw >> 1);
 	_process_plane_impl(srcp, src_width, src_height, src_pitch, dstp, dst_pitch, threshold, info_ptr_base, info_stride, range, context);
 }
@@ -302,8 +310,8 @@ PVideoFrame __stdcall flash3kyuu_deband::GetFrame(int n, IScriptEnvironment* env
 		init_frame_luts(n);
 	}
 
-	process_plane(n, src, dst, dst->GetWritePtr(PLANAR_Y), PLANAR_Y);
-	process_plane(n, src, dst, dst->GetWritePtr(PLANAR_U), PLANAR_U);
-	process_plane(n, src, dst, dst->GetWritePtr(PLANAR_V), PLANAR_V);
+	process_plane(n, src, dst, dst->GetWritePtr(PLANAR_Y), PLANAR_Y, env);
+	process_plane(n, src, dst, dst->GetWritePtr(PLANAR_U), PLANAR_U, env);
+	process_plane(n, src, dst, dst->GetWritePtr(PLANAR_V), PLANAR_V, env);
 	return dst;
 }

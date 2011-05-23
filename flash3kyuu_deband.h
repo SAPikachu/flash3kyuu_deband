@@ -34,6 +34,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 
 FLASH3KYUU_DEBAND_API const char* __stdcall AvisynthPluginInit2(IScriptEnvironment* env);
 
+extern "C" void ___intel_cpu_indicator_init();
 
 typedef __declspec(align(4)) struct _pixel_dither_info {
 	signed char ref1, ref2, change;
@@ -113,7 +114,7 @@ private:
 	void init_frame_luts(int n);
 	void destroy_frame_luts(void);
 	
-	void process_plane(int n, PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane);
+	void process_plane(int n, PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane, IScriptEnvironment* env);
 
 public:
 	flash3kyuu_deband(PClip child, int range, unsigned char Y, unsigned char Cb, unsigned char Cr, 

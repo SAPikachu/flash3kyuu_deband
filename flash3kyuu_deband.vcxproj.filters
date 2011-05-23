@@ -42,6 +42,9 @@
     <ClInclude Include="sse_compat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="asmlib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -72,6 +75,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="flash3kyuu_deband_impl_sse2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="icc_override.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
