@@ -487,13 +487,21 @@ class PVideoFrame {
     if (p) p->Release();
     p=x;
   }
+  void Set(VideoFrame* x) volatile {
+    if (x) x->AddRef();
+    if (p) p->Release();
+    p=x;
+  }
 
 public:
   PVideoFrame() { p = 0; }
   PVideoFrame(const PVideoFrame& x) { Init(x.p); }
+  PVideoFrame(const volatile PVideoFrame& x) { Init(x.p); }
   PVideoFrame(VideoFrame* x) { Init(x); }
   void operator=(VideoFrame* x) { Set(x); }
   void operator=(const PVideoFrame& x) { Set(x.p); }
+  void operator=(const volatile PVideoFrame& x) { Set(x.p); }
+  void operator=(const volatile PVideoFrame& x) volatile { Set(x.p); }
 
   VideoFrame* operator->() const { return p; }
 

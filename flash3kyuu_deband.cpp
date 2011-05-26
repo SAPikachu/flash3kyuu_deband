@@ -25,6 +25,10 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 		env->ThrowError("flash3kyuu_deband: Field-based clip is not supported.");
 	}
 
+	SYSTEM_INFO si;
+	memset(&si, 0, sizeof(si));
+	GetSystemInfo(&si);
+
 	int range = args[1].AsInt(15);
 	unsigned char Y = (unsigned char)args[2].AsInt(1);
 	unsigned char Cb = (unsigned char)args[3].AsInt(1);
@@ -36,6 +40,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 	bool blur_first = args[9].AsBool(true);
 	bool diff_seed_for_each_frame = args[10].AsBool(false);
 	int opt = args[11].AsInt(-1);
+	int mt = args[12].AsBool(si.dwNumberOfProcessors > 1);
 
 #define CHECK_PARAM(value, lower_bound, upper_bound) \
 	check_parameter_range(value, lower_bound, upper_bound, #value, env);
@@ -52,12 +57,12 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 
 	return new flash3kyuu_deband(child, range, Y, Cb, Cr, 
 		ditherY, ditherC, sample_mode, seed, 
-		blur_first, diff_seed_for_each_frame, opt);
+		blur_first, diff_seed_for_each_frame, opt, mt);
 }
 
 flash3kyuu_deband::flash3kyuu_deband(PClip child, int range, unsigned char Y, unsigned char Cb, unsigned char Cr, 
 		int ditherY, int ditherC, int sample_mode, int seed,
-		bool blur_first, bool diff_seed_for_each_frame, int opt) :
+		bool blur_first, bool diff_seed_for_each_frame, int opt, bool mt) :
 			GenericVideoFilter(child),
 			_range_raw(range),
 			_range(range),
@@ -75,6 +80,8 @@ flash3kyuu_deband::flash3kyuu_deband(PClip child, int range, unsigned char Y, un
 			_cb_info(NULL),
 			_cr_info(NULL),
 			_opt(opt),
+			_mt(mt),
+			_mt_info(NULL),
 			_process_plane_impl(NULL)
 {
 	this->init();
@@ -90,7 +97,7 @@ void flash3kyuu_deband::destroy_frame_luts(void)
 	_cb_info = NULL;
 	_cr_info = NULL;
 	
-	// contexts are likely to be dependent on lut, so they must also be destroyed
+	// contexts are LIKELY to be dependent on lut, so they must also be destroyed
 	destroy_context(&_y_context);
 	destroy_context(&_cb_context);
 	destroy_context(&_cr_context);
@@ -171,9 +178,14 @@ void flash3kyuu_deband::init_frame_luts(int n)
 
 flash3kyuu_deband::~flash3kyuu_deband()
 {
+	if (_mt_info) {
+		_mt_info->exit = true;
+		SetEvent(_mt_info->work_event);
+		// mt_proc will destroy the struct
+	}
+
 	delete [] _h_ind_masks;
 	destroy_frame_luts();
-	
 }
 
 static process_plane_impl_t get_process_plane_impl(int sample_mode, bool blur_first, int opt)
@@ -246,7 +258,7 @@ void flash3kyuu_deband::init(void)
 	___intel_cpu_indicator_init();
 }
 
-void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane, IScriptEnvironment* env)
+void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane, IScriptEnvironment* env)
 {
 	const unsigned char* srcp = src->GetReadPtr(plane);
 	const int src_pitch = src->GetPitch(plane);
@@ -300,6 +312,30 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
 	_process_plane_impl(srcp, src_width, src_height, src_pitch, dstp, dst_pitch, threshold, info_ptr_base, info_stride, range, context);
 }
 
+void flash3kyuu_deband::mt_proc(void)
+{
+	volatile mt_info* info = _mt_info;
+	assert(info);
+
+	while (!info->exit)
+	{
+		process_plane(info->src, info->dst, info->dstp_u, PLANAR_U, info->env);
+		process_plane(info->src, info->dst, info->dstp_v, PLANAR_V, info->env);
+
+		mt_info_reset_pointers(info);
+
+		SetEvent(info->work_complete_event);
+		WaitForSingleObject(info->work_event, INFINITE);
+	}
+	mt_info_destroy(info);
+}
+
+void mt_proc_wrapper(void* filter_instance) 
+{
+	assert(filter_instance);
+	((flash3kyuu_deband*)filter_instance)->mt_proc();
+}
+
 PVideoFrame __stdcall flash3kyuu_deband::GetFrame(int n, IScriptEnvironment* env)
 {
 	PVideoFrame src = child->GetFrame(n, env);
@@ -310,8 +346,43 @@ PVideoFrame __stdcall flash3kyuu_deband::GetFrame(int n, IScriptEnvironment* env
 		init_frame_luts(n);
 	}
 
-	process_plane(n, src, dst, dst->GetWritePtr(PLANAR_Y), PLANAR_Y, env);
-	process_plane(n, src, dst, dst->GetWritePtr(PLANAR_U), PLANAR_U, env);
-	process_plane(n, src, dst, dst->GetWritePtr(PLANAR_V), PLANAR_V, env);
+	if (!_mt) 
+	{
+		process_plane(src, dst, dst->GetWritePtr(PLANAR_Y), PLANAR_Y, env);
+		process_plane(src, dst, dst->GetWritePtr(PLANAR_U), PLANAR_U, env);
+		process_plane(src, dst, dst->GetWritePtr(PLANAR_V), PLANAR_V, env);
+	} else {
+		bool new_thread = _mt_info == NULL;
+		if (UNLIKELY(new_thread)) 
+		{
+			_mt_info = mt_info_create();
+			if (!_mt_info) {
+				env->ThrowError("flash3kyuu_deband: Failed to allocate mt_info.");
+				return NULL;
+			}
+		}
+		_mt_info->dst = dst;
+		_mt_info->dstp_u = dst->GetWritePtr(PLANAR_U);
+		_mt_info->dstp_v = dst->GetWritePtr(PLANAR_V);
+		_mt_info->env = env;
+		_mt_info->src = src;
+		if (LIKELY(!new_thread))
+		{
+			SetEvent(_mt_info->work_event);
+		}
+		else
+		{
+			uintptr_t ret = _beginthread(mt_proc_wrapper, 0, this);
+			if (ret == -1) {
+				int err = errno;
+				mt_info_destroy(_mt_info);
+				_mt_info = NULL;
+				env->ThrowError("flash3kyuu_deband: Failed to create worker thread, code = %d.", err);
+				return NULL;
+			}
+		}
+		process_plane(src, dst, dst->GetWritePtr(PLANAR_Y), PLANAR_Y, env);
+		WaitForSingleObject(_mt_info->work_complete_event, INFINITE);
+	}
 	return dst;
 }

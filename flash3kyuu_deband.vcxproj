@@ -93,6 +93,7 @@
     <ClInclude Include="flash3kyuu_deband.h" />
     <ClInclude Include="flash3kyuu_deband_sse_base.h" />
     <ClInclude Include="impl_dispatch.h" />
+    <ClInclude Include="mt_info.h" />
     <ClInclude Include="process_plane_context.h" />
     <ClInclude Include="sse_compat.h" />
     <ClInclude Include="stdafx.h" />
@@ -117,6 +118,7 @@
     <ClCompile Include="flash3kyuu_deband_impl_sse4.cpp" />
     <ClCompile Include="flash3kyuu_deband_impl_ssse3.cpp" />
     <ClCompile Include="icc_override.cpp" />
+    <ClCompile Include="mt_info.cpp" />
     <ClCompile Include="process_plane_context.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

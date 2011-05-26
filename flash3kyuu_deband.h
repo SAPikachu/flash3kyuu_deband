@@ -23,13 +23,25 @@
 #include <assert.h>
 #include <memory.h>
 #include <malloc.h>
+#include <process.h>
+#include <windows.h>
 
 #include "process_plane_context.h"
+
+#include "mt_info.h"
 
 #ifdef FLASH3KYUU_DEBAND_EXPORTS
 #define FLASH3KYUU_DEBAND_API extern "C" __declspec(dllexport)
 #else
 #define FLASH3KYUU_DEBAND_API extern "C" __declspec(dllimport)
+#endif
+
+#if defined(__GNUC__) || defined(__INTEL_COMPILER)
+#define LIKELY(x)       __builtin_expect((x),1)
+#define UNLIKELY(x)     __builtin_expect((x),0)
+#else
+#define LIKELY(x)       (x)
+#define UNLIKELY(x)     (x)
 #endif
 
 AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScriptEnvironment* env);
@@ -52,6 +64,9 @@ typedef __declspec(align(4)) struct _pixel_dither_info {
 
 typedef void (__cdecl *process_plane_impl_t)(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context);
 
+
+void mt_proc_wrapper(void* filter_instance);
+
 class flash3kyuu_deband : public GenericVideoFilter {
 private:
 	int _range_raw; 
@@ -66,6 +81,7 @@ private:
 	bool _diff_seed_for_each_frame;
 
 	int _opt;
+	bool _mt;
 
 	process_plane_impl_t _process_plane_impl;
 
@@ -86,16 +102,20 @@ private:
 	process_plane_context _cb_context;
 	process_plane_context _cr_context;
 
+	volatile mt_info* _mt_info;
+
 	void init(void);
 	void init_frame_luts(int n);
 	void destroy_frame_luts(void);
 	
-	void process_plane(int n, PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane, IScriptEnvironment* env);
+	void process_plane(PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane, IScriptEnvironment* env);
+
 
 public:
+	void mt_proc(void);
 	flash3kyuu_deband(PClip child, int range, unsigned char Y, unsigned char Cb, unsigned char Cr, 
 		int ditherY, int ditherC, int sample_mode, int seed,
-		bool blur_first, bool diff_seed_for_each_frame, int opt);
+		bool blur_first, bool diff_seed_for_each_frame, int opt, bool mt);
 	~flash3kyuu_deband();
 
 	PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);

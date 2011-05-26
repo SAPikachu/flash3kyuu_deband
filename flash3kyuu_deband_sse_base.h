@@ -4,15 +4,6 @@
 
 #include "sse_compat.h"
 
-#if defined(__GNUC__) || defined(__INTEL_COMPILER)
-#define likely(x)       __builtin_expect((x),1)
-#define unlikely(x)     __builtin_expect((x),0)
-#else
-#define likely(x)       (x)
-#define unlikely(x)     (x)
-#endif
-
-
 typedef struct _info_cache
 {
 	int pitch;
@@ -315,7 +306,7 @@ static void __cdecl process_plane_sse_impl(unsigned char const*srcp, int const s
 	if (context->data) {
 		info_cache* cache = (info_cache*) context->data;
 		// we need to ensure src_pitch is the same, otherwise offsets will be completely wrong
-		// also, if pitch changes, don't waste time to update the cache since it is likely to change again
+		// also, if pitch changes, don't waste time to update the cache since it is LIKELY to change again
 		if (cache->pitch == src_pitch) {
 			info_data_stream = cache->data_stream;
 			use_cached_info = true;
@@ -358,7 +349,7 @@ static void __cdecl process_plane_sse_impl(unsigned char const*srcp, int const s
 			__declspec(align(16))
 			unsigned char ref_pixels_4_components[16];
 
-			if (likely(use_cached_info)) {
+			if (LIKELY(use_cached_info)) {
 				// cache layout: 16 offset groups (1 or 2 offsets / group depending on sample mode) in a pack, 
 				//               followed by 16 bytes of change values
 				// in the case of 2 offsets / group, offsets are stored like this:

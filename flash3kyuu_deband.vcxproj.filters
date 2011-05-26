@@ -48,6 +48,9 @@
     <ClInclude Include="process_plane_context.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="mt_info.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -84,6 +87,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="process_plane_context.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mt_info.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
