@@ -97,7 +97,7 @@ void flash3kyuu_deband::destroy_frame_luts(void)
 	_cb_info = NULL;
 	_cr_info = NULL;
 	
-	// contexts are LIKELY to be dependent on lut, so they must also be destroyed
+	// contexts are likely to be dependent on lut, so they must also be destroyed
 	destroy_context(&_y_context);
 	destroy_context(&_cb_context);
 	destroy_context(&_cr_context);
@@ -247,11 +247,11 @@ void flash3kyuu_deband::init(void)
 	_ditherY = new_ditherY;
 	_ditherC = new_ditherC;
 
-	init_frame_luts(0);
-	
 	init_context(&_y_context);
 	init_context(&_cb_context);
 	init_context(&_cr_context);
+
+	init_frame_luts(0);
 
 	_process_plane_impl = get_process_plane_impl(_sample_mode, _blur_first, _opt);
 
