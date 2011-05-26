@@ -340,7 +340,7 @@ PVideoFrame __stdcall flash3kyuu_deband::GetFrame(int n, IScriptEnvironment* env
 {
 	PVideoFrame src = child->GetFrame(n, env);
 	PVideoFrame dst = env->NewVideoFrame(vi, PLANE_ALIGNMENT);
-	
+
 	if (_diff_seed_for_each_frame)
 	{
 		init_frame_luts(n);
@@ -361,10 +361,13 @@ PVideoFrame __stdcall flash3kyuu_deband::GetFrame(int n, IScriptEnvironment* env
 				return NULL;
 			}
 		}
-		_mt_info->dst = dst;
+		// we must get write pointer before copying the frame pointer
+		// otherwise NULL will be returned
+		unsigned char* dstp_y = dst->GetWritePtr(PLANAR_Y);
 		_mt_info->dstp_u = dst->GetWritePtr(PLANAR_U);
 		_mt_info->dstp_v = dst->GetWritePtr(PLANAR_V);
 		_mt_info->env = env;
+		_mt_info->dst = dst;
 		_mt_info->src = src;
 		if (LIKELY(!new_thread))
 		{
@@ -381,7 +384,7 @@ PVideoFrame __stdcall flash3kyuu_deband::GetFrame(int n, IScriptEnvironment* env
 				return NULL;
 			}
 		}
-		process_plane(src, dst, dst->GetWritePtr(PLANAR_Y), PLANAR_Y, env);
+		process_plane(src, dst, dstp_y, PLANAR_Y, env);
 		WaitForSingleObject(_mt_info->work_complete_event, INFINITE);
 	}
 	return dst;
