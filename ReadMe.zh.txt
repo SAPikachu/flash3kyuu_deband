@@ -1,6 +1,6 @@
 flash3kyuu_deband(clip c, int "range", int "Y", int "Cb", int "Cr", 
 		int "ditherY", int "ditherC", int "sample_mode", int "seed", 
-		int "blur_first", int "diff_seed", int "opt")
+		bool "blur_first", bool "diff_seed", int "opt", bool "mt")
 		
 由 http://www.geocities.jp/flash3kyuu/auf/banding17.zip 移植，此处仅提供简单参数解释，参数详细意义请参考原始aviutl滤镜的文档。
 滤镜仅支持逐行YV12源。
@@ -39,3 +39,8 @@ opt
 	3：SSE4.1
 	
 	默认为-1，一般不需要更改，i5-520m测试SSE模式比C快60%~100%（视模式而定）。
+	
+mt
+	多线程模式。如果设为true，U及V平面会在新线程与Y平面同时处理。
+	
+	如用户机器有多个CPU/核心则默认启用，否则默认为禁用

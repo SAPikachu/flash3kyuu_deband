@@ -1,6 +1,6 @@
 flash3kyuu_deband(clip c, int "range", int "Y", int "Cb", int "Cr", 
 		int "ditherY", int "ditherC", int "sample_mode", int "seed", 
-		int "blur_first", int "diff_seed", int "opt")
+		bool "blur_first", bool "diff_seed", int "opt", bool "mt")
 		
 Ported from http://www.geocities.jp/flash3kyuu/auf/banding17.zip . 
 (I'm not the author of the original aviutl plugin, just ported the algorithm to
@@ -63,7 +63,8 @@ diff_seed
 	1. Speed may be significantly slower if enabled.
 	2. The filter will become non-thread-safe if enabled. Avisynth MT mode 1 
 	   will work incorrectly or even crash. 
-	   Mode 2 should work though (not tested).
+	   Mode 2 should work though, of course appropriate overlap need to be set. 
+	   (not tested)
 	
 	Default: false
 	
@@ -77,3 +78,11 @@ opt
 	3: SSE4.1 (Core 2 45nm)
 	
 	Default: -1
+	
+mt
+	Multi-threaded processing. If set to true, U and V plane will be proccessed 
+	in parallel with Y plane to speed up processing.
+	
+	Like diff_seed, not compatible with Avisynth MT mode 1.
+	
+	Default: true if host has more than 1 CPU/cores, false otherwise.
