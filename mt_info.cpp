@@ -42,6 +42,7 @@ void mt_info_destroy(volatile mt_info* info) {
 	
 	CloseHandle(info->work_complete_event);
 	CloseHandle(info->work_event);
+	CloseHandle(info->thread_handle);
 
 	free((void*)info);
 }

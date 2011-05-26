@@ -24,6 +24,7 @@ typedef struct _mt_info
 
 	bool exit;
 
+	HANDLE thread_handle;
 	HANDLE work_event;
 	HANDLE work_complete_event;
 } mt_info;

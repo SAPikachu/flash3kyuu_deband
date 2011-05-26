@@ -23,8 +23,6 @@
 #include <assert.h>
 #include <memory.h>
 #include <malloc.h>
-#include <process.h>
-#include <windows.h>
 
 #include "process_plane_context.h"
 
@@ -63,9 +61,6 @@ typedef __declspec(align(4)) struct _pixel_dither_info {
 #define FRAME_LUT_STRIDE(width) (((width - 1) | (FRAME_LUT_ALIGNMENT - 1)) + 1)
 
 typedef void (__cdecl *process_plane_impl_t)(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context);
-
-
-void mt_proc_wrapper(void* filter_instance);
 
 class flash3kyuu_deband : public GenericVideoFilter {
 private:

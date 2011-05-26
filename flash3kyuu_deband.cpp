@@ -5,6 +5,8 @@
 #include "flash3kyuu_deband.h"
 #include "impl_dispatch.h"
 #include <intrin.h>
+#include <process.h>
+#include <windows.h>
 
 static void check_parameter_range(int value, int lower_bound, int upper_bound, char* param_name, IScriptEnvironment* env) {
 	if (value < lower_bound || value > upper_bound) {
@@ -181,7 +183,8 @@ flash3kyuu_deband::~flash3kyuu_deband()
 	if (_mt_info) {
 		_mt_info->exit = true;
 		SetEvent(_mt_info->work_event);
-		// mt_proc will destroy the struct
+		WaitForSingleObject(_mt_info->thread_handle, INFINITE);
+		mt_info_destroy(_mt_info);
 	}
 
 	delete [] _h_ind_masks;
@@ -327,13 +330,13 @@ void flash3kyuu_deband::mt_proc(void)
 		SetEvent(info->work_complete_event);
 		WaitForSingleObject(info->work_event, INFINITE);
 	}
-	mt_info_destroy(info);
 }
 
-void mt_proc_wrapper(void* filter_instance) 
+unsigned int __stdcall mt_proc_wrapper(void* filter_instance) 
 {
 	assert(filter_instance);
 	((flash3kyuu_deband*)filter_instance)->mt_proc();
+	return 0;
 }
 
 PVideoFrame __stdcall flash3kyuu_deband::GetFrame(int n, IScriptEnvironment* env)
@@ -375,8 +378,8 @@ PVideoFrame __stdcall flash3kyuu_deband::GetFrame(int n, IScriptEnvironment* env
 		}
 		else
 		{
-			uintptr_t ret = _beginthread(mt_proc_wrapper, 0, this);
-			if (ret == -1) {
+			_mt_info->thread_handle = (HANDLE)_beginthreadex(NULL, 0, mt_proc_wrapper, this, 0, NULL);
+			if (!_mt_info->thread_handle) {
 				int err = errno;
 				mt_info_destroy(_mt_info);
 				_mt_info = NULL;
