@@ -51,6 +51,9 @@
     <ClInclude Include="mt_info.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="icc_override.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

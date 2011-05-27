@@ -92,6 +92,7 @@
     <ClInclude Include="avisynth.h" />
     <ClInclude Include="flash3kyuu_deband.h" />
     <ClInclude Include="flash3kyuu_deband_sse_base.h" />
+    <ClInclude Include="icc_override.h" />
     <ClInclude Include="impl_dispatch.h" />
     <ClInclude Include="mt_info.h" />
     <ClInclude Include="process_plane_context.h" />

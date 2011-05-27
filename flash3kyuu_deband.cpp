@@ -2,11 +2,14 @@
 //
 
 #include "stdafx.h"
-#include "flash3kyuu_deband.h"
-#include "impl_dispatch.h"
+
 #include <intrin.h>
 #include <process.h>
 #include <windows.h>
+
+#include "flash3kyuu_deband.h"
+#include "impl_dispatch.h"
+#include "icc_override.h"
 
 static void check_parameter_range(int value, int lower_bound, int upper_bound, char* param_name, IScriptEnvironment* env) {
 	if (value < lower_bound || value > upper_bound) {
@@ -42,7 +45,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 	bool blur_first = args[9].AsBool(true);
 	bool diff_seed_for_each_frame = args[10].AsBool(false);
 	int opt = args[11].AsInt(-1);
-	int mt = args[12].AsBool(si.dwNumberOfProcessors > 1);
+	bool mt = args[12].AsBool(si.dwNumberOfProcessors > 1);
 
 #define CHECK_PARAM(value, lower_bound, upper_bound) \
 	check_parameter_range(value, lower_bound, upper_bound, #value, env);
@@ -212,6 +215,8 @@ static process_plane_impl_t get_process_plane_impl(int sample_mode, bool blur_fi
 
 void flash3kyuu_deband::init(void) 
 {
+	___intel_cpu_indicator_init();
+
 	int new_Y, new_Cb, new_Cr;
 	int yCbCr_coeff;
 	if (_sample_mode > 0 && _blur_first) {
@@ -258,7 +263,6 @@ void flash3kyuu_deband::init(void)
 
 	_process_plane_impl = get_process_plane_impl(_sample_mode, _blur_first, _opt);
 
-	___intel_cpu_indicator_init();
 }
 
 void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane, IScriptEnvironment* env)

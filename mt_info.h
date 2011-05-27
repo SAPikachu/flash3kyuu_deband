@@ -2,17 +2,8 @@
 
 #include <Windows.h>
 
-#ifdef __INTEL_COMPILER
-#pragma warning( push )
-#pragma warning( disable: 693 )
-#endif
-
-
 #include "avisynth.h"
 
-#ifdef __INTEL_COMPILER
-#pragma warning( pop )
-#endif
 
 typedef struct _mt_info
 {

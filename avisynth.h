@@ -33,6 +33,16 @@
 // import and export plugins, or graphical user interfaces.
 
 
+#ifdef __INTEL_COMPILER
+#pragma warning( push )
+#pragma warning( disable: 693 )
+#endif
+
+#ifdef _MSC_VER
+#pragma warning( push )
+#pragma warning( disable: 4521 )
+#pragma warning( disable: 4522 )
+#endif
 
 
 
@@ -758,3 +768,7 @@ IScriptEnvironment* __stdcall CreateScriptEnvironment(int version = AVISYNTH_INT
 #pragma pack(pop)
 
 #endif //__AVISYNTH_H__
+
+#if defined(__INTEL_COMPILER) || defined(_MSC_VER)
+#pragma warning( pop )
+#endif

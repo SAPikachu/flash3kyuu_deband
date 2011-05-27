@@ -7,16 +7,7 @@
 
 #pragma once
 
-#ifdef __INTEL_COMPILER
-#pragma warning( push )
-#pragma warning( disable: 693 )
-#endif
-
 #include "avisynth.h"
-
-#ifdef __INTEL_COMPILER
-#pragma warning( pop )
-#endif
 
 #include <string.h>
 #include <stdio.h>
@@ -46,7 +37,6 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 
 FLASH3KYUU_DEBAND_API const char* __stdcall AvisynthPluginInit2(IScriptEnvironment* env);
 
-extern "C" void ___intel_cpu_indicator_init();
 
 typedef __declspec(align(4)) struct _pixel_dither_info {
 	signed char ref1, ref2, change;

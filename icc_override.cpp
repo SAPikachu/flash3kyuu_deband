@@ -1,7 +1,12 @@
 // Dispatcher-patch for Intel compiler 
 // by Agner Fog (www.agner.org/optimize)
+
+#include "icc_override.h"
+
 #include "asmlib.h" // Header file for asmlib library 
  
+#ifdef __INTEL_COMPILER
+
 #ifdef __cplusplus 
 extern "C" {        // Avoid C++ name mangling 
 #endif 
@@ -47,3 +52,4 @@ void ___intel_cpu_indicator_init() {
 }   // End of extern "C" 
 #endif 
  
+#endif
