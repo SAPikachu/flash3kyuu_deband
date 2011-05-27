@@ -26,6 +26,9 @@ Y Cb Cr
 	Banding detection threshold. If difference between current pixel and 
 	reference pixel is less than threshold, it will be considered as banded.
 	
+	If set to 0, the corresponding plane will be untouched regardless of dither
+	settings.
+	
 	Default: 1
 	
 ditherY ditherC

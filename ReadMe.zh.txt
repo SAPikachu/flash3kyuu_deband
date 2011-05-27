@@ -9,7 +9,9 @@ range
 	banding检测范围，默认为15
 
 Y Cb Cr
-	banding检测阈值，默认为1
+	banding检测阈值，如设为0，则对应的平面完全不作任何处理。
+	
+	默认为1
 	
 ditherY ditherC
 	当sample_mode为1~2时有效，模糊后进行dither的强度，默认为1
