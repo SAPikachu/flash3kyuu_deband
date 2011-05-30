@@ -2,6 +2,7 @@
 
 enum {
 	PIXEL_PROC_8BIT = 0,
+	PIXEL_PROC_12BIT_FLOYD_NO_DITHERING,
 	PIXEL_PROC_12BIT_FLOYD_STEINBERG_DITHERING,
 	PIXEL_PROC_MAX
 };
@@ -10,11 +11,14 @@ enum {
 
 #define CALL_IMPL(func, ...) \
 	( mode == PIXEL_PROC_8BIT ? pixel_proc_8bit::##func(__VA_ARGS__) : \
+	  mode == PIXEL_PROC_12BIT_FLOYD_NO_DITHERING ? pixel_proc_12bit_no_dithering::##func(__VA_ARGS__) : \
 	  pixel_proc_8bit::##func(__VA_ARGS__) )
 
 #define CHECK_MODE() if (mode < 0 || mode >= PIXEL_PROC_MAX) abort()
 
 #include "pixel_proc_c_8bit.h"
+
+#include "pixel_proc_c_12bit_no_dithering.h"
 
 template <int mode>
 static inline void pixel_proc_init_context(char context_buffer[CONTEXT_BUFFER_SIZE], int frame_width)

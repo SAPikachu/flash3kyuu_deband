@@ -60,6 +60,12 @@
     <ClInclude Include="pixel_proc_c.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="pixel_proc_c_12bit_no_dithering.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pixel_proc_c_12bit_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

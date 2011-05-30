@@ -97,6 +97,8 @@
     <ClInclude Include="impl_dispatch.h" />
     <ClInclude Include="mt_info.h" />
     <ClInclude Include="pixel_proc_c.h" />
+    <ClInclude Include="pixel_proc_c_12bit_common.h" />
+    <ClInclude Include="pixel_proc_c_12bit_no_dithering.h" />
     <ClInclude Include="pixel_proc_c_8bit.h" />
     <ClInclude Include="process_plane_context.h" />
     <ClInclude Include="sse_compat.h" />
