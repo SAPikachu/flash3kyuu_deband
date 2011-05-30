@@ -54,6 +54,12 @@
     <ClInclude Include="icc_override.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="pixel_proc_c_8bit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pixel_proc_c.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
