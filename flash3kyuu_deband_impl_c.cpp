@@ -106,7 +106,7 @@ void __cdecl process_plane_plainc(unsigned char const*srcp, int const src_width,
 					} else if (new_pixel < 0) {
 						new_pixel = 0;
 					}
-					*dst_px = pixel_proc_downsample<mode>(context, new_pixel);
+					*dst_px = pixel_proc_downsample<mode>(context, new_pixel, i, j);
 				}
 			}
 			src_px++;

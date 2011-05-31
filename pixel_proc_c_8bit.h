@@ -25,7 +25,7 @@ namespace pixel_proc_8bit {
 		return pixel;
 	}
 
-	static inline int downsample(void* context, int pixel)
+	static inline int downsample(void* context, int pixel, int row, int column)
 	{
 		return pixel;
 	}

@@ -3,6 +3,7 @@
 enum {
 	PIXEL_PROC_8BIT = 0,
 	PIXEL_PROC_12BIT_NO_DITHERING,
+	PIXEL_PROC_12BIT_ORDERED_DITHERING,
 	PIXEL_PROC_12BIT_FLOYD_STEINBERG_DITHERING,
 	PIXEL_PROC_MAX
 };
@@ -12,6 +13,7 @@ enum {
 #define CALL_IMPL(func, ...) \
 	( mode == PIXEL_PROC_8BIT ? pixel_proc_8bit::##func(__VA_ARGS__) : \
 	  mode == PIXEL_PROC_12BIT_NO_DITHERING ? pixel_proc_12bit_no_dithering::##func(__VA_ARGS__) : \
+	  mode == PIXEL_PROC_12BIT_ORDERED_DITHERING ? pixel_proc_12bit_ordered_dithering::##func(__VA_ARGS__) : \
 	  pixel_proc_8bit::##func(__VA_ARGS__) )
 
 #define CHECK_MODE() if (mode < 0 || mode >= PIXEL_PROC_MAX) abort()
@@ -19,6 +21,7 @@ enum {
 #include "pixel_proc_c_8bit.h"
 
 #include "pixel_proc_c_12bit_no_dithering.h"
+#include "pixel_proc_c_12bit_ordered_dithering.h"
 
 template <int mode>
 static inline void pixel_proc_init_context(char context_buffer[CONTEXT_BUFFER_SIZE], int frame_width)
@@ -56,10 +59,10 @@ static inline int pixel_proc_upsample(void* context, unsigned char pixel)
 }
 
 template <int mode>
-static inline int pixel_proc_downsample(void* context, int pixel)
+static inline int pixel_proc_downsample(void* context, int pixel, int row, int column)
 {
 	CHECK_MODE();
-	return CALL_IMPL(downsample, context, pixel);
+	return CALL_IMPL(downsample, context, pixel, row, column);
 }
 
 template <int mode>
