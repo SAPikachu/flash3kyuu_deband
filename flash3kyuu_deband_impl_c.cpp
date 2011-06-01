@@ -29,7 +29,7 @@ void __cdecl process_plane_plainc(unsigned char const*srcp, int const src_width,
 				{
 					*dst_px = *src_px;
 				} else {
-					*dst_px = pixel_proc_downsample<mode>(context, src_px_up + info.change);
+					*dst_px = pixel_proc_downsample<mode>(context, src_px_up + info.change, i, j);
 				}
 			} else {
 #define IS_ABOVE_THRESHOLD(diff) ( (diff ^ (diff >> 31)) - (diff >> 31) >= threshold )
@@ -120,3 +120,7 @@ void __cdecl process_plane_plainc(unsigned char const*srcp, int const src_width,
 }
 
 DEFINE_TEMPLATE_IMPL_1(c, process_plane_plainc, PIXEL_PROC_8BIT);
+
+DEFINE_TEMPLATE_IMPL_1(c_12bit_no_dithering, process_plane_plainc, PIXEL_PROC_12BIT_NO_DITHERING);
+DEFINE_TEMPLATE_IMPL_1(c_12bit_ordered_dithering, process_plane_plainc, PIXEL_PROC_12BIT_ORDERED_DITHERING);
+DEFINE_TEMPLATE_IMPL_1(c_12bit_floyd_steinberg_dithering, process_plane_plainc, PIXEL_PROC_12BIT_FLOYD_STEINBERG_DITHERING);

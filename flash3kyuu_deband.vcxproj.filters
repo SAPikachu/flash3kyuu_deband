@@ -69,6 +69,9 @@
     <ClInclude Include="pixel_proc_c_12bit_ordered_dithering.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="pixel_proc_c_12bit_f_s_dithering.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
