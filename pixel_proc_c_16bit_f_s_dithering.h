@@ -27,7 +27,7 @@ namespace pixel_proc_16bit_f_s_dithering {
 			ctx->error_buffer = (ERROR_TYPE*)malloc(size_needed);
 			ctx->buffer_needs_dealloc = true;
 		} else {
-			ctx->error_buffer = (ERROR_TYPE*)context_buffer + ctx_size;
+			ctx->error_buffer = (ERROR_TYPE*)(context_buffer + ctx_size);
 		}
 		memset(ctx->error_buffer, 0, size_needed);
 		ctx->current_px_error = ctx->error_buffer + 1;
@@ -54,7 +54,7 @@ namespace pixel_proc_16bit_f_s_dithering {
 	{
 		context_t* ctx = (context_t*)context;
 		ctx->row_pitch = -ctx->row_pitch;
-		ctx->current_px_error = ctx->error_buffer + ( (ctx->row_pitch >> 31) & 1 ) * ctx->row_pitch;
+		ctx->current_px_error = ctx->error_buffer + (ctx->row_pitch >> 31) * ctx->row_pitch;
 		memset(ctx->current_px_error + ctx->row_pitch, 0, abs(ctx->row_pitch) * sizeof(ERROR_TYPE));
 		ctx->current_px_error++;
 	}
