@@ -63,13 +63,13 @@
     <ClInclude Include="pixel_proc_c_12bit_no_dithering.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pixel_proc_c_12bit_common.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="pixel_proc_c_12bit_ordered_dithering.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pixel_proc_c_12bit_f_s_dithering.h">
+    <ClInclude Include="pixel_proc_c_16bit_f_s_dithering.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pixel_proc_c_high_bit_depth_common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

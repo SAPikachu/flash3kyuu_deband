@@ -1,8 +1,8 @@
 
 
 namespace pixel_proc_12bit_no_dithering {
-
-	#include "pixel_proc_c_12bit_common.h"
+	
+	static const int BIT_DEPTH = 12;
 
 	static inline void init_context(char context_buffer[CONTEXT_BUFFER_SIZE], int frame_width)
 	{
@@ -24,9 +24,11 @@ namespace pixel_proc_12bit_no_dithering {
 		// nothing to do
 	}
 
-	static inline int downsample(void* context, int pixel, int row, int column)
+	static inline int dither(void* context, int pixel, int row, int column)
 	{
-		return pixel >> 4;
+		return pixel;
 	}
+
+	#include "pixel_proc_c_high_bit_depth_common.h"
 
 };

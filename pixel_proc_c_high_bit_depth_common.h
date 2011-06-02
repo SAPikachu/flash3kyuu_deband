@@ -1,7 +1,13 @@
 
 	static inline int upsample(void* context, unsigned char pixel)
 	{
-		return pixel << 4;
+		return pixel << (BIT_DEPTH - 8);
+	}
+
+	static inline int downsample(void* context, int pixel, int row, int column)
+	{
+		pixel = dither(context, pixel, row, column);
+		return pixel >> (BIT_DEPTH - 8);
 	}
 
 	static inline int avg_2(void* context, int pixel1, int pixel2)
