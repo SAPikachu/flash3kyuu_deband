@@ -54,7 +54,6 @@ typedef void (__cdecl *process_plane_impl_t)(unsigned char const*srcp, int const
 
 class flash3kyuu_deband : public GenericVideoFilter {
 private:
-	int _range_raw; 
 	int _range; 
 	unsigned char _Y, _Cb, _Cr;
 	int _ditherY, _ditherC;
@@ -72,13 +71,7 @@ private:
 
 	// used by test code
 	void* other_data;
-	
-	int _range_lut[64];
-	int _ditherY_lut[64];
-	int _ditherC_lut[64];
-
-	signed char *_h_ind_masks;
-	
+		
 	pixel_dither_info *_y_info;
 	pixel_dither_info *_cb_info;
 	pixel_dither_info *_cr_info;
@@ -91,6 +84,7 @@ private:
 
 	void init(void);
 	void init_frame_luts(int n);
+
 	void destroy_frame_luts(void);
 	
 	void process_plane(PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane, IScriptEnvironment* env);

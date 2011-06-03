@@ -69,7 +69,6 @@ flash3kyuu_deband::flash3kyuu_deband(PClip child, int range, unsigned char Y, un
 		int ditherY, int ditherC, int sample_mode, int seed,
 		bool blur_first, bool diff_seed_for_each_frame, int opt, bool mt) :
 			GenericVideoFilter(child),
-			_range_raw(range),
 			_range(range),
 			_Y(Y),
 			_Cb(Cb),
@@ -80,7 +79,6 @@ flash3kyuu_deband::flash3kyuu_deband(PClip child, int range, unsigned char Y, un
 			_seed(seed),
 			_blur_first(blur_first),
 			_diff_seed_for_each_frame(diff_seed_for_each_frame),
-			_h_ind_masks(NULL),
 			_y_info(NULL),
 			_cb_info(NULL),
 			_cr_info(NULL),
@@ -106,6 +104,12 @@ void flash3kyuu_deband::destroy_frame_luts(void)
 	destroy_context(&_y_context);
 	destroy_context(&_cb_context);
 	destroy_context(&_cr_context);
+}
+
+void inline rand_next(int &seed)
+{
+	int seed_tmp = (((seed << 13) ^ (unsigned int)seed) >> 17) ^ (seed << 13) ^ seed;
+	seed = 32 * seed_tmp ^ seed_tmp;
 }
 
 void flash3kyuu_deband::init_frame_luts(int n)
@@ -135,6 +139,10 @@ void flash3kyuu_deband::init_frame_luts(int n)
 	memset(_cr_info, 0, c_size);
 
 	pixel_dither_info *y_info_ptr, *cb_info_ptr, *cr_info_ptr;
+	
+	int range_limit = _range * 2 + 1;
+	int ditherY_limit = _ditherY * 2 + 1;
+	int ditherC_limit = _ditherC * 2 + 1;
 
 	for (int y = 0; y < vi.height; y++)
 	{
@@ -143,19 +151,18 @@ void flash3kyuu_deband::init_frame_luts(int n)
 		cr_info_ptr = _cr_info + (y / 2) * c_stride;
 		for (int x = 0; x < vi.width; x++)
 		{
-			int seed_tmp = (((seed << 13) ^ (unsigned int)seed) >> 17) ^ (seed << 13) ^ seed;
-			seed = 32 * seed_tmp ^ seed_tmp;
+			rand_next(seed);
 
 			pixel_dither_info info_y = {0, 0, 0, 0};
-			info_y.change = (signed char)_ditherY_lut[(seed >> 15) & 0x3F];
+			info_y.change = (signed char)((seed & 0x7fffffff) % ditherY_limit - _ditherY);
 
-			if (!(x < _range_raw || vi.width - x <= _range_raw)) {
-				if (_sample_mode < 2)
+			if (!(x < _range || vi.width - x <= _range || y < _range || vi.height - y <= _range)) {
+				rand_next(seed);
+				info_y.ref1 = (signed char)((seed & 0x7fffffff) % range_limit - _range);
+				if (_sample_mode = 2)
 				{
-					info_y.ref1 = (signed char)(_h_ind_masks[y] & _range_lut[(seed >> 10) & 0x3F]);
-				} else {
-					info_y.ref1 = (signed char)(_h_ind_masks[y] & _range_lut[(seed >> 5) & 0x3F]);
-					info_y.ref2 = (signed char)(_h_ind_masks[y] & _range_lut[(seed >> 10) & 0x3F]);
+					rand_next(seed);
+					info_y.ref2 = (signed char)((seed & 0x7fffffff) % range_limit - _range);
 				}
 			}
 
@@ -166,11 +173,13 @@ void flash3kyuu_deband::init_frame_luts(int n)
 				// use absolute value to calulate correct ref, and restore sign
 				info_c.ref1 = (abs(info_y.ref1) >> 1) * (info_y.ref1 >> 7);
 				info_c.ref2 = (abs(info_y.ref2) >> 1) * (info_y.ref2 >> 7);
-
-				info_c.change = _ditherC_lut[(seed >> 20) & 0x3F];
+				
+				rand_next(seed);
+				info_c.change = (signed char)((seed & 0x7fffffff) % ditherC_limit - _ditherC);
 				*cb_info_ptr = info_c;
-
-				info_c.change = _ditherC_lut[(seed >> 25) & 0x3F];
+				
+				rand_next(seed);
+				info_c.change = (signed char)((seed & 0x7fffffff) % ditherC_limit - _ditherC);
 				*cr_info_ptr = info_c;
 				
 				cb_info_ptr++;
@@ -190,7 +199,6 @@ flash3kyuu_deband::~flash3kyuu_deband()
 		mt_info_destroy(_mt_info);
 	}
 
-	delete [] _h_ind_masks;
 	destroy_frame_luts();
 }
 
@@ -217,43 +225,16 @@ void flash3kyuu_deband::init(void)
 {
 	___intel_cpu_indicator_init();
 
-	int new_Y, new_Cb, new_Cr;
 	int yCbCr_coeff;
 	if (_sample_mode > 0 && _blur_first) {
 		yCbCr_coeff = 2;
 	} else {
 		yCbCr_coeff = 4;
 	}
-
-	new_Y = _Y * yCbCr_coeff;
-	new_Cb = _Cb * yCbCr_coeff;
-	new_Cr = _Cr * yCbCr_coeff;
-
-	int new_range = _range * 2 + 1;
-	int new_ditherY = _ditherY * 2 + 1;
-	int new_ditherC = _ditherC * 2 + 1;
-
-	for (int i = 0; i < 64; i++)
-	{
-		_range_lut[i] = i % new_range - _range;
-		_ditherY_lut[i] = i % new_ditherY - _ditherY;
-		_ditherC_lut[i] = i % new_ditherC - _ditherC;
-	}
-
-	_h_ind_masks = new signed char[vi.height];
-
-	for (int i = 0; i < vi.height; i++)
-	{
-		_h_ind_masks[i] = (i >= _range && vi.height - i > _range) ? -1 : 0;
-	}
-
-	_Y = new_Y;
-	_Cb = new_Cb;
-	_Cr = new_Cr;
-
-	_range = new_range;
-	_ditherY = new_ditherY;
-	_ditherC = new_ditherC;
+	
+	_Y = _Y * yCbCr_coeff;
+	_Cb = _Cb * yCbCr_coeff;
+	_Cr = _Cr * yCbCr_coeff;
 
 	init_context(&_y_context);
 	init_context(&_cb_context);
@@ -315,7 +296,7 @@ void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned
 		return;
 	}
 
-	int range = (plane == PLANAR_Y ? _range_raw : _range_raw >> 1);
+	int range = (plane == PLANAR_Y ? _range : _range >> 1);
 	_process_plane_impl(srcp, src_width, src_height, src_pitch, dstp, dst_pitch, threshold, info_ptr_base, info_stride, range, context);
 }
 
