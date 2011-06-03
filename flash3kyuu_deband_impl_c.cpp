@@ -124,4 +124,4 @@ DEFINE_TEMPLATE_IMPL_1(c, process_plane_plainc, PIXEL_PROC_8BIT);
 
 DEFINE_TEMPLATE_IMPL_1(c_12bit_no_dithering, process_plane_plainc, PIXEL_PROC_12BIT_NO_DITHERING);
 DEFINE_TEMPLATE_IMPL_1(c_12bit_ordered_dithering, process_plane_plainc, PIXEL_PROC_12BIT_ORDERED_DITHERING);
-DEFINE_TEMPLATE_IMPL_1(c_16bit_floyd_steinberg_dithering, process_plane_plainc, PIXEL_PROC_16BIT_FLOYD_STEINBERG_DITHERING);
+DEFINE_TEMPLATE_IMPL_1(c_14bit_floyd_steinberg_dithering, process_plane_plainc, PIXEL_PROC_14BIT_FLOYD_STEINBERG_DITHERING);

@@ -45,7 +45,7 @@ const extern process_plane_impl_t process_plane_impl_c_12bit_no_dithering[];
 
 const extern process_plane_impl_t process_plane_impl_c_12bit_ordered_dithering[];
 
-const extern process_plane_impl_t process_plane_impl_c_16bit_floyd_steinberg_dithering[];
+const extern process_plane_impl_t process_plane_impl_c_14bit_floyd_steinberg_dithering[];
 
 
 const extern process_plane_impl_t process_plane_impl_correctness_test_sse2[];
@@ -69,7 +69,7 @@ static const process_plane_impl_t* process_plane_impls[] = {
 
 	process_plane_impl_c_12bit_no_dithering,
 	process_plane_impl_c_12bit_ordered_dithering,
-	process_plane_impl_c_16bit_floyd_steinberg_dithering,
+	process_plane_impl_c_14bit_floyd_steinberg_dithering,
 };
 
 #define IMPL_C 0
