@@ -1,6 +1,6 @@
 
 
-namespace pixel_proc_14bit_f_s_dithering {
+namespace pixel_proc_high_f_s_dithering {
 	
 	static const int BIT_DEPTH = 14;
 

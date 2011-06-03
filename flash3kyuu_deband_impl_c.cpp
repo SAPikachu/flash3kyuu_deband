@@ -122,6 +122,6 @@ void __cdecl process_plane_plainc(unsigned char const*srcp, int const src_width,
 
 DEFINE_TEMPLATE_IMPL_1(c, process_plane_plainc, PIXEL_PROC_8BIT);
 
-DEFINE_TEMPLATE_IMPL_1(c_12bit_no_dithering, process_plane_plainc, PIXEL_PROC_12BIT_NO_DITHERING);
-DEFINE_TEMPLATE_IMPL_1(c_12bit_ordered_dithering, process_plane_plainc, PIXEL_PROC_12BIT_ORDERED_DITHERING);
-DEFINE_TEMPLATE_IMPL_1(c_14bit_floyd_steinberg_dithering, process_plane_plainc, PIXEL_PROC_14BIT_FLOYD_STEINBERG_DITHERING);
+DEFINE_TEMPLATE_IMPL_1(c_high_no_dithering, process_plane_plainc, PIXEL_PROC_HIGH_NO_DITHERING);
+DEFINE_TEMPLATE_IMPL_1(c_high_ordered_dithering, process_plane_plainc, PIXEL_PROC_HIGH_ORDERED_DITHERING);
+DEFINE_TEMPLATE_IMPL_1(c_high_floyd_steinberg_dithering, process_plane_plainc, PIXEL_PROC_HIGH_FLOYD_STEINBERG_DITHERING);

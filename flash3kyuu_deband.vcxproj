@@ -96,11 +96,11 @@
     <ClInclude Include="icc_override.h" />
     <ClInclude Include="impl_dispatch.h" />
     <ClInclude Include="mt_info.h" />
-    <ClInclude Include="pixel_proc_c_14bit_f_s_dithering.h" />
-    <ClInclude Include="pixel_proc_c_12bit_ordered_dithering.h" />
+    <ClInclude Include="pixel_proc_c_high_f_s_dithering.h" />
+    <ClInclude Include="pixel_proc_c_high_ordered_dithering.h" />
     <ClInclude Include="pixel_proc_c.h" />
     <ClInclude Include="pixel_proc_c_high_bit_depth_common.h" />
-    <ClInclude Include="pixel_proc_c_12bit_no_dithering.h" />
+    <ClInclude Include="pixel_proc_c_high_no_dithering.h" />
     <ClInclude Include="pixel_proc_c_8bit.h" />
     <ClInclude Include="process_plane_context.h" />
     <ClInclude Include="sse_compat.h" />
