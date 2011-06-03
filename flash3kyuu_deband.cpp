@@ -51,11 +51,11 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 	check_parameter_range(value, lower_bound, upper_bound, #value, env);
 
 	CHECK_PARAM(range, 0, 31);
-	CHECK_PARAM(Y, 0, 31);
-	CHECK_PARAM(Cb, 0, 31);
-	CHECK_PARAM(Cr, 0, 31);
-	CHECK_PARAM(ditherY, 0, 31);
-	CHECK_PARAM(ditherC, 0, 31);
+	CHECK_PARAM(Y, 0, 127);
+	CHECK_PARAM(Cb, 0, 127);
+	CHECK_PARAM(Cr, 0, 127);
+	CHECK_PARAM(ditherY, 0, 127);
+	CHECK_PARAM(ditherC, 0, 127);
 	CHECK_PARAM(sample_mode, 0, 2);
 	CHECK_PARAM(seed, 0, 127);
 	CHECK_PARAM(opt, -1, (sizeof(process_plane_impls) - 1) );
