@@ -159,7 +159,7 @@ void flash3kyuu_deband::init_frame_luts(int n)
 			if (!(x < _range || vi.width - x <= _range || y < _range || vi.height - y <= _range)) {
 				rand_next(seed);
 				info_y.ref1 = (signed char)((seed & 0x7fffffff) % range_limit - _range);
-				if (_sample_mode = 2)
+				if (_sample_mode == 2)
 				{
 					rand_next(seed);
 					info_y.ref2 = (signed char)((seed & 0x7fffffff) % range_limit - _range);

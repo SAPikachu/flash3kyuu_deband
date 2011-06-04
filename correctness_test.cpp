@@ -31,21 +31,37 @@ void __cdecl process_plane_correctness_test(unsigned char const*srcp, int const 
 
 	char dump_file_name[256];
 
-	sprintf_s(dump_file_name, "correctness_test_reference_%d_%d_%d.bin",src_width, src_height, dst_pitch);
+	sprintf_s(dump_file_name, "correctness_test_reference_%d_%d_%d_%d_%d_%d_%d.bin",
+		src_width, src_height, dst_pitch, sample_mode, blur_first, precision_mode, target_impl);
 	FILE* ref_file = NULL;
 	fopen_s(&ref_file, dump_file_name, "wb");
+	if (!ref_file)
+	{
+		printf(__FUNCTION__ ": Warning: Unable to open %s", dump_file_name);
+	}
 
-	sprintf_s(dump_file_name, "correctness_test_test_%d_%d_%d.bin",src_width, src_height, dst_pitch);
+	sprintf_s(dump_file_name, "correctness_test_test_%d_%d_%d_%d_%d_%d_%d.bin",
+		src_width, src_height, dst_pitch, sample_mode, blur_first, precision_mode, target_impl);
 	FILE* test_file = NULL;
 	fopen_s(&test_file, dump_file_name, "wb");
+	if (!test_file)
+	{
+		printf(__FUNCTION__ ": Warning: Unable to open %s", dump_file_name);
+	}
 
 	for (int i = 0; i < src_height; i++)
 	{
 		unsigned char* ref_start = dstp + i * dst_pitch;
 		unsigned char* test_start = plane_start + i * dst_pitch;
 		
-		fwrite(ref_start, 1, dst_pitch, ref_file);
-		fwrite(test_start, 1, dst_pitch, test_file);
+		if (ref_file) 
+		{
+			fwrite(ref_start, 1, dst_pitch, ref_file);
+		}
+		if (test_file)
+		{
+			fwrite(test_start, 1, dst_pitch, test_file);
+		}
 
 		if (memcmp(ref_start, test_start, src_width) != 0) {
 			printf("ERROR: Row %d is different from reference result.\n", i);
@@ -62,17 +78,28 @@ void __cdecl process_plane_correctness_test(unsigned char const*srcp, int const 
 		unsigned char* ref_start = dstp + i * dst_pitch;
 		unsigned char* test_start = plane_start + i * dst_pitch;
 		
-		fwrite(ref_start, 1, dst_pitch, ref_file);
-		fwrite(test_start, 1, dst_pitch, test_file);
+		if (ref_file) 
+		{
+			fwrite(ref_start, 1, dst_pitch, ref_file);
+		}
+		if (test_file)
+		{
+			fwrite(test_start, 1, dst_pitch, test_file);
+		}
 
 		if (memcmp(ref_start, test_start, src_width) != 0) {
 			printf("ERROR: Row %d is different from reference result.\n", i);
 		}
 	}
 
-
-	fclose(ref_file);
-	fclose(test_file);
+	if (ref_file)
+	{
+		fclose(ref_file);
+	}
+	if (test_file)
+	{
+		fclose(test_file);
+	}
 	check_guard_bytes(buffer, src_height, dst_pitch);
 	_aligned_free(buffer);
 
