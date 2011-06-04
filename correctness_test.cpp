@@ -3,13 +3,15 @@
 #include "test.h"
 
 
-template<int sample_mode, bool blur_first, int target_impl>
+template<int sample_mode, bool blur_first, int precision_mode, int target_impl>
 void __cdecl process_plane_correctness_test(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
 {
-	printf(__FUNCTION__ ", sample_mode=%d, blur_first=%d, target_impl=%d\n", sample_mode, blur_first, target_impl);
+	printf(__FUNCTION__ ", sample_mode=%d, blur_first=%d, precision_mode=%d, target_impl=%d\n", 
+		sample_mode, blur_first, precision_mode, target_impl);
+
 	printf("-----------------------------------\n");
-	process_plane_impl_t reference_impl = process_plane_impl_c[select_impl_index(sample_mode, blur_first)];
-	process_plane_impl_t test_impl = process_plane_impls[target_impl][select_impl_index(sample_mode, blur_first)];
+	process_plane_impl_t reference_impl = process_plane_impls[precision_mode][IMPL_C][select_impl_index(sample_mode, blur_first)];
+	process_plane_impl_t test_impl = process_plane_impls[precision_mode][target_impl][select_impl_index(sample_mode, blur_first)];
 	
 	process_plane_context ref_context;
 	process_plane_context test_context;
@@ -80,6 +82,5 @@ void __cdecl process_plane_correctness_test(unsigned char const*srcp, int const 
 }
 
 
-DEFINE_TEMPLATE_IMPL_1(correctness_test_sse2, process_plane_correctness_test, IMPL_SSE2);
-DEFINE_TEMPLATE_IMPL_1(correctness_test_ssse3, process_plane_correctness_test, IMPL_SSSE3);
-DEFINE_TEMPLATE_IMPL_1(correctness_test_sse4, process_plane_correctness_test, IMPL_SSE4);
+#define DECLARE_IMPL_CORRECTNESS_TEST
+#include "impl_dispatch_decl.h"

@@ -35,8 +35,8 @@ void __cdecl process_plane_benchmark(unsigned char const*srcp, int const src_wid
 	int total_bytes = src_width * src_height;
 	printf("Width: %d, Height: %d, Total: %d bytes\n", src_width, src_height, total_bytes);
 
-	process_plane_impl_t c_impl = process_plane_impl_c[select_impl_index(sample_mode, blur_first)];
-	process_plane_impl_t sse_impl = process_plane_impl_sse4[select_impl_index(sample_mode, blur_first)];
+	process_plane_impl_t c_impl = process_plane_impls[PRECISION_LOW][IMPL_C][select_impl_index(sample_mode, blur_first)];
+	process_plane_impl_t sse_impl = process_plane_impls[PRECISION_LOW][IMPL_SSE4][select_impl_index(sample_mode, blur_first)];
 
 	DWORD64 tsc_before, tsc_after;
 	DWORD64 cycles_elapsed;
@@ -97,4 +97,5 @@ void __cdecl process_plane_benchmark(unsigned char const*srcp, int const src_wid
 	SetThreadPriority(thread_handle, old_thread_priority);
 }
 
-DEFINE_TEMPLATE_IMPL(benchmark, process_plane_benchmark);
+#define DECLARE_IMPL_BENCHMARK
+#include "impl_dispatch_decl.h"

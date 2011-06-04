@@ -58,7 +58,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 	CHECK_PARAM(ditherC, 0, 127);
 	CHECK_PARAM(sample_mode, 0, 2);
 	CHECK_PARAM(seed, 0, 127);
-	CHECK_PARAM(opt, -1, (sizeof(process_plane_impls) - 1) );
+	CHECK_PARAM(opt, -1, (IMPL_COUNT - 1) );
 
 	return new flash3kyuu_deband(child, range, Y, Cb, Cr, 
 		ditherY, ditherC, sample_mode, seed, 
@@ -217,7 +217,7 @@ static process_plane_impl_t get_process_plane_impl(int sample_mode, bool blur_fi
 			opt = IMPL_C;
 		}
 	}
-	const process_plane_impl_t* impl_table = process_plane_impls[opt];
+	const process_plane_impl_t* impl_table = process_plane_impls[PRECISION_LOW][opt];
 	return impl_table[select_impl_index(sample_mode, blur_first)];
 }
 

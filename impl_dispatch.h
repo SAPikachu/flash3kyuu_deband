@@ -2,80 +2,22 @@
 
 #include "flash3kyuu_deband.h"
 
-#define DEFINE_IMPL(n, \
-					impl_func_mode0, \
-					impl_func_mode1_blur, \
-					impl_func_mode1_noblur, \
-					impl_func_mode2_blur, \
-					impl_func_mode2_noblur) \
-	const process_plane_impl_t process_plane_impl_##n [] = { \
-					impl_func_mode0, \
-					impl_func_mode1_blur, \
-					impl_func_mode1_noblur, \
-					impl_func_mode2_blur, \
-					impl_func_mode2_noblur};
+extern const process_plane_impl_t** process_plane_impls[];
 
+#define PRECISION_LOW 0
+#define PRECISION_HIGH_NO_DITHERING 1
+#define PRECISION_HIGH_ORDERED_DITHERING 2
+#define PRECISION_HIGH_FLOYD_STEINBERG_DITHERING 3
 
-#define DEFINE_TEMPLATE_IMPL(name, impl_func) \
-	DEFINE_IMPL(name, \
-				(&impl_func<0, true>), \
-				(&impl_func<1, true>), \
-				(&impl_func<1, false>), \
-				(&impl_func<2, true>), \
-				(&impl_func<2, false>) );
+#define PRECISION_COUNT 4
 
-#define DEFINE_TEMPLATE_IMPL_1(name, impl_func, param) \
-	DEFINE_IMPL(name, \
-				(&impl_func<0, true, param>), \
-				(&impl_func<1, true, param>), \
-				(&impl_func<1, false, param>), \
-				(&impl_func<2, true, param>), \
-				(&impl_func<2, false, param>) );
-
-const extern process_plane_impl_t process_plane_impl_c[];
-
-const extern process_plane_impl_t process_plane_impl_sse2[];
-
-const extern process_plane_impl_t process_plane_impl_ssse3[];
-
-const extern process_plane_impl_t process_plane_impl_sse4[];
-
-
-const extern process_plane_impl_t process_plane_impl_c_high_no_dithering[];
-
-const extern process_plane_impl_t process_plane_impl_c_high_ordered_dithering[];
-
-const extern process_plane_impl_t process_plane_impl_c_high_floyd_steinberg_dithering[];
-
-
-const extern process_plane_impl_t process_plane_impl_correctness_test_sse2[];
-
-const extern process_plane_impl_t process_plane_impl_correctness_test_ssse3[];
-
-const extern process_plane_impl_t process_plane_impl_correctness_test_sse4[];
-
-const extern process_plane_impl_t process_plane_impl_benchmark[];
-
-static const process_plane_impl_t* process_plane_impls[] = {
-	process_plane_impl_c,
-	process_plane_impl_sse2,
-	process_plane_impl_ssse3,
-	process_plane_impl_sse4,
-
-	process_plane_impl_correctness_test_sse2,
-	process_plane_impl_correctness_test_ssse3,
-	process_plane_impl_correctness_test_sse4,
-	process_plane_impl_benchmark,
-
-	process_plane_impl_c_high_no_dithering,
-	process_plane_impl_c_high_ordered_dithering,
-	process_plane_impl_c_high_floyd_steinberg_dithering,
-};
 
 #define IMPL_C 0
 #define IMPL_SSE2 1
 #define IMPL_SSSE3 2
 #define IMPL_SSE4 3
+
+#define IMPL_COUNT 8
 
 static __inline int select_impl_index(int sample_mode, bool blur_first)
 {

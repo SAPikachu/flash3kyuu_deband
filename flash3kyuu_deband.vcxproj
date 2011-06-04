@@ -53,6 +53,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;FLASH3KYUU_DEBAND_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <UseMSVC>true</UseMSVC>
+      <PreprocessToFile>false</PreprocessToFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -95,6 +96,7 @@
     <ClInclude Include="flash3kyuu_deband_sse_base.h" />
     <ClInclude Include="icc_override.h" />
     <ClInclude Include="impl_dispatch.h" />
+    <ClInclude Include="impl_dispatch_decl.h" />
     <ClInclude Include="mt_info.h" />
     <ClInclude Include="pixel_proc_c_high_f_s_dithering.h" />
     <ClInclude Include="pixel_proc_c_high_ordered_dithering.h" />
@@ -126,6 +128,7 @@
     <ClCompile Include="flash3kyuu_deband_impl_sse4.cpp" />
     <ClCompile Include="flash3kyuu_deband_impl_ssse3.cpp" />
     <ClCompile Include="icc_override.cpp" />
+    <ClCompile Include="impl_dispatch.cpp" />
     <ClCompile Include="mt_info.cpp" />
     <ClCompile Include="process_plane_context.cpp" />
     <ClCompile Include="stdafx.cpp">

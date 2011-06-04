@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#include "impl_dispatch.h"
+#include "flash3kyuu_deband.h"
 
 #include "pixel_proc_c.h"
 
@@ -120,8 +120,5 @@ void __cdecl process_plane_plainc(unsigned char const*srcp, int const src_width,
 	pixel_proc_destroy_context<mode>(context);
 }
 
-DEFINE_TEMPLATE_IMPL_1(c, process_plane_plainc, PIXEL_PROC_8BIT);
-
-DEFINE_TEMPLATE_IMPL_1(c_high_no_dithering, process_plane_plainc, PIXEL_PROC_HIGH_NO_DITHERING);
-DEFINE_TEMPLATE_IMPL_1(c_high_ordered_dithering, process_plane_plainc, PIXEL_PROC_HIGH_ORDERED_DITHERING);
-DEFINE_TEMPLATE_IMPL_1(c_high_floyd_steinberg_dithering, process_plane_plainc, PIXEL_PROC_HIGH_FLOYD_STEINBERG_DITHERING);
+#define DECLARE_IMPL_C
+#include "impl_dispatch_decl.h"

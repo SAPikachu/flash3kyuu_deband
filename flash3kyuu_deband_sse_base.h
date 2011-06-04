@@ -420,6 +420,3 @@ static void __cdecl process_plane_sse_impl(unsigned char const*srcp, int const s
 		}
 	}
 }
-
-#define DEFINE_SSE_IMPL(name) \
-	DEFINE_TEMPLATE_IMPL(name, process_plane_sse_impl);
