@@ -67,6 +67,8 @@ private:
 	int _opt;
 	bool _mt;
 
+	int _precision_mode;
+
 	process_plane_impl_t _process_plane_impl;
 
 	// used by test code
@@ -94,7 +96,7 @@ public:
 	void mt_proc(void);
 	flash3kyuu_deband(PClip child, int range, unsigned char Y, unsigned char Cb, unsigned char Cr, 
 		int ditherY, int ditherC, int sample_mode, int seed,
-		bool blur_first, bool diff_seed_for_each_frame, int opt, bool mt);
+		bool blur_first, bool diff_seed_for_each_frame, int opt, bool mt, int precision_mode);
 	~flash3kyuu_deband();
 
 	PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);

@@ -35,17 +35,21 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 	GetSystemInfo(&si);
 
 	int range = args[1].AsInt(15);
-	unsigned char Y = (unsigned char)args[2].AsInt(1);
-	unsigned char Cb = (unsigned char)args[3].AsInt(1);
-	unsigned char Cr = (unsigned char)args[4].AsInt(1);
-	int ditherY = args[5].AsInt(1);
-	int ditherC = args[6].AsInt(1);
+
 	int sample_mode = args[7].AsInt(1);
 	int seed = args[8].AsInt(0);
 	bool blur_first = args[9].AsBool(true);
 	bool diff_seed_for_each_frame = args[10].AsBool(false);
 	int opt = args[11].AsInt(-1);
 	bool mt = args[12].AsBool(si.dwNumberOfProcessors > 1);
+	int precision_mode = args[13].AsBool(0);
+
+	int default_val = precision_mode == PRECISION_LOW ? 1 : 64;
+	int Y = args[2].AsInt(default_val);
+	int Cb = args[3].AsInt(default_val);
+	int Cr = args[4].AsInt(default_val);
+	int ditherY = args[5].AsInt(default_val);
+	int ditherC = args[6].AsInt(default_val);
 
 #define CHECK_PARAM(value, lower_bound, upper_bound) \
 	check_parameter_range(value, lower_bound, upper_bound, #value, env);
@@ -59,15 +63,17 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 	CHECK_PARAM(sample_mode, 0, 2);
 	CHECK_PARAM(seed, 0, 127);
 	CHECK_PARAM(opt, -1, (IMPL_COUNT - 1) );
+	CHECK_PARAM(precision_mode, 0, (PRECISION_COUNT - 1) );
 
-	return new flash3kyuu_deband(child, range, Y, Cb, Cr, 
+	return new flash3kyuu_deband(child, range, 
+		(unsigned char)Y, (unsigned char)Cb, (unsigned char)Cr, 
 		ditherY, ditherC, sample_mode, seed, 
-		blur_first, diff_seed_for_each_frame, opt, mt);
+		blur_first, diff_seed_for_each_frame, opt, mt, precision_mode);
 }
 
 flash3kyuu_deband::flash3kyuu_deband(PClip child, int range, unsigned char Y, unsigned char Cb, unsigned char Cr, 
 		int ditherY, int ditherC, int sample_mode, int seed,
-		bool blur_first, bool diff_seed_for_each_frame, int opt, bool mt) :
+		bool blur_first, bool diff_seed_for_each_frame, int opt, bool mt, int precision_mode) :
 			GenericVideoFilter(child),
 			_range(range),
 			_Y(Y),
@@ -84,6 +90,7 @@ flash3kyuu_deband::flash3kyuu_deband(PClip child, int range, unsigned char Y, un
 			_cr_info(NULL),
 			_opt(opt),
 			_mt(mt),
+			_precision_mode(precision_mode),
 			_mt_info(NULL),
 			_process_plane_impl(NULL)
 {
@@ -202,7 +209,7 @@ flash3kyuu_deband::~flash3kyuu_deband()
 	destroy_frame_luts();
 }
 
-static process_plane_impl_t get_process_plane_impl(int sample_mode, bool blur_first, int opt)
+static process_plane_impl_t get_process_plane_impl(int sample_mode, bool blur_first, int opt, int precision_mode)
 {
 	if (opt == -1) {
 		int cpu_info[4] = {-1};
@@ -217,7 +224,7 @@ static process_plane_impl_t get_process_plane_impl(int sample_mode, bool blur_fi
 			opt = IMPL_C;
 		}
 	}
-	const process_plane_impl_t* impl_table = process_plane_impls[PRECISION_LOW][opt];
+	const process_plane_impl_t* impl_table = process_plane_impls[precision_mode][opt];
 	return impl_table[select_impl_index(sample_mode, blur_first)];
 }
 
@@ -242,7 +249,7 @@ void flash3kyuu_deband::init(void)
 
 	init_frame_luts(0);
 
-	_process_plane_impl = get_process_plane_impl(_sample_mode, _blur_first, _opt);
+	_process_plane_impl = get_process_plane_impl(_sample_mode, _blur_first, _opt, _precision_mode);
 
 }
 
