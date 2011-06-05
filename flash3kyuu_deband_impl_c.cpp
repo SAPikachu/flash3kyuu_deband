@@ -4,6 +4,16 @@
 
 #include "pixel_proc_c.h"
 
+static inline unsigned char clamp_pixel(int pixel)
+{
+	if (pixel > 0xff) {
+		pixel = 0xff;
+	} else if (pixel < 0) {
+		pixel = 0;
+	}
+	return (unsigned char)pixel;
+}
+
 template <int sample_mode, bool blur_first, int mode>
 void __cdecl process_plane_plainc(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context*)
 {
@@ -29,7 +39,7 @@ void __cdecl process_plane_plainc(unsigned char const*srcp, int const src_width,
 				{
 					*dst_px = *src_px;
 				} else {
-					*dst_px = pixel_proc_downsample<mode>(context, src_px_up + info.change, i, j);
+					*dst_px = clamp_pixel(pixel_proc_downsample<mode>(context, src_px_up + info.change, i, j));
 				}
 			} else {
 #define IS_ABOVE_THRESHOLD(diff) ( (diff ^ (diff >> 31)) - (diff >> 31) >= threshold )
@@ -102,12 +112,7 @@ void __cdecl process_plane_plainc(unsigned char const*srcp, int const src_width,
 						new_pixel = avg + info.change;
 					}
 					new_pixel = pixel_proc_downsample<mode>(context, new_pixel, i, j);
-					if (new_pixel > 0xff) {
-						new_pixel = 0xff;
-					} else if (new_pixel < 0) {
-						new_pixel = 0;
-					}
-					*dst_px = (unsigned char)new_pixel;
+					*dst_px = clamp_pixel(new_pixel);
 				}
 			}
 			src_px++;
