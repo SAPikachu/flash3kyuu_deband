@@ -113,11 +113,31 @@ void flash3kyuu_deband::destroy_frame_luts(void)
 	destroy_context(&_cr_context);
 }
 
-void inline rand_next(int &seed)
+static int inline rand_next(int &seed)
 {
 	int seed_tmp = (((seed << 13) ^ (unsigned int)seed) >> 17) ^ (seed << 13) ^ seed;
 	seed = 32 * seed_tmp ^ seed_tmp;
+	return seed & 0x7fffffff;
 }
+
+static int inline min_multi( int first, ... )
+{
+	int ret = first, i = first;
+	va_list marker;
+
+	va_start( marker, first );
+	while( i >= 0 )
+	{
+		if (i < ret)
+		{
+			ret = i;
+		}
+		i = va_arg( marker, int);
+	}
+	va_end( marker );
+	return ret;
+}
+
 
 void flash3kyuu_deband::init_frame_luts(int n)
 {
@@ -147,7 +167,6 @@ void flash3kyuu_deband::init_frame_luts(int n)
 
 	pixel_dither_info *y_info_ptr, *cb_info_ptr, *cr_info_ptr;
 	
-	int range_limit = _range * 2 + 1;
 	int ditherY_limit = _ditherY * 2 + 1;
 	int ditherC_limit = _ditherC * 2 + 1;
 
@@ -158,18 +177,21 @@ void flash3kyuu_deband::init_frame_luts(int n)
 		cr_info_ptr = _cr_info + (y / 2) * c_stride;
 		for (int x = 0; x < vi.width; x++)
 		{
-			rand_next(seed);
-
 			pixel_dither_info info_y = {0, 0, 0, 0};
-			info_y.change = (signed char)((seed & 0x7fffffff) % ditherY_limit - _ditherY);
+			info_y.change = (signed char)(rand_next(seed) % ditherY_limit - _ditherY);
 
-			if (!(x < _range || vi.width - x <= _range || y < _range || vi.height - y <= _range)) {
-				rand_next(seed);
-				info_y.ref1 = (signed char)((seed & 0x7fffffff) % range_limit - _range);
+			int cur_range = min_multi(_range, y, vi.height - y - 1, -1);
+			if (_sample_mode == 2)
+			{
+				cur_range = min_multi(cur_range, x, vi.width - x - 1, -1);
+			}
+
+			if (cur_range > 0) {
+				int range_limit = cur_range * 2 + 1;
+				info_y.ref1 = (signed char)(rand_next(seed) % range_limit - cur_range);
 				if (_sample_mode == 2)
 				{
-					rand_next(seed);
-					info_y.ref2 = (signed char)((seed & 0x7fffffff) % range_limit - _range);
+					info_y.ref2 = (signed char)(rand_next(seed) % range_limit - cur_range);
 				}
 			}
 
@@ -181,12 +203,10 @@ void flash3kyuu_deband::init_frame_luts(int n)
 				info_c.ref1 = (abs(info_y.ref1) >> 1) * (info_y.ref1 >> 7);
 				info_c.ref2 = (abs(info_y.ref2) >> 1) * (info_y.ref2 >> 7);
 				
-				rand_next(seed);
-				info_c.change = (signed char)((seed & 0x7fffffff) % ditherC_limit - _ditherC);
+				info_c.change = (signed char)(rand_next(seed) % ditherC_limit - _ditherC);
 				*cb_info_ptr = info_c;
 				
-				rand_next(seed);
-				info_c.change = (signed char)((seed & 0x7fffffff) % ditherC_limit - _ditherC);
+				info_c.change = (signed char)(rand_next(seed) % ditherC_limit - _ditherC);
 				*cr_info_ptr = info_c;
 				
 				cb_info_ptr++;
