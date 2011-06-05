@@ -6,10 +6,9 @@
 template<int sample_mode, bool blur_first, int precision_mode, int target_impl>
 void __cdecl process_plane_correctness_test(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
 {
-	printf(__FUNCTION__ ", sample_mode=%d, blur_first=%d, precision_mode=%d, target_impl=%d\n", 
+	printf("\r" __FUNCTION__ ", s_mode=%d, blur=%d, precision=%d, target_impl=%d \n", 
 		sample_mode, blur_first, precision_mode, target_impl);
 
-	printf("-----------------------------------\n");
 	process_plane_impl_t reference_impl = process_plane_impls[precision_mode][IMPL_C][select_impl_index(sample_mode, blur_first)];
 	process_plane_impl_t test_impl = process_plane_impls[precision_mode][target_impl][select_impl_index(sample_mode, blur_first)];
 	
@@ -64,7 +63,7 @@ void __cdecl process_plane_correctness_test(unsigned char const*srcp, int const 
 		}
 
 		if (memcmp(ref_start, test_start, src_width) != 0) {
-			printf("ERROR: Row %d is different from reference result.\n", i);
+			printf("ERROR(%d, %d, %d, %d): Row %d is different from reference result.\n", sample_mode, blur_first, precision_mode, target_impl, i);
 		}
 	}
 	
@@ -88,7 +87,7 @@ void __cdecl process_plane_correctness_test(unsigned char const*srcp, int const 
 		}
 
 		if (memcmp(ref_start, test_start, src_width) != 0) {
-			printf("ERROR: Row %d is different from reference result.\n", i);
+			printf("ERROR(%d, %d, %d, %d): Row %d is different from reference result.\n", sample_mode, blur_first, precision_mode, target_impl, i);
 		}
 	}
 
@@ -105,7 +104,6 @@ void __cdecl process_plane_correctness_test(unsigned char const*srcp, int const 
 
 	destroy_context(&ref_context);
 	destroy_context(&test_context);
-	printf("-----------------------------------\n");
 }
 
 
