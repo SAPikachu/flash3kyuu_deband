@@ -42,7 +42,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 	bool diff_seed_for_each_frame = args[10].AsBool(false);
 	int opt = args[11].AsInt(-1);
 	bool mt = args[12].AsBool(si.dwNumberOfProcessors > 1);
-	int precision_mode = args[13].AsInt(0);
+	int precision_mode = args[13].AsInt(PRECISION_HIGH_FLOYD_STEINBERG_DITHERING);
 
 	int default_val = precision_mode == PRECISION_LOW ? 1 : 64;
 	int Y = args[2].AsInt(default_val);
