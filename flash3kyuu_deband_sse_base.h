@@ -4,6 +4,11 @@
 
 #include "sse_compat.h"
 
+/****************************************************************************
+ * NOTE: DON'T remove static from any function in this file, it is required *
+ *       for generating code in multiple SSE versions.                      *
+ ****************************************************************************/
+
 typedef struct _info_cache
 {
 	int pitch;
@@ -268,9 +273,8 @@ static __m128i __inline process_pixels(__m128i src_pixels, __m128i threshold_vec
 	return src_pixels;
 }
 
-
 template<int sample_mode, bool blur_first, bool aligned>
-void __cdecl _process_plane_sse_impl(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
+static void __cdecl _process_plane_sse_impl(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
 {
 	pixel_dither_info* info_ptr = info_ptr_base;
 
@@ -434,7 +438,7 @@ void __cdecl _process_plane_sse_impl(unsigned char const*srcp, int const src_wid
 
 
 template<int sample_mode, bool blur_first>
-void __cdecl process_plane_sse_impl(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
+static void __cdecl process_plane_sse_impl(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
 {
 	if ( ( (int)srcp & (PLANE_ALIGNMENT - 1) ) == 0 && (src_pitch & (PLANE_ALIGNMENT - 1) ) == 0 )
 	{
