@@ -1,3 +1,10 @@
+1.0.2 (2011-06-06)
+	High precision mode 
+		(currently non-optimized, SSE routine will be added later)
+	Frame edges are properly processed now
+	Fix crash in some cases (unaligned frames are handled correctly)
+	Other bug fixes
+
 1.0.1 (2011-05-27)
 	Multi-threaded processing
 	Skip planes which threshold is 0

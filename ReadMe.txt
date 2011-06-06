@@ -1,6 +1,7 @@
 flash3kyuu_deband(clip c, int "range", int "Y", int "Cb", int "Cr", 
 		int "ditherY", int "ditherC", int "sample_mode", int "seed", 
-		bool "blur_first", bool "diff_seed", int "opt", bool "mt")
+		bool "blur_first", bool "diff_seed", int "opt", bool "mt", 
+		int "precision_mode")
 		
 Ported from http://www.geocities.jp/flash3kyuu/auf/banding17.zip . 
 (I'm not the author of the original aviutl plugin, just ported the algorithm to
@@ -9,16 +10,12 @@ avisynth.)
 This avisynth plugin debands the video by replacing banded pixels with average 
 value of referenced pixels, and optionally dithers them.
 
-Currently, all calculation are done in 8-bit. 12-bit dithering may be 
-implemented in future.
-
 Only YV12 progressive sources are supported.
 
 Parameters:		
 
 range
-	Banding detection range. Note that pixels within all edges of frame are 
-	treated as non-banded. Edge width equals to range.
+	Banding detection range. 
 	
 	Default: 15
 
@@ -29,12 +26,14 @@ Y Cb Cr
 	If set to 0, the corresponding plane will be untouched regardless of dither
 	settings.
 	
-	Default: 1
+	Default: 1 (precision_mode = 0) /
+			 64 (precision_mode > 0)
 	
 ditherY ditherC
 	Valid only when sample_mode is 1 or 2. Specifies dither strength.
 	
-	Default: 1
+	Default: 1 (precision_mode = 0) /
+	         64 (precision_mode > 0)
 	
 sample_mode
 	Valid modes are:
@@ -72,7 +71,8 @@ diff_seed
 	Default: false
 	
 opt
-	Specifies optimization mode.
+	Specifies optimization mode. 
+	(Currently only effective when precision_mode = 0)
 	
 	-1: Use highest optimization mode that is supported by host CPU
 	0: No optimization (plain C, all CPU should be supported)
@@ -89,3 +89,14 @@ mt
 	Like diff_seed, not compatible with Avisynth MT mode 1.
 	
 	Default: true if host has more than 1 CPU/cores, false otherwise.
+	
+precision_mode
+	0: Low precision
+	1: High precision, No dithering
+	2: High precision, Ordered dithering
+	3: High precision, Floyd-Steinberg dithering
+	
+	Note: In high precision mode, threshold and dither parameters are 64 times
+	      bigger than equivalent in low precision mode.
+	
+	Default: 3
