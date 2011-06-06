@@ -269,13 +269,9 @@ static __m128i __inline process_pixels(__m128i src_pixels, __m128i threshold_vec
 }
 
 
-template<int sample_mode, bool blur_first>
-static void __cdecl process_plane_sse_impl(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
+template<int sample_mode, bool blur_first, bool aligned>
+void __cdecl _process_plane_sse_impl(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
 {
-	// By default, frame buffers are guaranteed to be mod16, and full pitch is always available for every line
-	// so even width is not mod16, we don't need to treat remaining pixels as special case
-	// see avisynth source code -> core.cpp -> NewPlanarVideoFrame for details
-
 	pixel_dither_info* info_ptr = info_ptr_base;
 
 	// used to compute 4 consecutive addresses
@@ -409,7 +405,22 @@ static void __cdecl process_plane_sse_impl(unsigned char const*srcp, int const s
 				}
 			}
 
-			__m128i src_pixels = _mm_load_si128((__m128i*)src_px);
+			__m128i src_pixels;
+			if (aligned)
+			{
+				src_pixels = _mm_load_si128((__m128i*)src_px);
+			} else {
+				if (UNLIKELY(row == src_height - 1 && remaining_pixels < 16))
+				{
+					// prevent segfault
+					// doesn't need to initialize since garbage data won't cause error
+					__declspec(align(16)) unsigned char buffer[16];
+					memcpy(buffer, src_px, remaining_pixels);
+					src_pixels = _mm_load_si128((__m128i*)buffer);
+				} else {
+					src_pixels = _mm_loadu_si128((__m128i*)src_px);
+				}
+			}
 			__m128i dst_pixels = process_pixels<sample_mode, blur_first>(src_pixels, threshold_vector, sign_convert_vector, one_i8, change, ref_pixels_1_components, ref_pixels_2_components, ref_pixels_3_components, ref_pixels_4_components);
 			// write back the result
 			_mm_store_si128((__m128i*)dst_px, dst_pixels);
@@ -418,5 +429,17 @@ static void __cdecl process_plane_sse_impl(unsigned char const*srcp, int const s
 			dst_px += 16;
 			remaining_pixels -= 16;
 		}
+	}
+}
+
+
+template<int sample_mode, bool blur_first>
+void __cdecl process_plane_sse_impl(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
+{
+	if ( ( (int)srcp & (PLANE_ALIGNMENT - 1) ) == 0 && (src_pitch & (PLANE_ALIGNMENT - 1) ) == 0 )
+	{
+		_process_plane_sse_impl<sample_mode, blur_first, true>(srcp, src_width, src_height, src_pitch, dstp, dst_pitch, threshold, info_ptr_base, info_stride, range, context);
+	} else {
+		_process_plane_sse_impl<sample_mode, blur_first, false>(srcp, src_width, src_height, src_pitch, dstp, dst_pitch, threshold, info_ptr_base, info_stride, range, context);
 	}
 }
