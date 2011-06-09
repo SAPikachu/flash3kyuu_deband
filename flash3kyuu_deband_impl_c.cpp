@@ -39,22 +39,22 @@ void __cdecl process_plane_plainc(unsigned char const*srcp, int const src_width,
 
 			if (sample_mode == 0) 
 			{
-				int ref_px = info.ref1 * src_pitch;
-				int diff = *src_px - src_px[ref_px];
+				int ref_pos = info.ref1 * src_pitch;
+				int diff = *src_px - src_px[ref_pos];
 				if (IS_ABOVE_THRESHOLD(diff)) {
 					*dst_px = *src_px;
 				} else {
-					*dst_px = src_px[ref_px];
+					*dst_px = src_px[ref_pos];
 				}
 			} else {
 				int avg;
 				bool use_org_px_as_base;
-				int ref_px, ref_px_2;
+				int ref_pos, ref_pos_2;
 				if (sample_mode == 1)
 				{
-					ref_px = info.ref1 * src_pitch;
-					int ref_1_up = pixel_proc_upsample<mode>(context, src_px[ref_px]);
-					int ref_2_up = pixel_proc_upsample<mode>(context, src_px[-ref_px]);
+					ref_pos = info.ref1 * src_pitch;
+					int ref_1_up = pixel_proc_upsample<mode>(context, src_px[ref_pos]);
+					int ref_2_up = pixel_proc_upsample<mode>(context, src_px[-ref_pos]);
 					avg = pixel_proc_avg_2<mode>(context, ref_1_up, ref_2_up);
 					if (blur_first)
 					{
@@ -70,13 +70,13 @@ void __cdecl process_plane_plainc(unsigned char const*srcp, int const src_width,
 					assert(abs(info.ref2) <= i && abs(info.ref2) + i < src_height);
 					assert(abs(info.ref2) <= j && abs(info.ref2) + j < src_width);
 
-					ref_px = src_pitch * info.ref2 + info.ref1;
-					ref_px_2 = info.ref2 - src_pitch * info.ref1;
+					ref_pos = src_pitch * info.ref2 + info.ref1;
+					ref_pos_2 = info.ref2 - src_pitch * info.ref1;
 
-					int ref_1_up = pixel_proc_upsample<mode>(context, src_px[ref_px]);
-					int ref_2_up = pixel_proc_upsample<mode>(context, src_px[ref_px_2]);
-					int ref_3_up = pixel_proc_upsample<mode>(context, src_px[-ref_px]);
-					int ref_4_up = pixel_proc_upsample<mode>(context, src_px[-ref_px_2]);
+					int ref_1_up = pixel_proc_upsample<mode>(context, src_px[ref_pos]);
+					int ref_2_up = pixel_proc_upsample<mode>(context, src_px[ref_pos_2]);
+					int ref_3_up = pixel_proc_upsample<mode>(context, src_px[-ref_pos]);
+					int ref_4_up = pixel_proc_upsample<mode>(context, src_px[-ref_pos_2]);
 
 					avg = pixel_proc_avg_4<mode>(context, ref_1_up, ref_2_up, ref_3_up, ref_4_up);
 
