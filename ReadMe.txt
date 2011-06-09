@@ -98,5 +98,8 @@ precision_mode
 	
 	Note: In high precision mode, threshold and dither parameters are 64 times
 	      bigger than equivalent in low precision mode.
+	      
+	Note #2: Only effective when sample_mode > 0. When sample_mode = 0, 
+	         precision_mode is always 0.
 	
 	Default: 3

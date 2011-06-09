@@ -59,5 +59,6 @@ precision_mode
 	3: 高精度模式, Floyd-Steinberg dithering
 	
 	注意：要达到同等强度，高精度模式的阈值及dither设置值为低精度模式下的64倍。
+	注意 #2：该参数仅在sample_mode > 0时有效，sample_mode = 0时precision_mode总是为0。
 	
 	默认值: 3
