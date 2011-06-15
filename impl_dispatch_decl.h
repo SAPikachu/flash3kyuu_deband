@@ -36,8 +36,8 @@
 				(&impl_func<2, true, __VA_ARGS__>), \
 				(&impl_func<2, false, __VA_ARGS__>) );
 
-#define DEFINE_SSE_IMPL(name) \
-	DEFINE_TEMPLATE_IMPL(name, process_plane_sse_impl);
+#define DEFINE_SSE_IMPL(name, ...) \
+	DEFINE_TEMPLATE_IMPL(name, process_plane_sse_impl, __VA_ARGS__);
 
 
 #if defined(IMPL_DISPATCH_IMPORT_DECLARATION) || defined(DECLARE_IMPL_C)
@@ -50,17 +50,17 @@
 
 
 #if defined(IMPL_DISPATCH_IMPORT_DECLARATION) || defined(DECLARE_IMPL_SSE4)
-	DEFINE_SSE_IMPL(sse4);
+	DEFINE_SSE_IMPL(sse4, PRECISION_LOW);
 #endif
 
 
 #if defined(IMPL_DISPATCH_IMPORT_DECLARATION) || defined(DECLARE_IMPL_SSSE3)
-	DEFINE_SSE_IMPL(ssse3);
+	DEFINE_SSE_IMPL(ssse3, PRECISION_LOW);
 #endif
 
 	
 #if defined(IMPL_DISPATCH_IMPORT_DECLARATION) || defined(DECLARE_IMPL_SSE2)
-	DEFINE_SSE_IMPL(sse2);
+	DEFINE_SSE_IMPL(sse2, PRECISION_LOW);
 #endif
 	
 #if defined(IMPL_DISPATCH_IMPORT_DECLARATION) || defined(DECLARE_IMPL_BENCHMARK)

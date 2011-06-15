@@ -4,6 +4,8 @@
 
 #include "sse_compat.h"
 
+#include "dither_high.h"
+
 /****************************************************************************
  * NOTE: DON'T remove static from any function in this file, it is required *
  *       for generating code in multiple SSE versions.                      *
@@ -263,55 +265,47 @@ static __inline __m128i generate_blend_mask_high(__m128i a, __m128i b, __m128i t
 	return _mm_cmpgt_epi16(converted_threshold, converted_diff);
 }
 
-
-template< __m128i (*extract_part)(__m128i, __m128i) >
-static __m128i __inline extract_pixel_part(__m128i pixels)
+static __m128i __inline upsample_pixels(__m128i pixels)
 {
-	return _mm_slli_epi16(extract_part(pixels, _mm_setzero_si128()), 6);
+	return _mm_slli_epi16(pixels, 6);
 }
 
-template<int sample_mode, bool blur_first, __m128i (*extract_part)(__m128i, __m128i) >
+template<int sample_mode, bool blur_first>
 static __m128i __inline process_pixels_mode12_high_part(__m128i src_pixels, __m128i threshold_vector, __m128i change, __m128i& ref_pixels_1, __m128i& ref_pixels_2, __m128i& ref_pixels_3, __m128i& ref_pixels_4)
-{
-	__m128i zero = _mm_setzero_si128();
-
-	__m128i threshold_vector_high = _mm_unpacklo_epi8(threshold_vector, zero);
+{	
+	__m128i src_pixels_part = upsample_pixels(src_pixels);
 	
-	__m128i src_pixels_part = extract_pixel_part<extract_part>(src_pixels);
-	
-	__m128i ref_part_1 = extract_pixel_part<extract_part>(ref_pixels_1);
-	__m128i ref_part_2 = extract_pixel_part<extract_part>(ref_pixels_2);
+	__m128i ref_part_1 = upsample_pixels(ref_pixels_1);
+	__m128i ref_part_2 = upsample_pixels(ref_pixels_2);
 
 	__m128i use_orig_pixel_blend_mask;
 	__m128i avg;
 
-	__m128i difference;
-
 	if (!blur_first)
 	{
-		use_orig_pixel_blend_mask = generate_blend_mask_high(src_pixels_part, ref_part_1, threshold_vector_high);
+		use_orig_pixel_blend_mask = generate_blend_mask_high(src_pixels_part, ref_part_1, threshold_vector);
 
 		use_orig_pixel_blend_mask = _mm_or_si128(
 			use_orig_pixel_blend_mask, 
-			generate_blend_mask_high(src_pixels_part, ref_part_2, threshold_vector_high) );
+			generate_blend_mask_high(src_pixels_part, ref_part_2, threshold_vector) );
 	}
 
 	avg = _mm_avg_epu16(ref_part_1, ref_part_2);
 
 	if (sample_mode == 2)
 	{
-		__m128i ref_part_3 = extract_pixel_part<extract_part>(ref_pixels_3);
-		__m128i ref_part_4 = extract_pixel_part<extract_part>(ref_pixels_4);
+		__m128i ref_part_3 = upsample_pixels(ref_pixels_3);
+		__m128i ref_part_4 = upsample_pixels(ref_pixels_4);
 
 		if (!blur_first)
 		{
 			use_orig_pixel_blend_mask = _mm_or_si128(
 				use_orig_pixel_blend_mask, 
-				generate_blend_mask_high(src_pixels_part, ref_part_3, threshold_vector_high) );
+				generate_blend_mask_high(src_pixels_part, ref_part_3, threshold_vector) );
 
 			use_orig_pixel_blend_mask = _mm_or_si128(
 				use_orig_pixel_blend_mask, 
-				generate_blend_mask_high(src_pixels_part, ref_part_4, threshold_vector_high) );
+				generate_blend_mask_high(src_pixels_part, ref_part_4, threshold_vector) );
 		}
 
 		avg = _mm_avg_epu16(avg, _mm_avg_epu16(ref_part_3, ref_part_4));
@@ -320,20 +314,20 @@ static __m128i __inline process_pixels_mode12_high_part(__m128i src_pixels, __m1
 
 	if (blur_first)
 	{
-		use_orig_pixel_blend_mask = generate_blend_mask_high(src_pixels_part, avg, threshold_vector_high);
+		use_orig_pixel_blend_mask = generate_blend_mask_high(src_pixels_part, avg, threshold_vector);
 	}
 
 	// if mask is 0xff (NOT over threshold), select second operand, otherwise select first
 	// note this is different from low bitdepth code
 	src_pixels = _cmm_blendv_by_cmp_mask_epi8(src_pixels, avg, use_orig_pixel_blend_mask);
 	
-	__m128i sign_convert_vector = _mm_set1_epi16(0x8000);
+	__m128i sign_convert_vector = _mm_set1_epi16((short)0x8000);
 
 	// convert to signed form, since change is signed
 	src_pixels = _mm_sub_epi16(src_pixels, sign_convert_vector);
 
 	// saturated add
-	src_pixels = _mm_adds_epi16(src_pixels, extract_part(change, zero) );
+	src_pixels = _mm_adds_epi16(src_pixels, change);
 
 	__m128i dst_pixels;
 	// convert back to unsigned
@@ -341,8 +335,41 @@ static __m128i __inline process_pixels_mode12_high_part(__m128i src_pixels, __m1
 	return dst_pixels;
 }
 
-template<int sample_mode, bool blur_first>
-static __m128i __inline process_pixels(__m128i src_pixels, __m128i threshold_vector, __m128i sign_convert_vector, __m128i& one_i8, __m128i& change, __m128i& ref_pixels_1, __m128i& ref_pixels_2, __m128i& ref_pixels_3, __m128i& ref_pixels_4)
+
+template<int sample_mode, bool blur_first, int precision_mode>
+static __m128i __inline process_pixels_mode12_high(__m128i src_pixels, __m128i threshold_vector, __m128i change, __m128i& ref_pixels_1, __m128i& ref_pixels_2, __m128i& ref_pixels_3, __m128i& ref_pixels_4, int row, int column, void* dither_context)
+{
+	__m128i zero = _mm_setzero_si128();
+	
+	__m128i lo = process_pixels_mode12_high_part<sample_mode, blur_first>
+		(_mm_unpacklo_epi8(src_pixels, zero), 
+		 _mm_unpacklo_epi8(threshold_vector, zero), 
+		 _mm_unpacklo_epi8(change, zero), 
+		 _mm_unpacklo_epi8(ref_pixels_1, zero), 
+		 _mm_unpacklo_epi8(ref_pixels_2, zero), 
+		 _mm_unpacklo_epi8(ref_pixels_3, zero), 
+		 _mm_unpacklo_epi8(ref_pixels_4, zero) );
+
+	__m128i hi = process_pixels_mode12_high_part<sample_mode, blur_first>
+		(_mm_unpackhi_epi8(src_pixels, zero), 
+		 _mm_unpackhi_epi8(threshold_vector, zero), 
+		 _mm_unpackhi_epi8(change, zero), 
+		 _mm_unpackhi_epi8(ref_pixels_1, zero), 
+		 _mm_unpackhi_epi8(ref_pixels_2, zero), 
+		 _mm_unpackhi_epi8(ref_pixels_3, zero), 
+		 _mm_unpackhi_epi8(ref_pixels_4, zero) );
+	
+	lo = dither_high::dither<precision_mode>(dither_context, lo, row, column);
+	hi = dither_high::dither<precision_mode>(dither_context, hi, row, column + 8);
+
+	lo = _mm_srli_epi16(lo, 6);
+	hi = _mm_srli_epi16(hi, 6);
+
+	return _mm_packus_epi16(lo, hi);
+}
+
+template<int sample_mode, bool blur_first, int precision_mode>
+static __m128i __inline process_pixels(__m128i src_pixels, __m128i threshold_vector, __m128i sign_convert_vector, __m128i& one_i8, __m128i& change, __m128i& ref_pixels_1, __m128i& ref_pixels_2, __m128i& ref_pixels_3, __m128i& ref_pixels_4, int row, int column, void* dither_context)
 {
 	switch (sample_mode)
 	{
@@ -351,7 +378,12 @@ static __m128i __inline process_pixels(__m128i src_pixels, __m128i threshold_vec
 		break;
 	case 1:
 	case 2:
-		return process_pixels_mode12<sample_mode, blur_first>(src_pixels, threshold_vector, sign_convert_vector, one_i8, change, ref_pixels_1, ref_pixels_2, ref_pixels_3, ref_pixels_4);
+		if (precision_mode == PRECISION_LOW)
+		{
+			return process_pixels_mode12<sample_mode, blur_first>(src_pixels, threshold_vector, sign_convert_vector, one_i8, change, ref_pixels_1, ref_pixels_2, ref_pixels_3, ref_pixels_4);
+		} else {
+			return process_pixels_mode12_high<sample_mode, blur_first, precision_mode>(src_pixels, threshold_vector, change, ref_pixels_1, ref_pixels_2, ref_pixels_3, ref_pixels_4, row, column, dither_context);
+		}
 		break;
 	default:
 		abort();
@@ -359,7 +391,7 @@ static __m128i __inline process_pixels(__m128i src_pixels, __m128i threshold_vec
 	return src_pixels;
 }
 
-template<int sample_mode, bool blur_first, bool aligned>
+template<int sample_mode, bool blur_first, int precision_mode, bool aligned>
 static void __cdecl _process_plane_sse_impl(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
 {
 	pixel_dither_info* info_ptr = info_ptr_base;
@@ -388,6 +420,10 @@ static void __cdecl _process_plane_sse_impl(unsigned char const*srcp, int const 
 
 	char* info_data_stream = NULL;
 
+	char context_buffer[DITHER_CONTEXT_BUFFER_SIZE];
+
+	dither_high::init<precision_mode>(context_buffer, src_width);
+
 	// initialize storage for pre-calculated pixel offsets
 	if (context->data) {
 		info_cache* cache = (info_cache*) context->data;
@@ -415,14 +451,14 @@ static void __cdecl _process_plane_sse_impl(unsigned char const*srcp, int const 
 		// info_ptr = info_ptr_base + info_stride * row;
 		// doesn't need here, since info_stride equals to count of pixels that are needed to process in each row
 
-		int remaining_pixels = info_stride;
+		int processed_pixels = 0;
 
 		// 4 addresses at a time
 		__m128i src_addrs = _mm_set1_epi32((int)src_px);
 		// add offset
 		src_addrs = _mm_add_epi32(src_addrs, src_addr_offset_vector);
 
-		while (remaining_pixels > 0)
+		while (processed_pixels < src_width)
 		{
 			__m128i change;
 
@@ -496,36 +532,39 @@ static void __cdecl _process_plane_sse_impl(unsigned char const*srcp, int const 
 			{
 				src_pixels = _mm_load_si128((__m128i*)src_px);
 			} else {
-				if (UNLIKELY(row == src_height - 1 && remaining_pixels < 16))
+				if (UNLIKELY(row == src_height - 1 && (src_pitch - processed_pixels) < 16))
 				{
 					// prevent segfault
 					// doesn't need to initialize since garbage data won't cause error
 					__declspec(align(16)) unsigned char buffer[16];
-					memcpy(buffer, src_px, remaining_pixels);
+					memcpy(buffer, src_px, src_width - processed_pixels);
 					src_pixels = _mm_load_si128((__m128i*)buffer);
 				} else {
 					src_pixels = _mm_loadu_si128((__m128i*)src_px);
 				}
 			}
-			__m128i dst_pixels = process_pixels<sample_mode, blur_first>(src_pixels, threshold_vector, sign_convert_vector, one_i8, change, ref_pixels_1, ref_pixels_2, ref_pixels_3, ref_pixels_4);
+			__m128i dst_pixels = process_pixels<sample_mode, blur_first, precision_mode>(src_pixels, threshold_vector, sign_convert_vector, one_i8, change, ref_pixels_1, ref_pixels_2, ref_pixels_3, ref_pixels_4, row, processed_pixels, context_buffer);
 			// write back the result
 			_mm_store_si128((__m128i*)dst_px, dst_pixels);
 
 			src_px += 16;
 			dst_px += 16;
-			remaining_pixels -= 16;
+			processed_pixels += 16;
 		}
+		dither_high::next_row<precision_mode>(context_buffer);
 	}
+	
+	dither_high::complete<precision_mode>(context_buffer);
 }
 
 
-template<int sample_mode, bool blur_first>
+template<int sample_mode, bool blur_first, int precision_mode>
 static void __cdecl process_plane_sse_impl(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
 {
 	if ( ( (int)srcp & (PLANE_ALIGNMENT - 1) ) == 0 && (src_pitch & (PLANE_ALIGNMENT - 1) ) == 0 )
 	{
-		_process_plane_sse_impl<sample_mode, blur_first, true>(srcp, src_width, src_height, src_pitch, dstp, dst_pitch, threshold, info_ptr_base, info_stride, range, context);
+		_process_plane_sse_impl<sample_mode, blur_first, precision_mode, true>(srcp, src_width, src_height, src_pitch, dstp, dst_pitch, threshold, info_ptr_base, info_stride, range, context);
 	} else {
-		_process_plane_sse_impl<sample_mode, blur_first, false>(srcp, src_width, src_height, src_pitch, dstp, dst_pitch, threshold, info_ptr_base, info_stride, range, context);
+		_process_plane_sse_impl<sample_mode, blur_first, precision_mode, false>(srcp, src_width, src_height, src_pitch, dstp, dst_pitch, threshold, info_ptr_base, info_stride, range, context);
 	}
 }

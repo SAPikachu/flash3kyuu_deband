@@ -1,5 +1,7 @@
 #pragma once
 
+#include "impl_dispatch.h"
+
 enum {
 	PIXEL_PROC_8BIT = 0,
 	PIXEL_PROC_HIGH_NO_DITHERING,
@@ -7,8 +9,6 @@ enum {
 	PIXEL_PROC_HIGH_FLOYD_STEINBERG_DITHERING,
 	PIXEL_PROC_MAX
 };
-
-#define CONTEXT_BUFFER_SIZE 8192
 
 #define CALL_IMPL(func, ...) \
 	( mode == PIXEL_PROC_8BIT ? pixel_proc_8bit::##func(__VA_ARGS__) : \

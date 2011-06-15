@@ -92,6 +92,7 @@
   <ItemGroup>
     <ClInclude Include="asmlib.h" />
     <ClInclude Include="avisynth.h" />
+    <ClInclude Include="dither_high.h" />
     <ClInclude Include="flash3kyuu_deband.h" />
     <ClInclude Include="flash3kyuu_deband_sse_base.h" />
     <ClInclude Include="icc_override.h" />
