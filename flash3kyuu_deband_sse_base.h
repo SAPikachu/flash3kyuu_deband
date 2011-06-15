@@ -319,19 +319,20 @@ static __m128i __inline process_pixels_mode12_high_part(__m128i src_pixels, __m1
 
 	// if mask is 0xff (NOT over threshold), select second operand, otherwise select first
 	// note this is different from low bitdepth code
-	src_pixels = _cmm_blendv_by_cmp_mask_epi8(src_pixels, avg, use_orig_pixel_blend_mask);
+	__m128i dst_pixels;
+
+	dst_pixels = _cmm_blendv_by_cmp_mask_epi8(src_pixels_part, avg, use_orig_pixel_blend_mask);
 	
 	__m128i sign_convert_vector = _mm_set1_epi16((short)0x8000);
 
 	// convert to signed form, since change is signed
-	src_pixels = _mm_sub_epi16(src_pixels, sign_convert_vector);
+	dst_pixels = _mm_sub_epi16(dst_pixels, sign_convert_vector);
 
 	// saturated add
-	src_pixels = _mm_adds_epi16(src_pixels, change);
+	dst_pixels = _mm_adds_epi16(dst_pixels, change);
 
-	__m128i dst_pixels;
 	// convert back to unsigned
-	dst_pixels = _mm_add_epi16(src_pixels, sign_convert_vector);
+	dst_pixels = _mm_add_epi16(dst_pixels, sign_convert_vector);
 	return dst_pixels;
 }
 
