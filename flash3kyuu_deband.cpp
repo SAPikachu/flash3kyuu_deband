@@ -267,17 +267,6 @@ void flash3kyuu_deband::init(void)
 {
 	___intel_cpu_indicator_init();
 
-	int yCbCr_coeff;
-	if (_sample_mode > 0 && _blur_first) {
-		yCbCr_coeff = 2;
-	} else {
-		yCbCr_coeff = 4;
-	}
-	
-	_Y = _Y * yCbCr_coeff;
-	_Cb = _Cb * yCbCr_coeff;
-	_Cr = _Cr * yCbCr_coeff;
-
 	init_context(&_y_context);
 	init_context(&_cb_context);
 	init_context(&_cr_context);
