@@ -345,7 +345,7 @@ static __m128i __inline process_pixels_mode12_high(__m128i src_pixels, __m128i t
 	__m128i lo = process_pixels_mode12_high_part<sample_mode, blur_first>
 		(_mm_unpacklo_epi8(src_pixels, zero), 
 		 threshold_vector, 
-		 _mm_unpacklo_epi8(change, zero), 
+		 _mm_srai_epi16(_mm_unpacklo_epi8(change, change), 8), 
 		 _mm_unpacklo_epi8(ref_pixels_1, zero), 
 		 _mm_unpacklo_epi8(ref_pixels_2, zero), 
 		 _mm_unpacklo_epi8(ref_pixels_3, zero), 
@@ -354,7 +354,7 @@ static __m128i __inline process_pixels_mode12_high(__m128i src_pixels, __m128i t
 	__m128i hi = process_pixels_mode12_high_part<sample_mode, blur_first>
 		(_mm_unpackhi_epi8(src_pixels, zero), 
 		 threshold_vector, 
-		 _mm_unpackhi_epi8(change, zero), 
+		 _mm_srai_epi16(_mm_unpackhi_epi8(change, change), 8), 
 		 _mm_unpackhi_epi8(ref_pixels_1, zero), 
 		 _mm_unpackhi_epi8(ref_pixels_2, zero), 
 		 _mm_unpackhi_epi8(ref_pixels_3, zero), 
@@ -410,7 +410,7 @@ static void __cdecl _process_plane_sse_impl(unsigned char const*srcp, int const 
 		
 	__m128i threshold_vector;
 	
-	if (precision_mode == PRECISION_LOW)
+	if (precision_mode == PRECISION_LOW || sample_mode == 0)
 	{
 		threshold_vector = _mm_set1_epi8((unsigned char)threshold);
 	} else {
