@@ -340,7 +340,7 @@ static __m128i __inline process_pixels_mode12_high_part(__m128i src_pixels, __m1
 
 
 template<int sample_mode, bool blur_first, int precision_mode>
-static __m128i __inline process_pixels_mode12_high(__m128i src_pixels, __m128i threshold_vector, __m128i change, __m128i& ref_pixels_1, __m128i& ref_pixels_2, __m128i& ref_pixels_3, __m128i& ref_pixels_4, int row, int column, void* dither_context)
+static __m128i __forceinline process_pixels_mode12_high(__m128i src_pixels, __m128i threshold_vector, __m128i change, __m128i& ref_pixels_1, __m128i& ref_pixels_2, __m128i& ref_pixels_3, __m128i& ref_pixels_4, int row, int column, void* dither_context)
 {
 	__m128i zero = _mm_setzero_si128();
 	
@@ -372,7 +372,7 @@ static __m128i __inline process_pixels_mode12_high(__m128i src_pixels, __m128i t
 }
 
 template<int sample_mode, bool blur_first, int precision_mode>
-static __m128i __inline process_pixels(__m128i src_pixels, __m128i threshold_vector, __m128i sign_convert_vector, __m128i& one_i8, __m128i& change, __m128i& ref_pixels_1, __m128i& ref_pixels_2, __m128i& ref_pixels_3, __m128i& ref_pixels_4, int row, int column, void* dither_context)
+static __m128i __forceinline process_pixels(__m128i src_pixels, __m128i threshold_vector, __m128i sign_convert_vector, __m128i& one_i8, __m128i& change, __m128i& ref_pixels_1, __m128i& ref_pixels_2, __m128i& ref_pixels_3, __m128i& ref_pixels_4, int row, int column, void* dither_context)
 {
 	switch (sample_mode)
 	{
