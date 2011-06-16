@@ -42,7 +42,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 	bool diff_seed_for_each_frame = args[10].AsBool(false);
 	int opt = args[11].AsInt(-1);
 	bool mt = args[12].AsBool(si.dwNumberOfProcessors > 1);
-	int precision_mode = args[13].AsInt(PRECISION_HIGH_FLOYD_STEINBERG_DITHERING);
+	int precision_mode = args[13].AsInt(sample_mode == 0 ? PRECISION_LOW : PRECISION_HIGH_FLOYD_STEINBERG_DITHERING);
 
 	int default_val = (precision_mode == PRECISION_LOW || sample_mode == 0) ? 1 : 64;
 	int Y = args[2].AsInt(default_val);
@@ -54,16 +54,31 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 #define CHECK_PARAM(value, lower_bound, upper_bound) \
 	check_parameter_range(value, lower_bound, upper_bound, #value, env);
 
+	int upper_limit = default_val * 8 - 1;
+
 	CHECK_PARAM(range, 0, 31);
-	CHECK_PARAM(Y, 0, 127);
-	CHECK_PARAM(Cb, 0, 127);
-	CHECK_PARAM(Cr, 0, 127);
-	CHECK_PARAM(ditherY, 0, 127);
-	CHECK_PARAM(ditherC, 0, 127);
+	CHECK_PARAM(Y, 0, upper_limit);
+	CHECK_PARAM(Cb, 0, upper_limit);
+	CHECK_PARAM(Cr, 0, upper_limit);
+	CHECK_PARAM(ditherY, 0, upper_limit);
+	CHECK_PARAM(ditherC, 0, upper_limit);
 	CHECK_PARAM(sample_mode, 0, 2);
 	CHECK_PARAM(seed, 0, 127);
 	CHECK_PARAM(opt, -1, (IMPL_COUNT - 1) );
 	CHECK_PARAM(precision_mode, 0, (PRECISION_COUNT - 1) );
+	
+	if (sample_mode == 0 && precision_mode != PRECISION_LOW)
+	{
+		if (precision_mode != PRECISION_LOW)
+		{
+			env->ThrowError("flash3kyuu_deband: sample_mode = 0 is valid only when precision_mode = 0.");
+		}
+
+		if (!blur_first)
+		{
+			env->ThrowError("flash3kyuu_deband: When sample_mode = 0, setting blur_first has no effect.");
+		}
+	}
 
 	return new flash3kyuu_deband(child, range, 
 		(unsigned short)Y, (unsigned short)Cb, (unsigned short)Cr, 
