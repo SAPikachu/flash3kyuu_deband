@@ -249,10 +249,10 @@ static __m128i __inline process_pixels_mode12(__m128i src_pixels, __m128i thresh
 
 static __inline __m128i generate_blend_mask_high(__m128i a, __m128i b, __m128i threshold)
 {
-	__m128i diff1 = _mm_sub_epi16(a, b);
-	__m128i diff2 = _mm_sub_epi16(b, a);
+	__m128i diff1 = _mm_subs_epu16(a, b);
+	__m128i diff2 = _mm_subs_epu16(b, a);
 
-	__m128i abs_diff = _mm_and_si128(diff1, diff2);
+	__m128i abs_diff = _mm_or_si128(diff1, diff2);
 
 	__m128i sign_convert_vector = _mm_set1_epi16( (short)0x8000 );
 
