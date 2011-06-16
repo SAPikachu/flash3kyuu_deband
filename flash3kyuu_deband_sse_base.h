@@ -285,7 +285,8 @@ static __m128i __inline process_pixels_mode12_high_part(__m128i src_pixels, __m1
 	{
 		use_orig_pixel_blend_mask = generate_blend_mask_high(src_pixels_part, ref_part_1, threshold_vector);
 
-		use_orig_pixel_blend_mask = _mm_or_si128(
+		// note: use AND instead of OR, because two operands are reversed
+		use_orig_pixel_blend_mask = _mm_and_si128(
 			use_orig_pixel_blend_mask, 
 			generate_blend_mask_high(src_pixels_part, ref_part_2, threshold_vector) );
 	}
@@ -299,11 +300,11 @@ static __m128i __inline process_pixels_mode12_high_part(__m128i src_pixels, __m1
 
 		if (!blur_first)
 		{
-			use_orig_pixel_blend_mask = _mm_or_si128(
+			use_orig_pixel_blend_mask = _mm_and_si128(
 				use_orig_pixel_blend_mask, 
 				generate_blend_mask_high(src_pixels_part, ref_part_3, threshold_vector) );
 
-			use_orig_pixel_blend_mask = _mm_or_si128(
+			use_orig_pixel_blend_mask = _mm_and_si128(
 				use_orig_pixel_blend_mask, 
 				generate_blend_mask_high(src_pixels_part, ref_part_4, threshold_vector) );
 		}
