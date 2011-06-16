@@ -163,7 +163,7 @@ static __forceinline void process_plane_info_block(
 }
 
 
-static __m128i __inline process_pixels_mode0(__m128i src_pixels, __m128i threshold_vector, __m128i sign_convert_vector, __m128i& one_i8, __m128i& change, __m128i& ref_pixels, __m128i&, __m128i&, __m128i&)
+static __m128i __inline process_pixels_mode0(__m128i src_pixels, __m128i threshold_vector, __m128i change, __m128i& ref_pixels)
 {
 	__m128i dst_pixels;
 	__m128i blend_mask;
@@ -286,6 +286,7 @@ static __m128i __inline process_pixels_mode12_high_part(__m128i src_pixels, __m1
 		use_orig_pixel_blend_mask = generate_blend_mask_high(src_pixels_part, ref_part_1, threshold_vector);
 
 		// note: use AND instead of OR, because two operands are reversed
+		// (different from low bit-depth mode!)
 		use_orig_pixel_blend_mask = _mm_and_si128(
 			use_orig_pixel_blend_mask, 
 			generate_blend_mask_high(src_pixels_part, ref_part_2, threshold_vector) );
@@ -376,7 +377,7 @@ static __m128i __inline process_pixels(__m128i src_pixels, __m128i threshold_vec
 	switch (sample_mode)
 	{
 	case 0:
-		return process_pixels_mode0(src_pixels, threshold_vector, sign_convert_vector, one_i8, change, ref_pixels_1, ref_pixels_2, ref_pixels_3, ref_pixels_4);
+		return process_pixels_mode0(src_pixels, threshold_vector, change, ref_pixels_1);
 		break;
 	case 1:
 	case 2:

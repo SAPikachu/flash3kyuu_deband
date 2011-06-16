@@ -44,7 +44,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 	bool mt = args[12].AsBool(si.dwNumberOfProcessors > 1);
 	int precision_mode = args[13].AsInt(PRECISION_HIGH_FLOYD_STEINBERG_DITHERING);
 
-	int default_val = precision_mode == PRECISION_LOW ? 1 : 64;
+	int default_val = (precision_mode == PRECISION_LOW || sample_mode == 0) ? 1 : 64;
 	int Y = args[2].AsInt(default_val);
 	int Cb = args[3].AsInt(default_val);
 	int Cr = args[4].AsInt(default_val);
