@@ -50,12 +50,12 @@ typedef __declspec(align(4)) struct _pixel_dither_info {
 // whole multiples of alignment, so SSE codes don't need to check boundaries
 #define FRAME_LUT_STRIDE(width) (((width - 1) | (FRAME_LUT_ALIGNMENT - 1)) + 1)
 
-typedef void (__cdecl *process_plane_impl_t)(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context);
+typedef void (__cdecl *process_plane_impl_t)(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned short threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context);
 
 class flash3kyuu_deband : public GenericVideoFilter {
 private:
 	int _range; 
-	unsigned char _Y, _Cb, _Cr;
+	unsigned short _Y, _Cb, _Cr;
 	int _ditherY, _ditherC;
 
 	int _sample_mode;
@@ -94,7 +94,7 @@ private:
 
 public:
 	void mt_proc(void);
-	flash3kyuu_deband(PClip child, int range, unsigned char Y, unsigned char Cb, unsigned char Cr, 
+	flash3kyuu_deband(PClip child, int range, unsigned short Y, unsigned short Cb, unsigned short Cr, 
 		int ditherY, int ditherC, int sample_mode, int seed,
 		bool blur_first, bool diff_seed_for_each_frame, int opt, bool mt, int precision_mode);
 	~flash3kyuu_deband();

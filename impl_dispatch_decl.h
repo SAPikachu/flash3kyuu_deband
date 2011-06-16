@@ -51,6 +51,7 @@
 
 #if defined(IMPL_DISPATCH_IMPORT_DECLARATION) || defined(DECLARE_IMPL_SSE4)
 	DEFINE_SSE_IMPL(sse4, PRECISION_LOW);
+	DEFINE_SSE_IMPL(sse4_high_no_dithering, PRECISION_HIGH_NO_DITHERING);
 #endif
 
 
@@ -71,5 +72,7 @@
 	DEFINE_TEMPLATE_IMPL(correctness_test_sse2, process_plane_correctness_test, PRECISION_LOW, IMPL_SSE2);
 	DEFINE_TEMPLATE_IMPL(correctness_test_ssse3, process_plane_correctness_test, PRECISION_LOW, IMPL_SSSE3);
 	DEFINE_TEMPLATE_IMPL(correctness_test_sse4, process_plane_correctness_test, PRECISION_LOW, IMPL_SSE4);
+	
+	DEFINE_TEMPLATE_IMPL(correctness_test_sse4_high_no_dithering, process_plane_correctness_test, PRECISION_HIGH_NO_DITHERING, IMPL_SSE4);
 #endif
 

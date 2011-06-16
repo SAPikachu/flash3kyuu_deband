@@ -36,7 +36,7 @@ static inline bool is_above_threshold(int threshold, int diff1, int diff2, int d
 		   _is_above_threshold(threshold, diff4);
 }
 
-static __forceinline void __cdecl process_plane_plainc_mode0(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context*)
+static __forceinline void __cdecl process_plane_plainc_mode0(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned short threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context*)
 {
 	pixel_dither_info* info_ptr;
 
@@ -68,7 +68,7 @@ static __forceinline void __cdecl process_plane_plainc_mode0(unsigned char const
 }
 
 template <int sample_mode, bool blur_first, int mode>
-static __forceinline void __cdecl process_plane_plainc_mode12(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context*)
+static __forceinline void __cdecl process_plane_plainc_mode12(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned short threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context*)
 {
 	pixel_dither_info* info_ptr;
 	char context[CONTEXT_BUFFER_SIZE];
@@ -153,7 +153,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12(unsigned char cons
 }
 
 template <int sample_mode, bool blur_first, int mode>
-void __cdecl process_plane_plainc(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
+void __cdecl process_plane_plainc(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned short threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
 {
 	if (sample_mode == 0) 
 	{

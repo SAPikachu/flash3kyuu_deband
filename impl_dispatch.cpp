@@ -22,10 +22,10 @@ const process_plane_impl_t* process_plane_impl_high_precision_no_dithering[] = {
 	process_plane_impl_c_high_no_dithering,
 	process_plane_impl_c_high_no_dithering,
 	process_plane_impl_c_high_no_dithering,
+	process_plane_impl_sse4_high_no_dithering,
 	process_plane_impl_c_high_no_dithering,
 	process_plane_impl_c_high_no_dithering,
-	process_plane_impl_c_high_no_dithering,
-	process_plane_impl_c_high_no_dithering,
+	process_plane_impl_correctness_test_sse4_high_no_dithering,
 	process_plane_impl_c_high_no_dithering,
 };
 

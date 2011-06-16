@@ -344,7 +344,7 @@ static __m128i __inline process_pixels_mode12_high(__m128i src_pixels, __m128i t
 	
 	__m128i lo = process_pixels_mode12_high_part<sample_mode, blur_first>
 		(_mm_unpacklo_epi8(src_pixels, zero), 
-		 _mm_unpacklo_epi8(threshold_vector, zero), 
+		 threshold_vector, 
 		 _mm_unpacklo_epi8(change, zero), 
 		 _mm_unpacklo_epi8(ref_pixels_1, zero), 
 		 _mm_unpacklo_epi8(ref_pixels_2, zero), 
@@ -353,7 +353,7 @@ static __m128i __inline process_pixels_mode12_high(__m128i src_pixels, __m128i t
 
 	__m128i hi = process_pixels_mode12_high_part<sample_mode, blur_first>
 		(_mm_unpackhi_epi8(src_pixels, zero), 
-		 _mm_unpackhi_epi8(threshold_vector, zero), 
+		 threshold_vector, 
 		 _mm_unpackhi_epi8(change, zero), 
 		 _mm_unpackhi_epi8(ref_pixels_1, zero), 
 		 _mm_unpackhi_epi8(ref_pixels_2, zero), 
@@ -393,7 +393,7 @@ static __m128i __inline process_pixels(__m128i src_pixels, __m128i threshold_vec
 }
 
 template<int sample_mode, bool blur_first, int precision_mode, bool aligned>
-static void __cdecl _process_plane_sse_impl(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
+static void __cdecl _process_plane_sse_impl(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned short threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
 {
 	pixel_dither_info* info_ptr = info_ptr_base;
 
@@ -408,7 +408,14 @@ static void __cdecl _process_plane_sse_impl(unsigned char const*srcp, int const 
 
 	__m128i change_shuffle_mask = _mm_set_epi32(0x0f0b0703, 0x0e0a0602, 0x0d090501, 0x0c080400);
 		
-	__m128i threshold_vector = _mm_set1_epi8(threshold);
+	__m128i threshold_vector;
+	
+	if (precision_mode == PRECISION_LOW)
+	{
+		threshold_vector = _mm_set1_epi8((unsigned char)threshold);
+	} else {
+		threshold_vector = _mm_set1_epi16(threshold);
+	}
 
 	__m128i sign_convert_vector = _mm_set1_epi8(0x80u);
 
@@ -560,7 +567,7 @@ static void __cdecl _process_plane_sse_impl(unsigned char const*srcp, int const 
 
 
 template<int sample_mode, bool blur_first, int precision_mode>
-static void __cdecl process_plane_sse_impl(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
+static void __cdecl process_plane_sse_impl(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned short threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
 {
 	if ( ( (int)srcp & (PLANE_ALIGNMENT - 1) ) == 0 && (src_pitch & (PLANE_ALIGNMENT - 1) ) == 0 )
 	{

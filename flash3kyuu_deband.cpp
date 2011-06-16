@@ -66,12 +66,12 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 	CHECK_PARAM(precision_mode, 0, (PRECISION_COUNT - 1) );
 
 	return new flash3kyuu_deband(child, range, 
-		(unsigned char)Y, (unsigned char)Cb, (unsigned char)Cr, 
+		(unsigned short)Y, (unsigned short)Cb, (unsigned short)Cr, 
 		ditherY, ditherC, sample_mode, seed, 
 		blur_first, diff_seed_for_each_frame, opt, mt, precision_mode);
 }
 
-flash3kyuu_deband::flash3kyuu_deband(PClip child, int range, unsigned char Y, unsigned char Cb, unsigned char Cr, 
+flash3kyuu_deband::flash3kyuu_deband(PClip child, int range, unsigned short Y, unsigned short Cb, unsigned short Cr, 
 		int ditherY, int ditherC, int sample_mode, int seed,
 		bool blur_first, bool diff_seed_for_each_frame, int opt, bool mt, int precision_mode) :
 			GenericVideoFilter(child),
@@ -288,7 +288,7 @@ void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned
 	dst_width = dst->GetRowSize(plane);
 	dst_height = dst->GetHeight(plane);
 
-	unsigned char threshold;
+	unsigned short threshold;
 	pixel_dither_info* info_ptr_base;
 	int info_stride;
 	process_plane_context* context;

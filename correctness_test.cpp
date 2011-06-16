@@ -4,7 +4,7 @@
 
 
 template<int sample_mode, bool blur_first, int precision_mode, int target_impl>
-void __cdecl process_plane_correctness_test(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned char threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
+void __cdecl process_plane_correctness_test(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned short threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
 {
 	printf("\r" __FUNCTION__ ", s_mode=%d, blur=%d, precision=%d, target_impl=%d \n", 
 		sample_mode, blur_first, precision_mode, target_impl);
