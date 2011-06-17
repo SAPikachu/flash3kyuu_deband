@@ -53,7 +53,7 @@ namespace dither_high
 	}
 
 	template <int precision_mode>
-	static __inline __m128i dither(void* context, __m128i pixels, int row, int column)
+	static __forceinline __m128i dither(void* context, __m128i pixels, int row, int column)
 	{
 		switch (precision_mode)
 		{

@@ -49,14 +49,14 @@ namespace pixel_proc_high_f_s_dithering {
 		}
 	}
 
-	static inline void next_pixel(void* context)
+	static __forceinline void next_pixel(void* context)
 	{
 		context_t* ctx = (context_t*)context;
 		ctx->current_px_error++;
 		ctx->processed_pixels_in_current_line++;
 	}
 
-	static inline void next_row(void* context)
+	static __forceinline void next_row(void* context)
 	{
 		context_t* ctx = (context_t*)context;
 		ctx->row_pitch = -ctx->row_pitch;
@@ -66,7 +66,7 @@ namespace pixel_proc_high_f_s_dithering {
 		ctx->processed_pixels_in_current_line = 0;
 	}
 
-	static inline int dither(void* context, int pixel, int row, int column)
+	static __forceinline int dither(void* context, int pixel, int row, int column)
 	{
 		context_t* ctx = (context_t*)context;
 		if (ctx->processed_pixels_in_current_line >= ctx->frame_width)
