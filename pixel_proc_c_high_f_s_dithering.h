@@ -14,6 +14,8 @@ namespace pixel_proc_high_f_s_dithering {
 		bool buffer_needs_dealloc;
 		ERROR_TYPE* current_px_error;
 		int row_pitch;
+		int frame_width;
+		int processed_pixels_in_current_line;
 	} context_t;
 
 	static inline void init_context(char context_buffer[CONTEXT_BUFFER_SIZE], int frame_width)
@@ -34,6 +36,7 @@ namespace pixel_proc_high_f_s_dithering {
 		memset(ctx->error_buffer, 0, size_needed);
 		ctx->current_px_error = ctx->error_buffer + 1;
 		ctx->row_pitch = frame_width + 2;
+		ctx->frame_width = frame_width;
 	}
 
 	static inline void destroy_context(void* context)
@@ -50,6 +53,7 @@ namespace pixel_proc_high_f_s_dithering {
 	{
 		context_t* ctx = (context_t*)context;
 		ctx->current_px_error++;
+		ctx->processed_pixels_in_current_line++;
 	}
 
 	static inline void next_row(void* context)
@@ -59,11 +63,17 @@ namespace pixel_proc_high_f_s_dithering {
 		ctx->current_px_error = ctx->error_buffer + (ctx->row_pitch >> 31) * ctx->row_pitch;
 		memset(ctx->current_px_error + ctx->row_pitch, 0, abs(ctx->row_pitch) * sizeof(ERROR_TYPE));
 		ctx->current_px_error++;
+		ctx->processed_pixels_in_current_line = 0;
 	}
 
 	static inline int dither(void* context, int pixel, int row, int column)
 	{
 		context_t* ctx = (context_t*)context;
+		if (ctx->processed_pixels_in_current_line >= ctx->frame_width)
+		{
+			// outside plane, can occur in SSE code
+			return pixel;
+		}
 		pixel += *(ctx->current_px_error);
 		int new_error = pixel & ( ( 1 << (BIT_DEPTH - 8) ) - 1 );
 		*(ctx->current_px_error + 1) += (new_error * 7) >> 4;

@@ -63,13 +63,18 @@ namespace dither_high
 		case PRECISION_HIGH_ORDERED_DITHERING:
 			return _mm_adds_epu16(pixels, _ordered_dithering_threshold_map[row % 4]);
 		case PRECISION_HIGH_FLOYD_STEINBERG_DITHERING:
+			// due to an unknown ICC bug, access pixels using union will give us incorrect results
+			// so we have to use a buffer here
+			// tested on ICC 12.0.1024.2010
+			__declspec (align(16))
+			unsigned short buffer[8];
+			_mm_store_si128((__m128i*)buffer, pixels);
 			for (int i = 0; i < 8; i++)
 			{
-				pixels.m128i_u16[i] = 
-					(unsigned short)pixel_proc_high_f_s_dithering::dither(context, pixels.m128i_u16[i], row, column + i);
+				buffer[i] = (unsigned short)pixel_proc_high_f_s_dithering::dither(context, buffer[i], row, column + i);
 				pixel_proc_high_f_s_dithering::next_pixel(context);
 			}
-			return pixels;
+			return _mm_load_si128((__m128i*)buffer);
 		default:
 			abort();
 			return _mm_setzero_si128();

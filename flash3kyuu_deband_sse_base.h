@@ -247,7 +247,7 @@ static __m128i __inline process_pixels_mode12(__m128i src_pixels, __m128i thresh
 	return dst_pixels;
 }
 
-static __inline __m128i generate_blend_mask_high(__m128i a, __m128i b, __m128i threshold)
+static __forceinline __m128i generate_blend_mask_high(__m128i a, __m128i b, __m128i threshold)
 {
 	__m128i diff1 = _mm_subs_epu16(a, b);
 	__m128i diff2 = _mm_subs_epu16(b, a);
@@ -265,7 +265,7 @@ static __inline __m128i generate_blend_mask_high(__m128i a, __m128i b, __m128i t
 	return _mm_cmpgt_epi16(converted_threshold, converted_diff);
 }
 
-static __m128i __inline upsample_pixels(__m128i pixels)
+static __m128i __forceinline upsample_pixels(__m128i pixels)
 {
 	return _mm_slli_epi16(pixels, 6);
 }
