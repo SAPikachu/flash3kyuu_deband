@@ -1,8 +1,10 @@
 
 
 namespace pixel_proc_high_ordered_dithering {
-
+	
 	static const int BIT_DEPTH = 14;
+
+	static const int THRESHOLD_MAP_SHIFT_BITS = (BIT_DEPTH - 12);
 
 
 	// from https://secure.wikimedia.org/wikipedia/en/wiki/Ordered_dithering
@@ -37,7 +39,7 @@ namespace pixel_proc_high_ordered_dithering {
 
 	static inline int dither(void* context, int pixel, int row, int column)
 	{
-		pixel += (THRESHOLD_MAP[row & 3][column & 3] << (BIT_DEPTH - 12) );
+		pixel += (THRESHOLD_MAP[row & 3][column & 3] << THRESHOLD_MAP_SHIFT_BITS );
 		return pixel;
 	}
 

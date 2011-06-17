@@ -23,7 +23,7 @@ namespace dither_high
 					
 				threhold_row = _mm_unpacklo_epi8(threhold_row, zero);
 				threhold_row = _mm_unpacklo_epi64(threhold_row, threhold_row);
-				threhold_row = _mm_slli_epi16(threhold_row, 6);
+				threhold_row = _mm_slli_epi16(threhold_row, pixel_proc_high_ordered_dithering::THRESHOLD_MAP_SHIFT_BITS);
 
 				_mm_store_si128(_ordered_dithering_threshold_map + i, threhold_row);
 			}
@@ -61,7 +61,7 @@ namespace dither_high
 		case PRECISION_HIGH_NO_DITHERING:
 			return pixels;
 		case PRECISION_HIGH_ORDERED_DITHERING:
-			return _mm_add_epi16(pixels, _ordered_dithering_threshold_map[row % 4]);
+			return _mm_adds_epu16(pixels, _ordered_dithering_threshold_map[row % 4]);
 		case PRECISION_HIGH_FLOYD_STEINBERG_DITHERING:
 			for (int i = 0; i < 8; i++)
 			{
