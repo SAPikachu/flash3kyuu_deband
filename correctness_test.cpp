@@ -58,11 +58,11 @@ void __cdecl process_plane_correctness_test(unsigned char const*srcp, int const 
 		
 		if (ref_file) 
 		{
-			fwrite(ref_start, 1, dst_pitch, ref_file);
+			fwrite(ref_start, 1, src_width, ref_file);
 		}
 		if (test_file)
 		{
-			fwrite(test_start, 1, dst_pitch, test_file);
+			fwrite(test_start, 1, src_width, test_file);
 		}
 
 		if (memcmp(ref_start, test_start, src_width) != 0) {
@@ -83,11 +83,11 @@ void __cdecl process_plane_correctness_test(unsigned char const*srcp, int const 
 		
 		if (ref_file) 
 		{
-			fwrite(ref_start, 1, dst_pitch, ref_file);
+			fwrite(ref_start, 1, src_width, ref_file);
 		}
 		if (test_file)
 		{
-			fwrite(test_start, 1, dst_pitch, test_file);
+			fwrite(test_start, 1, src_width, test_file);
 		}
 
 		if (memcmp(ref_start, test_start, src_width) != 0) {
