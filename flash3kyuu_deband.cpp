@@ -51,6 +51,19 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 	int ditherY = args[5].AsInt(default_val);
 	int ditherC = args[6].AsInt(default_val);
 
+	if (sample_mode == 0)
+	{
+		if (precision_mode != PRECISION_LOW)
+		{
+			env->ThrowError("flash3kyuu_deband: sample_mode = 0 is valid only when precision_mode = 0.");
+		}
+
+		if (!blur_first)
+		{
+			env->ThrowError("flash3kyuu_deband: When sample_mode = 0, setting blur_first has no effect.");
+		}
+	}
+
 #define CHECK_PARAM(value, lower_bound, upper_bound) \
 	check_parameter_range(value, lower_bound, upper_bound, #value, env);
 
@@ -67,19 +80,6 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 	CHECK_PARAM(opt, -1, (IMPL_COUNT - 1) );
 	CHECK_PARAM(precision_mode, 0, (PRECISION_COUNT - 1) );
 	
-	if (sample_mode == 0)
-	{
-		if (precision_mode != PRECISION_LOW)
-		{
-			env->ThrowError("flash3kyuu_deband: sample_mode = 0 is valid only when precision_mode = 0.");
-		}
-
-		if (!blur_first)
-		{
-			env->ThrowError("flash3kyuu_deband: When sample_mode = 0, setting blur_first has no effect.");
-		}
-	}
-
 	return new flash3kyuu_deband(child, range, 
 		(unsigned short)Y, (unsigned short)Cb, (unsigned short)Cr, 
 		ditherY, ditherC, sample_mode, seed, 
