@@ -271,7 +271,7 @@ static __m128i __inline upsample_pixels(__m128i pixels)
 }
 
 template<int sample_mode, bool blur_first>
-static __m128i __inline process_pixels_mode12_high_part(__m128i src_pixels, __m128i threshold_vector, __m128i change, __m128i& ref_pixels_1, __m128i& ref_pixels_2, __m128i& ref_pixels_3, __m128i& ref_pixels_4)
+static __m128i __forceinline process_pixels_mode12_high_part(__m128i src_pixels, __m128i threshold_vector, __m128i change, __m128i& ref_pixels_1, __m128i& ref_pixels_2, __m128i& ref_pixels_3, __m128i& ref_pixels_4)
 {	
 	__m128i src_pixels_part = upsample_pixels(src_pixels);
 	
