@@ -67,7 +67,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 	CHECK_PARAM(opt, -1, (IMPL_COUNT - 1) );
 	CHECK_PARAM(precision_mode, 0, (PRECISION_COUNT - 1) );
 	
-	if (sample_mode == 0 && precision_mode != PRECISION_LOW)
+	if (sample_mode == 0)
 	{
 		if (precision_mode != PRECISION_LOW)
 		{
