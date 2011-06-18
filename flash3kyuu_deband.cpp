@@ -48,8 +48,8 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 	int Y = args[2].AsInt(default_val);
 	int Cb = args[3].AsInt(default_val);
 	int Cr = args[4].AsInt(default_val);
-	int ditherY = args[5].AsInt(default_val);
-	int ditherC = args[6].AsInt(default_val);
+	int ditherY = args[5].AsInt(sample_mode == 0 ? 0 : default_val);
+	int ditherC = args[6].AsInt(sample_mode == 0 ? 0 : default_val);
 
 	if (sample_mode == 0)
 	{
@@ -57,10 +57,20 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 		{
 			env->ThrowError("flash3kyuu_deband: sample_mode = 0 is valid only when precision_mode = 0.");
 		}
-
+		
 		if (!blur_first)
 		{
 			env->ThrowError("flash3kyuu_deband: When sample_mode = 0, setting blur_first has no effect.");
+		}
+
+		if (ditherY != 0)
+		{
+			env->ThrowError("flash3kyuu_deband: When sample_mode = 0, setting ditherY has no effect.");
+		}
+
+		if (ditherC != 0)
+		{
+			env->ThrowError("flash3kyuu_deband: When sample_mode = 0, setting ditherC has no effect.");
 		}
 	}
 
