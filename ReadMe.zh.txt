@@ -58,7 +58,9 @@ precision_mode
 	2: 高精度模式, Ordered dithering
 	3: 高精度模式, Floyd-Steinberg dithering
 	
-	注意：要达到同等强度，高精度模式的阈值及dither设置值为低精度模式下的64倍。
-	注意 #2：该参数仅在sample_mode > 0时有效，sample_mode = 0时precision_mode总是为0。
+	说明：
+	#1 该参数仅在sample_mode > 0时有效，sample_mode = 0时设置该参数会出错。
+	#2 不推荐模式0（除非sample_mode为0），需要高速处理的话建议使用模式1或2，否则建议质量较好的模式3。
+	#3 要达到同等强度，高精度模式的阈值及dither设置值为低精度模式下的64倍。
 	
-	默认值: 3
+	默认值: 0 (sample_mode = 0) / 3 (sample_mode > 0)

@@ -1,20 +1,29 @@
+1.1.0 (2011-06-18)
+ * Fixed a bug that high threshold values would produce incorrect result in
+   high precision modes.
+ * Threshold values was scaled based on other parameter in previous versions, 
+   it is unscaled now to increase flexibility. Using same value has weaker 
+   effect in new version. Effect of default parameter set is also changed. 
+ * SSE optimization for high precision mode.
+ * Rejects some invalid parameter combination instead of silently skips them
+
 1.0.2 (2011-06-06)
-	High precision mode 
-		(currently non-optimized, SSE routine will be added later)
-	Frame edges are properly processed now
-	Fix crash in some cases (unaligned frames are handled correctly)
-	Other bug fixes
+ * High precision mode 
+ *  * (currently non-optimized, SSE routine will be added later)
+ * Frame edges are properly processed now
+ * Fix crash in some cases (unaligned frames are handled correctly)
+ * Other bug fixes
 
 1.0.1 (2011-05-27)
-	Multi-threaded processing
-	Skip planes which threshold is 0
-	
+ * Multi-threaded processing
+ * Skip planes which threshold is 0
+ * 
 1.0.0 (2011-05-21)
-	Lots of bug fix
-	SSE optimization, massive speed up
+ * Lots of bug fix
+ * SSE optimization, massive speed up
 
 0.9.1 (2011-05-05)
-	Fix: Incorrect results when blur_first=true
+ * Fix: Incorrect results when blur_first=true
 
 0.9 (2011-05-04)
-	Initial release
+ * Initial release

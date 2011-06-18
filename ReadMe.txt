@@ -72,10 +72,9 @@ diff_seed
 	
 opt
 	Specifies optimization mode. 
-	(Currently only effective when precision_mode = 0)
 	
 	-1: Use highest optimization mode that is supported by host CPU
-	0: No optimization (plain C, all CPU should be supported)
+	0: No optimization (should be supported by almost all CPUs)
 	1: SSE2 (Pentium 4, AMD K8)
 	2: SSSE3 (Core 2)
 	3: SSE4.1 (Core 2 45nm)
@@ -96,10 +95,16 @@ precision_mode
 	2: High precision, Ordered dithering
 	3: High precision, Floyd-Steinberg dithering
 	
-	Note: In high precision mode, threshold and dither parameters are 64 times
-	      bigger than equivalent in low precision mode.
-	      
-	Note #2: Only effective when sample_mode > 0. When sample_mode = 0, 
-	         precision_mode is always 0.
+	Note: 
+	1. In sample mode 0, only mode 0 is available (it doesn't make sense to use
+	   high precision mode). Setting this to other values will cause an error.
 	
-	Default: 3
+	2. It is not recommended to use mode 0 anymore (except that you want to use
+	   sample mode 0). Use mode 1/2 for speed, or mode 3 for quality.
+	   
+	3. In high precision mode, threshold and dither parameters are 64 times
+	   bigger than equivalent in low precision mode.
+	   	      
+	
+	Default: 0 (sample_mode = 0) /
+	         3 (sample_mode > 0)
