@@ -1,5 +1,8 @@
 #include "stdafx.h"
 
+// we intend the C version to be usable on most CPUs
+#define NO_SSE
+
 #include "flash3kyuu_deband.h"
 
 #include "pixel_proc_c.h"

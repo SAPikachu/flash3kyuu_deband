@@ -22,7 +22,16 @@ namespace pixel_proc_high_f_s_dithering {
 	{
 		context_t* ctx = (context_t*)context_buffer;
 		int ctx_size = sizeof(context_t);
+#if defined(NO_SSE) && defined(__INTEL_COMPILER)
+		#pragma novector
+		for (int i = 0; i < ctx_size; i++)
+		{
+			*( ( (unsigned char*)ctx ) + i ) = 0;
+		}
+#else
+		// ICC will generate SSE code here
 		memset(ctx, 0, ctx_size);
+#endif
 
 		// additional 2 bytes are placed at the beginning and the end
 		int size_needed = (frame_width + 2) * 2 * sizeof(ERROR_TYPE);
