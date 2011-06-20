@@ -76,15 +76,16 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 
 #define CHECK_PARAM(value, lower_bound, upper_bound) \
 	check_parameter_range(value, lower_bound, upper_bound, #value, env);
-
-	int upper_limit = default_val * 8 - 1;
+	
+	int threshold_upper_limit = default_val * 8 - 1;
+	int dither_upper_limit = (precision_mode == PRECISION_LOW || sample_mode == 0) ? 3 : 127;
 
 	CHECK_PARAM(range, 0, 31);
-	CHECK_PARAM(Y, 0, upper_limit);
-	CHECK_PARAM(Cb, 0, upper_limit);
-	CHECK_PARAM(Cr, 0, upper_limit);
-	CHECK_PARAM(ditherY, 0, upper_limit);
-	CHECK_PARAM(ditherC, 0, upper_limit);
+	CHECK_PARAM(Y, 0, threshold_upper_limit);
+	CHECK_PARAM(Cb, 0, threshold_upper_limit);
+	CHECK_PARAM(Cr, 0, threshold_upper_limit);
+	CHECK_PARAM(ditherY, 0, dither_upper_limit);
+	CHECK_PARAM(ditherC, 0, dither_upper_limit);
 	CHECK_PARAM(sample_mode, 0, 2);
 	CHECK_PARAM(seed, 0, 127);
 	CHECK_PARAM(opt, -1, (IMPL_COUNT - 1) );
