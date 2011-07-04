@@ -434,9 +434,11 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 
 	dither_high::init<precision_mode>(context_buffer, params.src_width);
 
+	info_cache *cache = NULL;
+
 	// initialize storage for pre-calculated pixel offsets
 	if (context->data) {
-		info_cache* cache = (info_cache*) context->data;
+		cache = (info_cache*) context->data;
 		// we need to ensure src_pitch is the same, otherwise offsets will be completely wrong
 		// also, if pitch changes, don't waste time to update the cache since it is likely to change again
 		if (cache->pitch == params.src_pitch) {
@@ -445,12 +447,10 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 		}
 	} else {
 		// set up buffer for cache
-		info_cache* cache = (info_cache*)malloc(sizeof(info_cache));
+		cache = (info_cache*)malloc(sizeof(info_cache));
 		info_data_stream = (char*)_aligned_malloc(params.info_stride * (4 * 2 + 1) * params.src_height, FRAME_LUT_ALIGNMENT);
 		cache->data_stream = info_data_stream;
 		cache->pitch = params.src_pitch;
-		context->destroy = destroy_cache;
-		context->data = cache;
 	}
 
 	for (int row = 0; row < params.src_height; row++)
@@ -565,6 +565,17 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 	}
 	
 	dither_high::complete<precision_mode>(context_buffer);
+
+	// for thread-safety, save context after all data is processed
+	if (!use_cached_info && !context->data && cache)
+	{
+		context->destroy = destroy_cache;
+		if (InterlockedCompareExchangePointer(&context->data, cache, NULL) != NULL)
+		{
+			// other thread has completed first, so we can destroy our copy
+			destroy_cache(cache);
+		}
+	}
 }
 
 
