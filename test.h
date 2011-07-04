@@ -5,9 +5,11 @@
 
 #include "intrin.h"
 
+#include "asmlib.h"
+
 #define GUARD_CONST 0xDEADBEEF
 
-#define READ_TSC(ret_var) do { __asm {cpuid}; ret_var = __rdtsc(); __asm {cpuid}; } while(0)
+#define READ_TSC(ret_var) do { ret_var = ReadTSC(); } while(0)
 
 static unsigned char * create_guarded_buffer(int const height, int const pitch, unsigned char * &data_start)
 {
