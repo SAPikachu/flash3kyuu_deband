@@ -39,25 +39,25 @@ static inline bool is_above_threshold(int threshold, int diff1, int diff2, int d
 		   _is_above_threshold(threshold, diff4);
 }
 
-static __forceinline void __cdecl process_plane_plainc_mode0(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned short threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context*)
+static __forceinline void __cdecl process_plane_plainc_mode0(const process_plane_params& params, process_plane_context*)
 {
 	pixel_dither_info* info_ptr;
 
-	for (int i = 0; i < src_height; i++)
+	for (int i = 0; i < params.src_height; i++)
 	{
-		const unsigned char* src_px = srcp + src_pitch * i;
-		unsigned char* dst_px = dstp + dst_pitch * i;
+		const unsigned char* src_px = params.src_plane_ptr + params.src_pitch * i;
+		unsigned char* dst_px = params.dst_plane_ptr + params.dst_pitch * i;
 
-		info_ptr = info_ptr_base + info_stride * i;
+		info_ptr = params.info_ptr_base + params.info_stride * i;
 
-		for (int j = 0; j < src_width; j++)
+		for (int j = 0; j < params.src_width; j++)
 		{
 			pixel_dither_info info = *info_ptr;
-			assert(abs(info.ref1) <= i && abs(info.ref1) + i < src_height);
+			assert(abs(info.ref1) <= i && abs(info.ref1) + i < params.src_height);
 
-			int ref_pos = info.ref1 * src_pitch;
+			int ref_pos = info.ref1 * params.src_pitch;
 			int diff = *src_px - src_px[ref_pos];
-			if (is_above_threshold(threshold, diff)) {
+			if (is_above_threshold(params.threshold, diff)) {
 				*dst_px = *src_px;
 			} else {
 				*dst_px = src_px[ref_pos];
@@ -71,51 +71,51 @@ static __forceinline void __cdecl process_plane_plainc_mode0(unsigned char const
 }
 
 template <int sample_mode, bool blur_first, int mode>
-static __forceinline void __cdecl process_plane_plainc_mode12(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned short threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context*)
+static __forceinline void __cdecl process_plane_plainc_mode12(const process_plane_params& params, process_plane_context*)
 {
 	pixel_dither_info* info_ptr;
 	char context[CONTEXT_BUFFER_SIZE];
-	pixel_proc_init_context<mode>(context, src_width);
+	pixel_proc_init_context<mode>(context, params.src_width);
 
-	for (int i = 0; i < src_height; i++)
+	for (int i = 0; i < params.src_height; i++)
 	{
-		const unsigned char* src_px = srcp + src_pitch * i;
-		unsigned char* dst_px = dstp + dst_pitch * i;
+		const unsigned char* src_px = params.src_plane_ptr + params.src_pitch * i;
+		unsigned char* dst_px = params.dst_plane_ptr + params.dst_pitch * i;
 
-		info_ptr = info_ptr_base + info_stride * i;
+		info_ptr = params.info_ptr_base + params.info_stride * i;
 
-		for (int j = 0; j < src_width; j++)
+		for (int j = 0; j < params.src_width; j++)
 		{
 			pixel_dither_info info = *info_ptr;
 			int src_px_up = pixel_proc_upsample<mode>(context, *src_px);
 
-			assert(abs(info.ref1) <= i && abs(info.ref1) + i < src_height);
+			assert(abs(info.ref1) <= i && abs(info.ref1) + i < params.src_height);
 
 			int avg;
 			bool use_org_px_as_base;
 			int ref_pos, ref_pos_2;
 			if (sample_mode == 1)
 			{
-				ref_pos = info.ref1 * src_pitch;
+				ref_pos = info.ref1 * params.src_pitch;
 				int ref_1_up = pixel_proc_upsample<mode>(context, src_px[ref_pos]);
 				int ref_2_up = pixel_proc_upsample<mode>(context, src_px[-ref_pos]);
 				avg = pixel_proc_avg_2<mode>(context, ref_1_up, ref_2_up);
 				if (blur_first)
 				{
 					int diff = avg - src_px_up;
-					use_org_px_as_base = is_above_threshold(threshold, diff);
+					use_org_px_as_base = is_above_threshold(params.threshold, diff);
 				} else {
 					int diff = src_px_up - ref_1_up;
 					int diff_n = src_px_up - ref_2_up;
-					use_org_px_as_base = is_above_threshold(threshold, diff, diff_n);
+					use_org_px_as_base = is_above_threshold(params.threshold, diff, diff_n);
 				}
 			} else {
-				assert(abs(info.ref1) <= j && abs(info.ref1) + j < src_width);
-				assert(abs(info.ref2) <= i && abs(info.ref2) + i < src_height);
-				assert(abs(info.ref2) <= j && abs(info.ref2) + j < src_width);
+				assert(abs(info.ref1) <= j && abs(info.ref1) + j < params.src_width);
+				assert(abs(info.ref2) <= i && abs(info.ref2) + i < params.src_height);
+				assert(abs(info.ref2) <= j && abs(info.ref2) + j < params.src_width);
 
-				ref_pos = src_pitch * info.ref2 + info.ref1;
-				ref_pos_2 = info.ref2 - src_pitch * info.ref1;
+				ref_pos = params.src_pitch * info.ref2 + info.ref1;
+				ref_pos_2 = info.ref2 - params.src_pitch * info.ref1;
 
 				int ref_1_up = pixel_proc_upsample<mode>(context, src_px[ref_pos]);
 				int ref_2_up = pixel_proc_upsample<mode>(context, src_px[ref_pos_2]);
@@ -127,13 +127,13 @@ static __forceinline void __cdecl process_plane_plainc_mode12(unsigned char cons
 				if (blur_first)
 				{
 					int diff = avg - src_px_up;
-					use_org_px_as_base = is_above_threshold(threshold, diff);
+					use_org_px_as_base = is_above_threshold(params.threshold, diff);
 				} else {
 					int diff1 = ref_1_up - src_px_up;
-					int diff2 = ref_3_up - src_px_up;
-					int diff3 = ref_2_up - src_px_up;
+					int diff2 = ref_2_up - src_px_up;
+					int diff3 = ref_3_up - src_px_up;
 					int diff4 = ref_4_up - src_px_up;
-					use_org_px_as_base = is_above_threshold(threshold, diff1, diff2, diff3, diff4);
+					use_org_px_as_base = is_above_threshold(params.threshold, diff1, diff2, diff3, diff4);
 				}
 			}
 			int new_pixel;
@@ -156,13 +156,13 @@ static __forceinline void __cdecl process_plane_plainc_mode12(unsigned char cons
 }
 
 template <int sample_mode, bool blur_first, int mode>
-void __cdecl process_plane_plainc(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned short threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
+void __cdecl process_plane_plainc(const process_plane_params& params, process_plane_context* context)
 {
 	if (sample_mode == 0) 
 	{
-		process_plane_plainc_mode0(srcp, src_width, src_height, src_pitch, dstp, dst_pitch, threshold, info_ptr_base, info_stride, range, context);
+		process_plane_plainc_mode0(params, context);
 	} else {
-		process_plane_plainc_mode12<sample_mode, blur_first, mode>(srcp, src_width, src_height, src_pitch, dstp, dst_pitch, threshold, info_ptr_base, info_stride, range, context);
+		process_plane_plainc_mode12<sample_mode, blur_first, mode>(params, context);
 	}
 
 }

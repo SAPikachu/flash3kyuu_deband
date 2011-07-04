@@ -5,9 +5,6 @@
 
 #include "intrin.h"
 
-
-#define DELEGATE_IMPL_CALL(impl, dest_buffer, context) impl(srcp, src_width, src_height, src_pitch, dest_buffer, dst_pitch, threshold, info_ptr_base, info_stride, range, context)
-
 #define GUARD_CONST 0xDEADBEEF
 
 #define READ_TSC(ret_var) do { __asm {cpuid}; ret_var = __rdtsc(); __asm {cpuid}; } while(0)

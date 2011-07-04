@@ -50,7 +50,23 @@ typedef __declspec(align(4)) struct _pixel_dither_info {
 // whole multiples of alignment, so SSE codes don't need to check boundaries
 #define FRAME_LUT_STRIDE(width) (((width - 1) | (FRAME_LUT_ALIGNMENT - 1)) + 1)
 
-typedef void (__cdecl *process_plane_impl_t)(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned short threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context);
+typedef struct _process_plane_params
+{
+	const unsigned char *src_plane_ptr;
+	int src_width;
+	int src_height;
+	int src_pitch;
+
+	unsigned char *dst_plane_ptr;
+	int dst_pitch;
+
+	unsigned short threshold;
+	pixel_dither_info *info_ptr_base;
+	int info_stride;
+	int range;
+} process_plane_params;
+
+typedef void (__cdecl *process_plane_impl_t)(const process_plane_params& params, process_plane_context* context);
 
 class flash3kyuu_deband : public GenericVideoFilter {
 private:

@@ -16,7 +16,7 @@ T avg(T (&elems)[element_count])
 }
 
 template<int sample_mode, bool blur_first>
-void __cdecl process_plane_benchmark(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned short threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
+void __cdecl process_plane_benchmark(const process_plane_params& params, process_plane_context* context)
 {
 	HANDLE process_handle = GetCurrentProcess();
 	HANDLE thread_handle = GetCurrentThread();
@@ -32,8 +32,8 @@ void __cdecl process_plane_benchmark(unsigned char const*srcp, int const src_wid
 	printf(__FUNCTION__ ", sample_mode=%d, blur_first=%d\n", sample_mode, blur_first);
 	printf("-----------------------------------\n");
 
-	int total_bytes = src_width * src_height;
-	printf("Width: %d, Height: %d, Total: %d bytes\n", src_width, src_height, total_bytes);
+	int total_bytes = params.src_width * params.src_height;
+	printf("Width: %d, Height: %d, Total: %d bytes\n", params.src_width, params.src_height, total_bytes);
 
 	process_plane_impl_t c_impl = process_plane_impls[PRECISION_LOW][IMPL_C][select_impl_index(sample_mode, blur_first)];
 	process_plane_impl_t sse_impl = process_plane_impls[PRECISION_LOW][IMPL_SSE4][select_impl_index(sample_mode, blur_first)];
@@ -43,7 +43,7 @@ void __cdecl process_plane_benchmark(unsigned char const*srcp, int const src_wid
 	double cycles_per_byte;
 
 #define TIMED_RUN(impl) do { READ_TSC(tsc_before); \
-							 DELEGATE_IMPL_CALL(impl, dstp, context); \
+							 impl(params, context); \
 							 READ_TSC(tsc_after); \
 							 cycles_elapsed = tsc_after - tsc_before; \
 							 cycles_per_byte = (double)cycles_elapsed / total_bytes; \

@@ -290,56 +290,50 @@ void flash3kyuu_deband::init(void)
 
 void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane, IScriptEnvironment* env)
 {
-	const unsigned char* srcp = src->GetReadPtr(plane);
-	const int src_pitch = src->GetPitch(plane);
-	const int src_width = src->GetRowSize(plane);
-	const int src_height = src->GetHeight(plane);
+	process_plane_params params;
 
-	int dst_pitch;
-	int dst_width;
-	int dst_height;
+	params.src_plane_ptr = src->GetReadPtr(plane);
+	params.src_pitch = src->GetPitch(plane);
+	params.src_width = src->GetRowSize(plane);
+	params.src_height = src->GetHeight(plane);
 
-	dst_pitch = dst->GetPitch(plane);
-	dst_width = dst->GetRowSize(plane);
-	dst_height = dst->GetHeight(plane);
+	params.dst_plane_ptr = dstp;
+	params.dst_pitch = dst->GetPitch(plane);
 
-	unsigned short threshold;
-	pixel_dither_info* info_ptr_base;
-	int info_stride;
 	process_plane_context* context;
 
 	switch (plane & 7)
 	{
 	case PLANAR_Y:
-		info_ptr_base = _y_info;
-		info_stride = FRAME_LUT_STRIDE(vi.width);
-		threshold = _Y;
+		params.info_ptr_base = _y_info;
+		params.info_stride = FRAME_LUT_STRIDE(vi.width);
+		params.threshold = _Y;
 		context = &_y_context;
 		break;
 	case PLANAR_U:
-		info_ptr_base = _cb_info;
-		info_stride = FRAME_LUT_STRIDE(vi.width / 2);
-		threshold = _Cb;
+		params.info_ptr_base = _cb_info;
+		params.info_stride = FRAME_LUT_STRIDE(vi.width / 2);
+		params.threshold = _Cb;
 		context = &_cb_context;
 		break;
 	case PLANAR_V:
-		info_ptr_base = _cr_info;
-		info_stride = FRAME_LUT_STRIDE(vi.width / 2);
-		threshold = _Cr;
+		params.info_ptr_base = _cr_info;
+		params.info_stride = FRAME_LUT_STRIDE(vi.width / 2);
+		params.threshold = _Cr;
 		context = &_cr_context;
 		break;
 	default:
 		abort();
 	}
 
-	if (threshold == 0) {
+	if (params.threshold == 0) {
 		// no need to process
-        env->BitBlt(dstp, dst_pitch, srcp, src_pitch, src_width, src_height);
+        env->BitBlt(params.dst_plane_ptr, params.dst_pitch, params.src_plane_ptr, params.src_pitch, params.src_width, params.src_height);
 		return;
 	}
 
-	int range = (plane == PLANAR_Y ? _range : _range >> 1);
-	_process_plane_impl(srcp, src_width, src_height, src_pitch, dstp, dst_pitch, threshold, info_ptr_base, info_stride, range, context);
+	params.range = (plane == PLANAR_Y ? _range : _range >> 1);
+	_process_plane_impl(params, context);
 }
 
 void flash3kyuu_deband::mt_proc(void)

@@ -395,16 +395,16 @@ static __m128i __forceinline process_pixels(__m128i src_pixels, __m128i threshol
 }
 
 template<int sample_mode, bool blur_first, int precision_mode, bool aligned>
-static void __cdecl _process_plane_sse_impl(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned short threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
+static void __cdecl _process_plane_sse_impl(const process_plane_params& params, process_plane_context* context)
 {
-	pixel_dither_info* info_ptr = info_ptr_base;
+	pixel_dither_info* info_ptr = params.info_ptr_base;
 
 	// used to compute 4 consecutive addresses
 	__m128i src_addr_offset_vector = _mm_set_epi32(3, 2, 1, 0);
 
 	__m128i src_addr_increment_vector = _mm_set1_epi32(4);
 
-	__m128i src_pitch_vector = _mm_set1_epi32(src_pitch);
+	__m128i src_pitch_vector = _mm_set1_epi32(params.src_pitch);
 	
 	__m128i change_extract_mask = _mm_set1_epi32(0x00FF0000);
 
@@ -414,9 +414,9 @@ static void __cdecl _process_plane_sse_impl(unsigned char const*srcp, int const 
 	
 	if (precision_mode == PRECISION_LOW || sample_mode == 0)
 	{
-		threshold_vector = _mm_set1_epi8((unsigned char)threshold);
+		threshold_vector = _mm_set1_epi8((unsigned char)params.threshold);
 	} else {
-		threshold_vector = _mm_set1_epi16(threshold);
+		threshold_vector = _mm_set1_epi16(params.threshold);
 	}
 
 	__m128i sign_convert_vector = _mm_set1_epi8(0x80u);
@@ -432,31 +432,31 @@ static void __cdecl _process_plane_sse_impl(unsigned char const*srcp, int const 
 
 	char context_buffer[DITHER_CONTEXT_BUFFER_SIZE];
 
-	dither_high::init<precision_mode>(context_buffer, src_width);
+	dither_high::init<precision_mode>(context_buffer, params.src_width);
 
 	// initialize storage for pre-calculated pixel offsets
 	if (context->data) {
 		info_cache* cache = (info_cache*) context->data;
 		// we need to ensure src_pitch is the same, otherwise offsets will be completely wrong
-		// also, if pitch changes, don't waste time to update the cache since it is LIKELY to change again
-		if (cache->pitch == src_pitch) {
+		// also, if pitch changes, don't waste time to update the cache since it is likely to change again
+		if (cache->pitch == params.src_pitch) {
 			info_data_stream = cache->data_stream;
 			use_cached_info = true;
 		}
 	} else {
 		// set up buffer for cache
 		info_cache* cache = (info_cache*)malloc(sizeof(info_cache));
-		info_data_stream = (char*)_aligned_malloc(info_stride * (4 * 2 + 1) * src_height, FRAME_LUT_ALIGNMENT);
+		info_data_stream = (char*)_aligned_malloc(params.info_stride * (4 * 2 + 1) * params.src_height, FRAME_LUT_ALIGNMENT);
 		cache->data_stream = info_data_stream;
-		cache->pitch = src_pitch;
+		cache->pitch = params.src_pitch;
 		context->destroy = destroy_cache;
 		context->data = cache;
 	}
 
-	for (int row = 0; row < src_height; row++)
+	for (int row = 0; row < params.src_height; row++)
 	{
-		const unsigned char* src_px = srcp + src_pitch * row;
-		unsigned char* dst_px = dstp + dst_pitch * row;
+		const unsigned char* src_px = params.src_plane_ptr + params.src_pitch * row;
+		unsigned char* dst_px = params.dst_plane_ptr + params.dst_pitch * row;
 
 		// info_ptr = info_ptr_base + info_stride * row;
 		// doesn't need here, since info_stride equals to count of pixels that are needed to process in each row
@@ -468,7 +468,7 @@ static void __cdecl _process_plane_sse_impl(unsigned char const*srcp, int const 
 		// add offset
 		src_addrs = _mm_add_epi32(src_addrs, src_addr_offset_vector);
 
-		while (processed_pixels < src_width)
+		while (processed_pixels < params.src_width)
 		{
 			__m128i change;
 
@@ -542,12 +542,12 @@ static void __cdecl _process_plane_sse_impl(unsigned char const*srcp, int const 
 			{
 				src_pixels = _mm_load_si128((__m128i*)src_px);
 			} else {
-				if (UNLIKELY(row == src_height - 1 && (src_pitch - processed_pixels) < 16))
+				if (UNLIKELY(row == params.src_height - 1 && (params.src_pitch - processed_pixels) < 16))
 				{
 					// prevent segfault
 					// doesn't need to initialize since garbage data won't cause error
 					__declspec(align(16)) unsigned char buffer[16];
-					memcpy(buffer, src_px, src_width - processed_pixels);
+					memcpy(buffer, src_px, params.src_width - processed_pixels);
 					src_pixels = _mm_load_si128((__m128i*)buffer);
 				} else {
 					src_pixels = _mm_loadu_si128((__m128i*)src_px);
@@ -569,12 +569,12 @@ static void __cdecl _process_plane_sse_impl(unsigned char const*srcp, int const 
 
 
 template<int sample_mode, bool blur_first, int precision_mode>
-static void __cdecl process_plane_sse_impl(unsigned char const*srcp, int const src_width, int const src_height, int const src_pitch, unsigned char *dstp, int dst_pitch, unsigned short threshold, pixel_dither_info *info_ptr_base, int info_stride, int range, process_plane_context* context)
+static void __cdecl process_plane_sse_impl(const process_plane_params& params, process_plane_context* context)
 {
-	if ( ( (int)srcp & (PLANE_ALIGNMENT - 1) ) == 0 && (src_pitch & (PLANE_ALIGNMENT - 1) ) == 0 )
+	if ( ( (int)params.src_plane_ptr & (PLANE_ALIGNMENT - 1) ) == 0 && (params.src_pitch & (PLANE_ALIGNMENT - 1) ) == 0 )
 	{
-		_process_plane_sse_impl<sample_mode, blur_first, precision_mode, true>(srcp, src_width, src_height, src_pitch, dstp, dst_pitch, threshold, info_ptr_base, info_stride, range, context);
+		_process_plane_sse_impl<sample_mode, blur_first, precision_mode, true>(params, context);
 	} else {
-		_process_plane_sse_impl<sample_mode, blur_first, precision_mode, false>(srcp, src_width, src_height, src_pitch, dstp, dst_pitch, threshold, info_ptr_base, info_stride, range, context);
+		_process_plane_sse_impl<sample_mode, blur_first, precision_mode, false>(params, context);
 	}
 }
