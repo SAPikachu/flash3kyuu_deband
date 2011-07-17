@@ -177,19 +177,34 @@ void flash3kyuu_deband::init_frame_luts(int n)
 
 	const VideoInfo& vi = GetVideoInfo();
 
-	int y_stride = FRAME_LUT_STRIDE(vi.width);
+	int y_stride;
+	if (vi.IsYV12())
+	{
+		y_stride = FRAME_LUT_STRIDE(vi.width);
+	} else if (vi.IsYUY2()) {
+		y_stride = FRAME_LUT_STRIDE(vi.width * 2);
+	} else {
+		abort();
+		return;
+	}
+
 	int y_size = sizeof(pixel_dither_info) * y_stride * vi.height;
 	_y_info = (pixel_dither_info*)_aligned_malloc(y_size, FRAME_LUT_ALIGNMENT);
 
-	int c_stride = FRAME_LUT_STRIDE(vi.width / 2);
-	int c_size = sizeof(pixel_dither_info) * c_stride * (vi.height / 2);
-	_cb_info = (pixel_dither_info*)_aligned_malloc(c_size, FRAME_LUT_ALIGNMENT);
-	_cr_info = (pixel_dither_info*)_aligned_malloc(c_size, FRAME_LUT_ALIGNMENT);
-
 	// ensure unused items are also initialized
 	memset(_y_info, 0, y_size);
-	memset(_cb_info, 0, c_size);
-	memset(_cr_info, 0, c_size);
+
+	int c_stride;
+	if (vi.IsYV12())
+	{
+		c_stride = FRAME_LUT_STRIDE(vi.width / 2);
+		int c_size = sizeof(pixel_dither_info) * c_stride * (vi.height / 2);
+		_cb_info = (pixel_dither_info*)_aligned_malloc(c_size, FRAME_LUT_ALIGNMENT);
+		_cr_info = (pixel_dither_info*)_aligned_malloc(c_size, FRAME_LUT_ALIGNMENT);
+
+		memset(_cb_info, 0, c_size);
+		memset(_cr_info, 0, c_size);
+	}
 
 	pixel_dither_info *y_info_ptr, *cb_info_ptr, *cr_info_ptr;
 	
@@ -223,22 +238,42 @@ void flash3kyuu_deband::init_frame_luts(int n)
 
 			*y_info_ptr = info_y;
 
-			if ((x & 1) == 0 && (y & 1) == 0) {
-				pixel_dither_info info_c = {0, 0, 0, 0};
-				// use absolute value to calulate correct ref, and restore sign
-				info_c.ref1 = (abs(info_y.ref1) >> 1) * (info_y.ref1 >> 7);
-				info_c.ref2 = (abs(info_y.ref2) >> 1) * (info_y.ref2 >> 7);
-				
-				info_c.change = (signed char)(rand_next(seed) % ditherC_limit - _ditherC);
-				*cb_info_ptr = info_c;
-				
-				info_c.change = (signed char)(rand_next(seed) % ditherC_limit - _ditherC);
-				*cr_info_ptr = info_c;
-				
-				cb_info_ptr++;
-				cr_info_ptr++;
+			bool should_set_c = false;
+			if (vi.IsYV12())
+			{
+				should_set_c = ((x & 1) == 0 && (y & 1) == 0);
+			} else if (vi.IsYUY2()) {
+				should_set_c = ((x & 1) == 0);
 			}
-			y_info_ptr++;
+
+			if (should_set_c) {
+				pixel_dither_info info_cb = {0, 0, 0, 0};
+				// use absolute value to calulate correct ref, and restore sign
+				info_cb.ref1 = (abs(info_y.ref1) >> 1) * (info_y.ref1 >> 7);
+				info_cb.ref2 = (abs(info_y.ref2) >> 1) * (info_y.ref2 >> 7);
+				
+				pixel_dither_info info_cr = info_cb;
+
+				info_cb.change = (signed char)(rand_next(seed) % ditherC_limit - _ditherC);
+				info_cr.change = (signed char)(rand_next(seed) % ditherC_limit - _ditherC);
+
+				if (vi.IsPlanar())
+				{
+					*cb_info_ptr = info_cb;
+					*cr_info_ptr = info_cr;
+					cb_info_ptr++;
+					cr_info_ptr++;
+				} else if (vi.IsYUY2()) {
+					*(y_info_ptr + 1) = info_cb;
+					*(y_info_ptr + 3) = info_cr;
+				}
+			}
+			if (vi.IsYUY2())
+			{
+				y_info_ptr += 2;
+			} else {
+				y_info_ptr++;
+			}
 		}
 	}
 }
@@ -292,6 +327,8 @@ void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned
 {
 	process_plane_params params;
 
+    memset(&params, 0, sizeof(process_plane_params));
+
 	params.src_plane_ptr = src->GetReadPtr(plane);
 	params.src_pitch = src->GetPitch(plane);
 	params.src_width = src->GetRowSize(plane);
@@ -299,6 +336,8 @@ void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned
 
 	params.dst_plane_ptr = dstp;
 	params.dst_pitch = dst->GetPitch(plane);
+
+	params.vi = &vi;
 
 	process_plane_context* context;
 
