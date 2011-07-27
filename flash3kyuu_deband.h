@@ -39,8 +39,8 @@ FLASH3KYUU_DEBAND_API const char* __stdcall AvisynthPluginInit2(IScriptEnvironme
 
 
 typedef __declspec(align(4)) struct _pixel_dither_info {
-	signed char ref1, ref2, change;
-	signed char unused;
+    signed char ref1, ref2, change;
+    signed char unused;
 } pixel_dither_info;
 
 // alignment for SSE operations
@@ -52,70 +52,71 @@ typedef __declspec(align(4)) struct _pixel_dither_info {
 
 typedef struct _process_plane_params
 {
-	const unsigned char *src_plane_ptr;
-	int src_width;
-	int src_height;
-	int src_pitch;
+    const unsigned char *src_plane_ptr;
+    int src_width;
+    int src_height;
+    int src_pitch;
 
-	unsigned char *dst_plane_ptr;
-	int dst_pitch;
+    unsigned char *dst_plane_ptr;
+    int dst_pitch;
 
-	unsigned short threshold;
-	pixel_dither_info *info_ptr_base;
-	int info_stride;
-	int range;
-
-	VideoInfo* vi;
+    unsigned short threshold;
+    pixel_dither_info *info_ptr_base;
+    int info_stride;
+    int range;
+    
+    unsigned short threshold_y, threshold_cb, threshold_cr;
+    VideoInfo* vi;
 } process_plane_params;
 
 typedef void (__cdecl *process_plane_impl_t)(const process_plane_params& params, process_plane_context* context);
 
 class flash3kyuu_deband : public GenericVideoFilter {
 private:
-	int _range; 
-	unsigned short _Y, _Cb, _Cr;
-	int _ditherY, _ditherC;
+    int _range; 
+    unsigned short _Y, _Cb, _Cr;
+    int _ditherY, _ditherC;
 
-	int _sample_mode;
-	int _seed;
+    int _sample_mode;
+    int _seed;
 
-	bool _blur_first;
-	bool _diff_seed_for_each_frame;
+    bool _blur_first;
+    bool _diff_seed_for_each_frame;
 
-	int _opt;
-	bool _mt;
+    int _opt;
+    bool _mt;
 
-	int _precision_mode;
+    int _precision_mode;
 
-	process_plane_impl_t _process_plane_impl;
+    process_plane_impl_t _process_plane_impl;
 
-	// used by test code
-	void* other_data;
-		
-	pixel_dither_info *_y_info;
-	pixel_dither_info *_cb_info;
-	pixel_dither_info *_cr_info;
-	
-	process_plane_context _y_context;
-	process_plane_context _cb_context;
-	process_plane_context _cr_context;
+    // used by test code
+    void* other_data;
+        
+    pixel_dither_info *_y_info;
+    pixel_dither_info *_cb_info;
+    pixel_dither_info *_cr_info;
+    
+    process_plane_context _y_context;
+    process_plane_context _cb_context;
+    process_plane_context _cr_context;
 
-	volatile mt_info* _mt_info;
+    volatile mt_info* _mt_info;
 
-	void init(void);
-	void init_frame_luts(int n);
+    void init(void);
+    void init_frame_luts(int n);
 
-	void destroy_frame_luts(void);
-	
-	void process_plane(PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane, IScriptEnvironment* env);
+    void destroy_frame_luts(void);
+    
+    void process_plane(PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane, IScriptEnvironment* env);
 
 
 public:
-	void mt_proc(void);
-	flash3kyuu_deband(PClip child, int range, unsigned short Y, unsigned short Cb, unsigned short Cr, 
-		int ditherY, int ditherC, int sample_mode, int seed,
-		bool blur_first, bool diff_seed_for_each_frame, int opt, bool mt, int precision_mode);
-	~flash3kyuu_deband();
+    void mt_proc(void);
+    flash3kyuu_deband(PClip child, int range, unsigned short Y, unsigned short Cb, unsigned short Cr, 
+        int ditherY, int ditherC, int sample_mode, int seed,
+        bool blur_first, bool diff_seed_for_each_frame, int opt, bool mt, int precision_mode);
+    ~flash3kyuu_deband();
 
-	PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);
+    PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);
 };

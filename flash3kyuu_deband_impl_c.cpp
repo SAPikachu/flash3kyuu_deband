@@ -78,6 +78,8 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
     char context_cb[CONTEXT_BUFFER_SIZE];
     char context_cr[CONTEXT_BUFFER_SIZE];
 
+    unsigned short threshold = params.threshold;
+
     if (!params.vi->IsYUY2())
     {
         pixel_proc_init_context<mode>(context_y, params.src_width);
@@ -105,12 +107,15 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
                 case 0:
                 case 2:
                     context = context_y;
+                    threshold = params.threshold_y;
                     break;
                 case 1:
                     context = context_cb;
+                    threshold = params.threshold_cb;
                     break;
                 case 3:
                     context = context_cr;
+                    threshold = params.threshold_cr;
                     break;
                 default:
                     abort();
@@ -133,11 +138,11 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
                 if (blur_first)
                 {
                     int diff = avg - src_px_up;
-                    use_org_px_as_base = is_above_threshold(params.threshold, diff);
+                    use_org_px_as_base = is_above_threshold(threshold, diff);
                 } else {
                     int diff = src_px_up - ref_1_up;
                     int diff_n = src_px_up - ref_2_up;
-                    use_org_px_as_base = is_above_threshold(params.threshold, diff, diff_n);
+                    use_org_px_as_base = is_above_threshold(threshold, diff, diff_n);
                 }
             } else {
                 int x_multiplier = 1;
@@ -170,13 +175,13 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
                 if (blur_first)
                 {
                     int diff = avg - src_px_up;
-                    use_org_px_as_base = is_above_threshold(params.threshold, diff);
+                    use_org_px_as_base = is_above_threshold(threshold, diff);
                 } else {
                     int diff1 = ref_1_up - src_px_up;
                     int diff2 = ref_2_up - src_px_up;
                     int diff3 = ref_3_up - src_px_up;
                     int diff4 = ref_4_up - src_px_up;
-                    use_org_px_as_base = is_above_threshold(params.threshold, diff1, diff2, diff3, diff4);
+                    use_org_px_as_base = is_above_threshold(threshold, diff1, diff2, diff3, diff4);
                 }
             }
             int new_pixel;
