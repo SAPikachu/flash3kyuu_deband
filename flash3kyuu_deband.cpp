@@ -201,7 +201,7 @@ void flash3kyuu_deband::init_frame_luts(int n)
     memset(_y_info, 0, y_size);
 
     int c_stride;
-    if (vi.IsYV12())
+    if (vi.IsPlanar())
     {
         c_stride = FRAME_LUT_STRIDE(vi.width / 2);
         int c_size = sizeof(pixel_dither_info) * c_stride * (vi.height / 2);
@@ -220,8 +220,11 @@ void flash3kyuu_deband::init_frame_luts(int n)
     for (int y = 0; y < vi.height; y++)
     {
         y_info_ptr = _y_info + y * y_stride;
-        cb_info_ptr = _cb_info + (y / 2) * c_stride;
-        cr_info_ptr = _cr_info + (y / 2) * c_stride;
+        if (vi.IsPlanar())
+        {
+            cb_info_ptr = _cb_info + (y / 2) * c_stride;
+            cr_info_ptr = _cr_info + (y / 2) * c_stride;
+        }
         for (int x = 0; x < vi.width; x++)
         {
             pixel_dither_info info_y = {0, 0, 0, 0};
@@ -345,25 +348,24 @@ void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned
 
     params.vi = &vi;
 
+    params.info_stride = FRAME_LUT_STRIDE(params.src_width);
+
     process_plane_context* context;
 
     switch (plane & 7)
     {
     case PLANAR_Y:
         params.info_ptr_base = _y_info;
-        params.info_stride = FRAME_LUT_STRIDE(vi.width);
         params.threshold = _Y;
         context = &_y_context;
         break;
     case PLANAR_U:
         params.info_ptr_base = _cb_info;
-        params.info_stride = FRAME_LUT_STRIDE(vi.width / 2);
         params.threshold = _Cb;
         context = &_cb_context;
         break;
     case PLANAR_V:
         params.info_ptr_base = _cr_info;
-        params.info_stride = FRAME_LUT_STRIDE(vi.width / 2);
         params.threshold = _Cr;
         context = &_cr_context;
         break;
