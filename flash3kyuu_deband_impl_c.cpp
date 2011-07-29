@@ -99,6 +99,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
 
         for (int j = 0; j < params.src_width; j++)
         {
+            int real_col = j;
             if (params.vi->IsYUY2())
             {
                 int index = j & 3;
@@ -108,14 +109,17 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
                 case 2:
                     context = context_y;
                     threshold = params.threshold_y;
+                    real_col = j >> 1;
                     break;
                 case 1:
                     context = context_cb;
                     threshold = params.threshold_cb;
+                    real_col = j >> 2;
                     break;
                 case 3:
                     context = context_cr;
                     threshold = params.threshold_cr;
+                    real_col = j >> 2;
                     break;
                 default:
                     abort();
@@ -190,7 +194,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
             } else {
                 new_pixel = avg + info.change;
             }
-            new_pixel = pixel_proc_downsample<mode>(context, new_pixel, i, j);
+            new_pixel = pixel_proc_downsample<mode>(context, new_pixel, i, real_col);
             *dst_px = clamp_pixel(new_pixel);
 
             src_px++;
