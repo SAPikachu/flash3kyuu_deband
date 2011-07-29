@@ -23,8 +23,8 @@ static void check_parameter_range(int value, int lower_bound, int upper_bound, c
 AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScriptEnvironment* env){
     PClip child = args[0].AsClip();
     const VideoInfo& vi = child->GetVideoInfo();
-    if (!vi.IsYV12() && !vi.IsYUY2()) {
-        env->ThrowError("flash3kyuu_deband: Only YV12 and YUY2 clip is supported.");
+    if (!vi.IsYUV() || !(vi.IsYUY2() || vi.IsPlanar())) {
+        env->ThrowError("flash3kyuu_deband: Only YUY2 and planar YUV clips are supported.");
     }
     if (vi.IsFieldBased()) {
         env->ThrowError("flash3kyuu_deband: Field-based clip is not supported.");
@@ -184,15 +184,7 @@ void flash3kyuu_deband::init_frame_luts(int n)
     const VideoInfo& vi = GetVideoInfo();
 
     int y_stride;
-    if (vi.IsYV12())
-    {
-        y_stride = FRAME_LUT_STRIDE(vi.width);
-    } else if (vi.IsYUY2()) {
-        y_stride = FRAME_LUT_STRIDE(vi.width * 2);
-    } else {
-        abort();
-        return;
-    }
+    y_stride = FRAME_LUT_STRIDE(vi.RowSize(PLANAR_Y));
 
     int y_size = sizeof(pixel_dither_info) * y_stride * vi.height;
     _y_info = (pixel_dither_info*)_aligned_malloc(y_size, FRAME_LUT_ALIGNMENT);
@@ -201,10 +193,11 @@ void flash3kyuu_deband::init_frame_luts(int n)
     memset(_y_info, 0, y_size);
 
     int c_stride;
-    if (vi.IsPlanar())
+    bool has_chroma_plane = vi.IsPlanar() && !vi.IsY8();
+    if (has_chroma_plane)
     {
-        c_stride = FRAME_LUT_STRIDE(vi.width / 2);
-        int c_size = sizeof(pixel_dither_info) * c_stride * (vi.height / 2);
+        c_stride = FRAME_LUT_STRIDE(vi.RowSize(PLANAR_U));
+        int c_size = sizeof(pixel_dither_info) * c_stride * (vi.height >> vi.GetPlaneHeightSubsampling(PLANAR_U));
         _cb_info = (pixel_dither_info*)_aligned_malloc(c_size, FRAME_LUT_ALIGNMENT);
         _cr_info = (pixel_dither_info*)_aligned_malloc(c_size, FRAME_LUT_ALIGNMENT);
 
@@ -213,17 +206,17 @@ void flash3kyuu_deband::init_frame_luts(int n)
     }
 
     pixel_dither_info *y_info_ptr, *cb_info_ptr, *cr_info_ptr;
-    
+
     int ditherY_limit = _ditherY * 2 + 1;
     int ditherC_limit = _ditherC * 2 + 1;
 
     for (int y = 0; y < vi.height; y++)
     {
         y_info_ptr = _y_info + y * y_stride;
-        if (vi.IsPlanar())
+        if (has_chroma_plane)
         {
-            cb_info_ptr = _cb_info + (y / 2) * c_stride;
-            cr_info_ptr = _cr_info + (y / 2) * c_stride;
+            cb_info_ptr = _cb_info + (y >> vi.GetPlaneHeightSubsampling(PLANAR_U)) * c_stride;
+            cr_info_ptr = _cr_info + (y >> vi.GetPlaneHeightSubsampling(PLANAR_V)) * c_stride;
         }
         for (int x = 0; x < vi.width; x++)
         {
@@ -248,9 +241,10 @@ void flash3kyuu_deband::init_frame_luts(int n)
             *y_info_ptr = info_y;
 
             bool should_set_c = false;
-            if (vi.IsYV12())
+            if (has_chroma_plane)
             {
-                should_set_c = ((x & 1) == 0 && (y & 1) == 0);
+                should_set_c = ((x & ( ( 1 << vi.GetPlaneWidthSubsampling(PLANAR_U) ) - 1)) == 0 && 
+                                (y & ( ( 1 << vi.GetPlaneHeightSubsampling(PLANAR_U) ) - 1)) == 0);
             } else if (vi.IsYUY2()) {
                 should_set_c = ((x & 1) == 0);
             }
@@ -260,7 +254,7 @@ void flash3kyuu_deband::init_frame_luts(int n)
                 // use absolute value to calulate correct ref, and restore sign
                 info_cb.ref1 = (abs(info_y.ref1) >> 1) * (info_y.ref1 >> 7);
                 info_cb.ref2 = (abs(info_y.ref2) >> 1) * (info_y.ref2 >> 7);
-                
+
                 pixel_dither_info info_cr = info_cb;
 
                 info_cb.change = (signed char)(rand_next(seed) % ditherC_limit - _ditherC);
@@ -429,7 +423,7 @@ PVideoFrame __stdcall flash3kyuu_deband::GetFrame(int n, IScriptEnvironment* env
         init_frame_luts(n);
     }
 
-    if (vi.IsPlanar())
+    if (vi.IsPlanar() && !vi.IsY8())
     {
         if (!_mt) 
         {
@@ -473,7 +467,7 @@ PVideoFrame __stdcall flash3kyuu_deband::GetFrame(int n, IScriptEnvironment* env
             WaitForSingleObject(_mt_info->work_complete_event, INFINITE);
         }
     } else {
-        // YUY2
+        // YUY2 or Y8
         process_plane(src, dst, dst->GetWritePtr(), PLANAR_Y, env);
     }
     return dst;
