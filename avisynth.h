@@ -116,6 +116,7 @@ enum {SAMPLE_INT8  = 1<<0,
       SAMPLE_INT32 = 1<<3,
       SAMPLE_FLOAT = 1<<4};
 
+/*
 enum {
    PLANAR_Y=1<<0,
    PLANAR_U=1<<1,
@@ -126,12 +127,17 @@ enum {
    PLANAR_V_ALIGNED=PLANAR_V|PLANAR_ALIGNED,
   };
 
+*/
+
 class AvisynthError /* exception */ {
 public:
   const char* const msg;
   AvisynthError(const char* _msg) : msg(_msg) {}
 };
 
+#include "avisynth_videoinfo_26.h"
+
+/*
 struct VideoInfo {
   int width, height;    // width=0 means no video
   unsigned fps_numerator, fps_denominator;
@@ -243,47 +249,47 @@ struct VideoInfo {
 
   // useful mutator
   void SetFPS(unsigned numerator, unsigned denominator) {
-	if ((numerator == 0) || (denominator == 0)) {
-	  fps_numerator = 0;
-	  fps_denominator = 1;
-	}
-	else {
-	  unsigned x=numerator, y=denominator;
-	  while (y) {   // find gcd
-		unsigned t = x%y; x = y; y = t;
-	  }
-	  fps_numerator = numerator/x;
-	  fps_denominator = denominator/x;
-	}
+    if ((numerator == 0) || (denominator == 0)) {
+      fps_numerator = 0;
+      fps_denominator = 1;
+    }
+    else {
+      unsigned x=numerator, y=denominator;
+      while (y) {   // find gcd
+        unsigned t = x%y; x = y; y = t;
+      }
+      fps_numerator = numerator/x;
+      fps_denominator = denominator/x;
+    }
   }
 
   // Range protected multiply-divide of FPS
   void MulDivFPS(unsigned multiplier, unsigned divisor) {
-	unsigned __int64 numerator   = UInt32x32To64(fps_numerator,   multiplier);
-	unsigned __int64 denominator = UInt32x32To64(fps_denominator, divisor);
+    unsigned __int64 numerator   = UInt32x32To64(fps_numerator,   multiplier);
+    unsigned __int64 denominator = UInt32x32To64(fps_denominator, divisor);
 
-	unsigned __int64 x=numerator, y=denominator;
-	while (y) {   // find gcd
-	  unsigned __int64 t = x%y; x = y; y = t;
-	}
-	numerator   /= x; // normalize
-	denominator /= x;
+    unsigned __int64 x=numerator, y=denominator;
+    while (y) {   // find gcd
+      unsigned __int64 t = x%y; x = y; y = t;
+    }
+    numerator   /= x; // normalize
+    denominator /= x;
 
-	unsigned __int64 temp = numerator | denominator; // Just looking top bit
-	unsigned u = 0;
-	while (temp & 0xffffffff80000000) { // or perhaps > 16777216*2
-	  temp = Int64ShrlMod32(temp, 1);
-	  u++;
-	}
-	if (u) { // Scale to fit
-	  const unsigned round = 1 << (u-1);
-	  SetFPS( (unsigned)Int64ShrlMod32(numerator   + round, u),
-	          (unsigned)Int64ShrlMod32(denominator + round, u) );
-	}
-	else {
-	  fps_numerator   = (unsigned)numerator;
-	  fps_denominator = (unsigned)denominator;
-	}
+    unsigned __int64 temp = numerator | denominator; // Just looking top bit
+    unsigned u = 0;
+    while (temp & 0xffffffff80000000) { // or perhaps > 16777216*2
+      temp = Int64ShrlMod32(temp, 1);
+      u++;
+    }
+    if (u) { // Scale to fit
+      const unsigned round = 1 << (u-1);
+      SetFPS( (unsigned)Int64ShrlMod32(numerator   + round, u),
+              (unsigned)Int64ShrlMod32(denominator + round, u) );
+    }
+    else {
+      fps_numerator   = (unsigned)numerator;
+      fps_denominator = (unsigned)denominator;
+    }
   }
 
   // Test for same colorspace
@@ -294,7 +300,7 @@ struct VideoInfo {
   }
 
 };
-
+*/
 
 
 
@@ -359,6 +365,9 @@ class VideoFrame {
 public:
   int GetPitch() const { return pitch; }
   int GetPitch(int plane) const { switch (plane) {case PLANAR_U: case PLANAR_V: return pitchUV;} return pitch; }
+
+// Not compatible with Avisynth 2.6, use other method to calculate
+/*
   int GetRowSize() const { return row_size; }
   int GetRowSize(int plane) const {
     switch (plane) {
@@ -379,6 +388,7 @@ public:
     return row_size; }
   int GetHeight() const { return height; }
   int GetHeight(int plane) const {  switch (plane) {case PLANAR_U: case PLANAR_V: if (pitchUV) return height>>1; return 0;} return height; }
+*/
 
   // generally you shouldn't use these three
   VideoFrameBuffer* GetFrameBuffer() const { return vfb; }
@@ -750,9 +760,9 @@ public:
   virtual void* __stdcall ManageCache(int key, void* data) = 0;
 
   enum PlanarChromaAlignmentMode {
-			PlanarChromaAlignmentOff,
-			PlanarChromaAlignmentOn,
-			PlanarChromaAlignmentTest };
+            PlanarChromaAlignmentOff,
+            PlanarChromaAlignmentOn,
+            PlanarChromaAlignmentTest };
 
   virtual bool __stdcall PlanarChromaAlignment(PlanarChromaAlignmentMode key) = 0;
 

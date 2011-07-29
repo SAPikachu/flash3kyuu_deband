@@ -93,6 +93,7 @@
   <ItemGroup>
     <ClInclude Include="asmlib.h" />
     <ClInclude Include="avisynth.h" />
+    <ClInclude Include="avisynth_videoinfo_26.h" />
     <ClInclude Include="dither_high.h" />
     <ClInclude Include="flash3kyuu_deband.h" />
     <ClInclude Include="flash3kyuu_deband_sse_base.h" />
@@ -114,6 +115,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="avisynth_init.cpp" />
+    <ClCompile Include="avisynth_videoinfo_26.cpp" />
     <ClCompile Include="benchmark.cpp" />
     <ClCompile Include="correctness_test.cpp" />
     <ClCompile Include="dllmain.cpp">

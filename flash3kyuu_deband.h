@@ -103,6 +103,8 @@ private:
 
     volatile mt_info* _mt_info;
 
+    VideoInfo _src_vi;
+
     void init(void);
     void init_frame_luts(int n);
 

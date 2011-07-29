@@ -326,6 +326,8 @@ void flash3kyuu_deband::init(void)
     init_context(&_cb_context);
     init_context(&_cr_context);
 
+    _src_vi = child->GetVideoInfo();
+
     init_frame_luts(0);
 
     _process_plane_impl = get_process_plane_impl(_sample_mode, _blur_first, _opt, _precision_mode);
@@ -340,13 +342,13 @@ void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned
 
     params.src_plane_ptr = src->GetReadPtr(plane);
     params.src_pitch = src->GetPitch(plane);
-    params.src_width = src->GetRowSize(plane);
-    params.src_height = src->GetHeight(plane);
+    params.src_width = _src_vi.RowSize(plane);
+    params.src_height = _src_vi.height >> _src_vi.GetPlaneHeightSubsampling(plane);
 
     params.dst_plane_ptr = dstp;
     params.dst_pitch = dst->GetPitch(plane);
 
-    params.vi = &vi;
+    params.vi = &_src_vi;
 
     params.info_stride = FRAME_LUT_STRIDE(params.src_width);
 
@@ -354,6 +356,7 @@ void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned
 
     switch (plane & 7)
     {
+    case 0:
     case PLANAR_Y:
         params.info_ptr_base = _y_info;
         params.threshold = _Y;

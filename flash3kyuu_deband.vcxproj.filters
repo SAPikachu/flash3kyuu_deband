@@ -78,6 +78,9 @@
     <ClInclude Include="dither_high.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="avisynth_videoinfo_26.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -120,6 +123,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="impl_dispatch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avisynth_videoinfo_26.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
