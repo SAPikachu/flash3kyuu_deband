@@ -209,14 +209,17 @@ void flash3kyuu_deband::init_frame_luts(int n)
 
     int ditherY_limit = _ditherY * 2 + 1;
     int ditherC_limit = _ditherC * 2 + 1;
+    
+    int width_subsamp = vi.GetPlaneWidthSubsampling(PLANAR_U);
+    int height_subsamp = vi.GetPlaneHeightSubsampling(PLANAR_U);
 
     for (int y = 0; y < vi.height; y++)
     {
         y_info_ptr = _y_info + y * y_stride;
         if (has_chroma_plane)
         {
-            cb_info_ptr = _cb_info + (y >> vi.GetPlaneHeightSubsampling(PLANAR_U)) * c_stride;
-            cr_info_ptr = _cr_info + (y >> vi.GetPlaneHeightSubsampling(PLANAR_V)) * c_stride;
+            cb_info_ptr = _cb_info + (y >> height_subsamp) * c_stride;
+            cr_info_ptr = _cr_info + (y >> height_subsamp) * c_stride;
         }
         for (int x = 0; x < vi.width; x++)
         {
@@ -236,6 +239,11 @@ void flash3kyuu_deband::init_frame_luts(int n)
                 {
                     info_y.ref2 = (signed char)(rand_next(seed) % range_limit - cur_range);
                 }
+                if (_sample_mode > 0)
+                {
+                    info_y.ref1 = abs(info_y.ref1);
+                    info_y.ref2 = abs(info_y.ref2);
+                }
             }
 
             *y_info_ptr = info_y;
@@ -243,18 +251,14 @@ void flash3kyuu_deband::init_frame_luts(int n)
             bool should_set_c = false;
             if (has_chroma_plane)
             {
-                should_set_c = ((x & ( ( 1 << vi.GetPlaneWidthSubsampling(PLANAR_U) ) - 1)) == 0 && 
-                                (y & ( ( 1 << vi.GetPlaneHeightSubsampling(PLANAR_U) ) - 1)) == 0);
+                should_set_c = ((x & ( ( 1 << width_subsamp ) - 1)) == 0 && 
+                                (y & ( ( 1 << height_subsamp ) - 1)) == 0);
             } else if (vi.IsYUY2()) {
                 should_set_c = ((x & 1) == 0);
             }
 
             if (should_set_c) {
-                pixel_dither_info info_cb = {0, 0, 0, 0};
-                // use absolute value to calulate correct ref, and restore sign
-                info_cb.ref1 = (abs(info_y.ref1) >> 1) * (info_y.ref1 >> 7);
-                info_cb.ref2 = (abs(info_y.ref2) >> 1) * (info_y.ref2 >> 7);
-
+                pixel_dither_info info_cb = info_y;
                 pixel_dither_info info_cr = info_cb;
 
                 info_cb.change = (signed char)(rand_next(seed) % ditherC_limit - _ditherC);
@@ -341,6 +345,9 @@ void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned
 
     params.dst_plane_ptr = dstp;
     params.dst_pitch = dst->GetPitch(plane);
+    
+    params.width_subsampling = _src_vi.GetPlaneWidthSubsampling(plane);
+    params.height_subsampling = _src_vi.GetPlaneHeightSubsampling(plane);
 
     params.vi = &_src_vi;
 

@@ -54,7 +54,7 @@ static __forceinline void __cdecl process_plane_plainc_mode0(const process_plane
         for (int j = 0; j < params.src_width; j++)
         {
             pixel_dither_info info = *info_ptr;
-            assert(abs(info.ref1) <= i && abs(info.ref1) + i < params.src_height);
+            assert((abs(info.ref1) >> params.height_subsampling) <= i && (abs(info.ref1) >> params.height_subsampling) + i < params.src_height);
 
             if (params.vi->IsYUY2())
             {
@@ -76,7 +76,7 @@ static __forceinline void __cdecl process_plane_plainc_mode0(const process_plane
                 }
             }
 
-            int ref_pos = info.ref1 * params.src_pitch;
+            int ref_pos = (abs(info.ref1) >> params.height_subsampling) * (info.ref1 >> 7) * params.src_pitch;
             int diff = *src_px - src_px[ref_pos];
             if (is_above_threshold(threshold, diff)) {
                 *dst_px = *src_px;
@@ -148,15 +148,16 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
             }
             pixel_dither_info info = *info_ptr;
             int src_px_up = pixel_proc_upsample<mode>(context, *src_px);
-
-            assert(abs(info.ref1) <= i && abs(info.ref1) + i < params.src_height);
+            
+            assert(info.ref1 >= 0);
+            assert((info.ref1 >> params.height_subsampling) <= i && (info.ref1 >> params.height_subsampling) + i < params.src_height);
 
             int avg;
             bool use_org_px_as_base;
             int ref_pos, ref_pos_2;
             if (sample_mode == 1)
             {
-                ref_pos = info.ref1 * params.src_pitch;
+                ref_pos = (info.ref1 >> params.height_subsampling) * params.src_pitch;
                 int ref_1_up = pixel_proc_upsample<mode>(context, src_px[ref_pos]);
                 int ref_2_up = pixel_proc_upsample<mode>(context, src_px[-ref_pos]);
                 avg = pixel_proc_avg_2<mode>(context, ref_1_up, ref_2_up);
@@ -182,13 +183,19 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
                         x_multiplier = 4;
                     }
                 } 
+                
+                assert(info.ref2 >= 0);
+                assert((info.ref2 >> params.height_subsampling) <= i && (info.ref2 >> params.height_subsampling) + i < params.src_height);
+                assert(((info.ref1 * x_multiplier) >> params.width_subsampling) <= j && 
+                       ((info.ref1 * x_multiplier) >> params.width_subsampling) + j < params.src_width);
+                assert(((info.ref2 * x_multiplier) >> params.width_subsampling) <= j && 
+                       ((info.ref2 * x_multiplier) >> params.width_subsampling) + j < params.src_width);
 
-                assert(abs(info.ref2) <= i && abs(info.ref2) + i < params.src_height);
-                assert(abs(info.ref1 * x_multiplier) <= j && abs(info.ref1 * x_multiplier) + j < params.src_width);
-                assert(abs(info.ref2 * x_multiplier) <= j && abs(info.ref2 * x_multiplier) + j < params.src_width);
+                ref_pos = params.src_pitch * (info.ref2 >> params.height_subsampling) + 
+                          ((info.ref1 * x_multiplier) >> params.width_subsampling);
 
-                ref_pos = params.src_pitch * info.ref2 + info.ref1 * x_multiplier;
-                ref_pos_2 = info.ref2 * x_multiplier - params.src_pitch * info.ref1;
+                ref_pos_2 = ((info.ref2 * x_multiplier) >> params.width_subsampling) - 
+                            params.src_pitch * (info.ref1 >> params.height_subsampling);
 
                 int ref_1_up = pixel_proc_upsample<mode>(context, src_px[ref_pos]);
                 int ref_2_up = pixel_proc_upsample<mode>(context, src_px[ref_pos_2]);

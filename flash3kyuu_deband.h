@@ -64,6 +64,9 @@ typedef struct _process_plane_params
     pixel_dither_info *info_ptr_base;
     int info_stride;
     int range;
+
+    unsigned char width_subsampling;
+    unsigned char height_subsampling;
     
     unsigned short threshold_y, threshold_cb, threshold_cr;
     VideoInfo* vi;
