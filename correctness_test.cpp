@@ -34,8 +34,8 @@ void __cdecl process_plane_correctness_test(const process_plane_params& params, 
 	char ref_file_name[256];
 	char test_file_name[256];
 
-	sprintf_s(ref_file_name, "correctness_test_reference_%d_%d_%d_%d_%d_%d_%d.bin",
-		params.src_width, params.src_height, params.dst_pitch, sample_mode, blur_first, precision_mode, target_impl);
+	sprintf_s(ref_file_name, "correctness_test_reference_%d_%d_%d_%d_%d_%d_%d_%d.bin",
+		params.src_width, params.src_height, params.dst_pitch, params.plane, sample_mode, blur_first, precision_mode, target_impl);
 	FILE* ref_file = NULL;
 	fopen_s(&ref_file, ref_file_name, "wb");
 	if (!ref_file)
@@ -43,8 +43,8 @@ void __cdecl process_plane_correctness_test(const process_plane_params& params, 
 		printf(__FUNCTION__ ": Warning: Unable to open %s", ref_file_name);
 	}
 
-	sprintf_s(test_file_name, "correctness_test_test_%d_%d_%d_%d_%d_%d_%d.bin",
-		params.src_width, params.src_height, params.dst_pitch, sample_mode, blur_first, precision_mode, target_impl);
+	sprintf_s(test_file_name, "correctness_test_test_%d_%d_%d_%d_%d_%d_%d_%d.bin",
+		params.src_width, params.src_height, params.dst_pitch, params.plane, sample_mode, blur_first, precision_mode, target_impl);
 	FILE* test_file = NULL;
 	fopen_s(&test_file, test_file_name, "wb");
 	if (!test_file)

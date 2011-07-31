@@ -65,6 +65,8 @@ typedef struct _process_plane_params
     int info_stride;
     int range;
 
+    int plane;
+
     unsigned char width_subsampling;
     unsigned char height_subsampling;
     
