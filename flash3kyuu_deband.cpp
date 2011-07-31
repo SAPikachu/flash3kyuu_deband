@@ -210,8 +210,13 @@ void flash3kyuu_deband::init_frame_luts(int n)
     int ditherY_limit = _ditherY * 2 + 1;
     int ditherC_limit = _ditherC * 2 + 1;
     
-    int width_subsamp = vi.GetPlaneWidthSubsampling(PLANAR_U);
-    int height_subsamp = vi.GetPlaneHeightSubsampling(PLANAR_U);
+    int width_subsamp = 0;
+    int height_subsamp = 0;
+    if (!vi.IsY8())
+    {
+        width_subsamp = vi.GetPlaneWidthSubsampling(PLANAR_U);
+        height_subsamp = vi.GetPlaneHeightSubsampling(PLANAR_U);
+    }
 
     for (int y = 0; y < vi.height; y++)
     {
