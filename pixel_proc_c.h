@@ -2,28 +2,24 @@
 
 #include "impl_dispatch.h"
 
-enum {
-	PIXEL_PROC_8BIT = 0,
-	PIXEL_PROC_HIGH_NO_DITHERING,
-	PIXEL_PROC_HIGH_ORDERED_DITHERING,
-	PIXEL_PROC_HIGH_FLOYD_STEINBERG_DITHERING,
-	PIXEL_PROC_MAX
-};
-
 #define CALL_IMPL(func, ...) \
-	( mode == PIXEL_PROC_8BIT ? pixel_proc_8bit::##func(__VA_ARGS__) : \
-	  mode == PIXEL_PROC_HIGH_NO_DITHERING ? pixel_proc_high_no_dithering::##func(__VA_ARGS__) : \
-	  mode == PIXEL_PROC_HIGH_ORDERED_DITHERING ? pixel_proc_high_ordered_dithering::##func(__VA_ARGS__) : \
-	  mode == PIXEL_PROC_HIGH_FLOYD_STEINBERG_DITHERING ? pixel_proc_high_f_s_dithering::##func(__VA_ARGS__) : \
+	( mode == PRECISION_LOW ? pixel_proc_8bit::##func(__VA_ARGS__) : \
+	  mode == PRECISION_HIGH_NO_DITHERING ? pixel_proc_high_no_dithering::##func(__VA_ARGS__) : \
+	  mode == PRECISION_HIGH_ORDERED_DITHERING ? pixel_proc_high_ordered_dithering::##func(__VA_ARGS__) : \
+	  mode == PRECISION_HIGH_FLOYD_STEINBERG_DITHERING ? pixel_proc_high_f_s_dithering::##func(__VA_ARGS__) : \
+	  mode == PRECISION_16BIT_STACKED ? pixel_proc_16bit::##func(__VA_ARGS__) : \
+	  mode == PRECISION_16BIT_INTERLEAVED ? pixel_proc_16bit::##func(__VA_ARGS__) : \
 	  pixel_proc_8bit::##func(__VA_ARGS__) )
 
-#define CHECK_MODE() if (mode < 0 || mode >= PIXEL_PROC_MAX) abort()
+#define CHECK_MODE() if (mode < 0 || mode >= PRECISION_COUNT) abort()
 
 #include "pixel_proc_c_8bit.h"
 
 #include "pixel_proc_c_high_no_dithering.h"
 #include "pixel_proc_c_high_ordered_dithering.h"
 #include "pixel_proc_c_high_f_s_dithering.h"
+
+#include "pixel_proc_c_16bit.h"
 
 template <int mode>
 static inline void pixel_proc_init_context(char context_buffer[CONTEXT_BUFFER_SIZE], int frame_width)

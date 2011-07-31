@@ -9,16 +9,6 @@
 
 #include <limits.h>
 
-static inline unsigned char clamp_pixel(int pixel)
-{
-    if (pixel > 0xff) {
-        pixel = 0xff;
-    } else if (pixel < 0) {
-        pixel = 0;
-    }
-    return (unsigned char)pixel;
-}
-
 static inline bool _is_above_threshold(int threshold, int diff) {
     return abs(diff) >= threshold;
 }
@@ -223,7 +213,23 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
                 new_pixel = avg + info.change;
             }
             new_pixel = pixel_proc_downsample<mode>(context, new_pixel, i, real_col);
-            *dst_px = clamp_pixel(new_pixel);
+            switch (mode)
+            {
+            case PRECISION_LOW:
+            case PRECISION_HIGH_NO_DITHERING:
+            case PRECISION_HIGH_ORDERED_DITHERING:
+            case PRECISION_HIGH_FLOYD_STEINBERG_DITHERING:
+                *dst_px = (unsigned char)new_pixel;
+                break;
+            case PRECISION_16BIT_STACKED:
+                *dst_px = (unsigned char)((new_pixel >> 8) & 0xFF);
+                *(dst_px + params.src_height * params.dst_pitch) = (unsigned char)(new_pixel & 0xFF);
+                break;
+            case PRECISION_16BIT_INTERLEAVED:
+                *((unsigned short*)dst_px) = (unsigned short)(new_pixel & 0xFFFF);
+                dst_px++;
+                break;
+            }
 
             src_px++;
             dst_px++;

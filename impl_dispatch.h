@@ -8,8 +8,10 @@ extern const process_plane_impl_t** process_plane_impls[];
 #define PRECISION_HIGH_NO_DITHERING 1
 #define PRECISION_HIGH_ORDERED_DITHERING 2
 #define PRECISION_HIGH_FLOYD_STEINBERG_DITHERING 3
+#define PRECISION_16BIT_STACKED 4
+#define PRECISION_16BIT_INTERLEAVED 5
 
-#define PRECISION_COUNT 4
+#define PRECISION_COUNT 6
 
 
 #define IMPL_C 0

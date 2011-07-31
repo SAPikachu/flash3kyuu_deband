@@ -333,6 +333,13 @@ void flash3kyuu_deband::init(void)
 
     init_frame_luts(0);
 
+    if (_precision_mode == PRECISION_16BIT_STACKED)
+    {
+        vi.height *= 2;
+    } else if (_precision_mode == PRECISION_16BIT_INTERLEAVED) {
+        vi.width *= 2;
+    }
+
     _process_plane_impl = get_process_plane_impl(_sample_mode, _blur_first, _opt, _precision_mode);
 
 }
@@ -385,7 +392,7 @@ void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned
     }
 
     bool copy_plane = false;
-    if (vi.IsPlanar())
+    if (vi.IsPlanar() && _precision_mode < PRECISION_16BIT_STACKED)
     {
         copy_plane = params.threshold == 0;
     }

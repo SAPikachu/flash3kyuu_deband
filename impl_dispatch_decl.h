@@ -41,11 +41,13 @@
 
 
 #if defined(IMPL_DISPATCH_IMPORT_DECLARATION) || defined(DECLARE_IMPL_C)
-	DEFINE_TEMPLATE_IMPL(c, process_plane_plainc, PIXEL_PROC_8BIT);
+	DEFINE_TEMPLATE_IMPL(c, process_plane_plainc, PRECISION_LOW);
 
-	DEFINE_TEMPLATE_IMPL(c_high_no_dithering, process_plane_plainc, PIXEL_PROC_HIGH_NO_DITHERING);
-	DEFINE_TEMPLATE_IMPL(c_high_ordered_dithering, process_plane_plainc, PIXEL_PROC_HIGH_ORDERED_DITHERING);
-	DEFINE_TEMPLATE_IMPL(c_high_floyd_steinberg_dithering, process_plane_plainc, PIXEL_PROC_HIGH_FLOYD_STEINBERG_DITHERING);
+	DEFINE_TEMPLATE_IMPL(c_high_no_dithering, process_plane_plainc, PRECISION_HIGH_NO_DITHERING);
+	DEFINE_TEMPLATE_IMPL(c_high_ordered_dithering, process_plane_plainc, PRECISION_HIGH_ORDERED_DITHERING);
+	DEFINE_TEMPLATE_IMPL(c_high_floyd_steinberg_dithering, process_plane_plainc, PRECISION_HIGH_FLOYD_STEINBERG_DITHERING);
+	DEFINE_TEMPLATE_IMPL(c_16bit_stacked, process_plane_plainc, PRECISION_16BIT_STACKED);
+	DEFINE_TEMPLATE_IMPL(c_16bit_interleaved, process_plane_plainc, PRECISION_16BIT_INTERLEAVED);
 #endif
 
 
@@ -54,6 +56,8 @@
 	DEFINE_SSE_IMPL(sse4_high_no_dithering, PRECISION_HIGH_NO_DITHERING);
 	DEFINE_SSE_IMPL(sse4_high_ordered_dithering, PRECISION_HIGH_ORDERED_DITHERING);
 	DEFINE_SSE_IMPL(sse4_high_floyd_steinberg_dithering, PRECISION_HIGH_FLOYD_STEINBERG_DITHERING);
+	DEFINE_SSE_IMPL(sse4_16bit_stacked, PRECISION_16BIT_STACKED);
+	DEFINE_SSE_IMPL(sse4_16bit_interleaved, PRECISION_16BIT_INTERLEAVED);
 #endif
 
 
@@ -62,6 +66,8 @@
 	DEFINE_SSE_IMPL(ssse3_high_no_dithering, PRECISION_HIGH_NO_DITHERING);
 	DEFINE_SSE_IMPL(ssse3_high_ordered_dithering, PRECISION_HIGH_ORDERED_DITHERING);
 	DEFINE_SSE_IMPL(ssse3_high_floyd_steinberg_dithering, PRECISION_HIGH_FLOYD_STEINBERG_DITHERING);
+	DEFINE_SSE_IMPL(ssse3_16bit_stacked, PRECISION_16BIT_STACKED);
+	DEFINE_SSE_IMPL(ssse3_16bit_interleaved, PRECISION_16BIT_INTERLEAVED);
 #endif
 
 	
@@ -70,6 +76,8 @@
 	DEFINE_SSE_IMPL(sse2_high_no_dithering, PRECISION_HIGH_NO_DITHERING);
 	DEFINE_SSE_IMPL(sse2_high_ordered_dithering, PRECISION_HIGH_ORDERED_DITHERING);
 	DEFINE_SSE_IMPL(sse2_high_floyd_steinberg_dithering, PRECISION_HIGH_FLOYD_STEINBERG_DITHERING);
+	DEFINE_SSE_IMPL(sse2_16bit_stacked, PRECISION_16BIT_STACKED);
+	DEFINE_SSE_IMPL(sse2_16bit_interleaved, PRECISION_16BIT_INTERLEAVED);
 #endif
 	
 #if defined(IMPL_DISPATCH_IMPORT_DECLARATION) || defined(DECLARE_IMPL_BENCHMARK)
@@ -84,13 +92,19 @@
 	DEFINE_TEMPLATE_IMPL(correctness_test_sse2_high_no_dithering, process_plane_correctness_test, PRECISION_HIGH_NO_DITHERING, IMPL_SSE2);
 	DEFINE_TEMPLATE_IMPL(correctness_test_sse2_high_ordered_dithering, process_plane_correctness_test, PRECISION_HIGH_ORDERED_DITHERING, IMPL_SSE2);
 	DEFINE_TEMPLATE_IMPL(correctness_test_sse2_high_floyd_steinberg_dithering, process_plane_correctness_test, PRECISION_HIGH_FLOYD_STEINBERG_DITHERING, IMPL_SSE2);
+	DEFINE_TEMPLATE_IMPL(correctness_test_sse2_16bit_stacked, process_plane_correctness_test, PRECISION_16BIT_STACKED, IMPL_SSE2);
+	DEFINE_TEMPLATE_IMPL(correctness_test_sse2_16bit_interleaved, process_plane_correctness_test, PRECISION_16BIT_INTERLEAVED, IMPL_SSE2);
 
 	DEFINE_TEMPLATE_IMPL(correctness_test_ssse3_high_no_dithering, process_plane_correctness_test, PRECISION_HIGH_NO_DITHERING, IMPL_SSSE3);
 	DEFINE_TEMPLATE_IMPL(correctness_test_ssse3_high_ordered_dithering, process_plane_correctness_test, PRECISION_HIGH_ORDERED_DITHERING, IMPL_SSSE3);
 	DEFINE_TEMPLATE_IMPL(correctness_test_ssse3_high_floyd_steinberg_dithering, process_plane_correctness_test, PRECISION_HIGH_FLOYD_STEINBERG_DITHERING, IMPL_SSSE3);
+	DEFINE_TEMPLATE_IMPL(correctness_test_ssse3_16bit_stacked, process_plane_correctness_test, PRECISION_16BIT_STACKED, IMPL_SSSE3);
+	DEFINE_TEMPLATE_IMPL(correctness_test_ssse3_16bit_interleaved, process_plane_correctness_test, PRECISION_16BIT_INTERLEAVED, IMPL_SSSE3);
 	
 	DEFINE_TEMPLATE_IMPL(correctness_test_sse4_high_no_dithering, process_plane_correctness_test, PRECISION_HIGH_NO_DITHERING, IMPL_SSE4);
 	DEFINE_TEMPLATE_IMPL(correctness_test_sse4_high_ordered_dithering, process_plane_correctness_test, PRECISION_HIGH_ORDERED_DITHERING, IMPL_SSE4);
 	DEFINE_TEMPLATE_IMPL(correctness_test_sse4_high_floyd_steinberg_dithering, process_plane_correctness_test, PRECISION_HIGH_FLOYD_STEINBERG_DITHERING, IMPL_SSE4);
+	DEFINE_TEMPLATE_IMPL(correctness_test_sse4_16bit_stacked, process_plane_correctness_test, PRECISION_16BIT_STACKED, IMPL_SSE4);
+	DEFINE_TEMPLATE_IMPL(correctness_test_sse4_16bit_interleaved, process_plane_correctness_test, PRECISION_16BIT_INTERLEAVED, IMPL_SSE4);
 #endif
 

@@ -101,6 +101,7 @@
     <ClInclude Include="impl_dispatch.h" />
     <ClInclude Include="impl_dispatch_decl.h" />
     <ClInclude Include="mt_info.h" />
+    <ClInclude Include="pixel_proc_c_16bit.h" />
     <ClInclude Include="pixel_proc_c_high_f_s_dithering.h" />
     <ClInclude Include="pixel_proc_c_high_ordered_dithering.h" />
     <ClInclude Include="pixel_proc_c.h" />
