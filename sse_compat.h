@@ -138,4 +138,11 @@ static __m128i __inline _cmm_negate_all_epi32(__m128i a, __m128i minus_one)
 	return _mm_sub_epi32(_mm_setzero_si128(), a);
 }
 
+static __m128i __inline _mm_abs_epi32 (__m128i a)
+{
+    __m128i mask = _mm_srai_epi32(a, 31);
+    __m128i fix = _mm_srli_epi32(a, 31);
+    a = _mm_xor_si128(a, mask);
+    return _mm_add_epi32(a, fix);
+}
 #endif
