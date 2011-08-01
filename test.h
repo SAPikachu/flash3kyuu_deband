@@ -27,20 +27,21 @@ static unsigned char * create_guarded_buffer(int const height, int const pitch, 
 	return buffer;
 }
 
-static void check_guard_bytes(unsigned char *buffer, int const height, int const pitch)
+static bool check_guard_bytes(unsigned char *buffer, int const height, int const pitch)
 {
 	for (int i = 0; i < pitch * 2; i += 4)
 	{
 		if (*(int*)(buffer + i) != GUARD_CONST) {
 			printf("ERROR: Leading guard bytes was overwritten.\n");
-			break;
+			return false;
 		}
 	}
 	for (int i = 0; i < pitch * 2; i += 4)
 	{
 		if (*(int*)(buffer + (height + 2) * pitch + i) != GUARD_CONST) {
 			printf("ERROR: Trailing guard bytes was overwritten.\n");
-			break;
+			return false;
 		}
 	}
+    return true;
 }

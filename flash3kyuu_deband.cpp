@@ -364,6 +364,7 @@ void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned
     params.height_subsampling = _src_vi.GetPlaneHeightSubsampling(plane);
 
     params.vi = &_src_vi;
+    params.dst_vi = &vi;
 
     params.info_stride = FRAME_LUT_STRIDE(params.src_width);
 

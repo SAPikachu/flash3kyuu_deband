@@ -72,6 +72,7 @@ typedef struct _process_plane_params
     
     unsigned short threshold_y, threshold_cb, threshold_cr;
     VideoInfo* vi;
+    VideoInfo* dst_vi;
 } process_plane_params;
 
 typedef void (__cdecl *process_plane_impl_t)(const process_plane_params& params, process_plane_context* context);
