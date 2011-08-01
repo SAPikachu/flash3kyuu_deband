@@ -354,7 +354,7 @@ static __m128i __forceinline process_pixels_mode12_high_part(__m128i src_pixels,
 
 
 template<int sample_mode, bool blur_first, int precision_mode>
-static __m128i __forceinline process_pixels_mode12_high(__m128i src_pixels, __m128i threshold_vector, __m128i change, __m128i& ref_pixels_1, __m128i& ref_pixels_2, __m128i& ref_pixels_3, __m128i& ref_pixels_4, int row, int column, void* dither_context)
+static __m128i __forceinline process_pixels_mode12_high(__m128i src_pixels, __m128i threshold_vector, __m128i change, __m128i& ref_pixels_1, __m128i& ref_pixels_2, __m128i& ref_pixels_3, __m128i& ref_pixels_4, int row, int column, int height, int dst_pitch, __m128i* dst_px, void* dither_context)
 {
     __m128i zero = _mm_setzero_si128();
     
@@ -376,17 +376,63 @@ static __m128i __forceinline process_pixels_mode12_high(__m128i src_pixels, __m1
          _mm_unpackhi_epi8(ref_pixels_3, zero), 
          _mm_unpackhi_epi8(ref_pixels_4, zero) );
     
-    lo = dither_high::dither<precision_mode>(dither_context, lo, row, column);
-    hi = dither_high::dither<precision_mode>(dither_context, hi, row, column + 8);
+    switch (precision_mode)
+    {
+    case PRECISION_LOW:
+    case PRECISION_HIGH_NO_DITHERING:
+    case PRECISION_HIGH_ORDERED_DITHERING:
+    case PRECISION_HIGH_FLOYD_STEINBERG_DITHERING:
+        lo = dither_high::dither<precision_mode>(dither_context, lo, row, column);
+        hi = dither_high::dither<precision_mode>(dither_context, hi, row, column + 8);
 
-    lo = _mm_srli_epi16(lo, 6);
-    hi = _mm_srli_epi16(hi, 6);
+        lo = _mm_srli_epi16(lo, 6);
+        hi = _mm_srli_epi16(hi, 6);
 
-    return _mm_packus_epi16(lo, hi);
+        return _mm_packus_epi16(lo, hi);
+        break;
+    case PRECISION_16BIT_STACKED:
+        {
+            __m128i max_pixel_value = _mm_set1_epi16(0x3fff);
+            lo = _mm_min_epu16(lo, max_pixel_value);
+            hi = _mm_min_epu16(hi, max_pixel_value);
+            __m128i msb_lo = _mm_srli_epi16(lo, 6);
+            __m128i msb_hi = _mm_srli_epi16(hi, 6);
+
+            __m128i msb = _mm_packus_epi16(msb_lo, msb_hi);
+            _mm_store_si128(dst_px, msb);
+
+            __m128i mask = _mm_set1_epi16(0x00ff);
+            __m128i lsb_lo = _mm_slli_epi16(lo, 2);
+            lsb_lo = _mm_and_si128(lsb_lo, mask);
+            __m128i lsb_hi = _mm_slli_epi16(hi, 2);
+            lsb_hi = _mm_and_si128(lsb_hi, mask);
+        
+            __m128i lsb = _mm_packus_epi16(lsb_lo, lsb_hi);
+            _mm_store_si128((__m128i*)(((char*)dst_px) + dst_pitch * height), lsb);
+        }
+        break;
+    case PRECISION_16BIT_INTERLEAVED:
+        {
+            __m128i max_pixel_value = _mm_set1_epi16(0x3fff);
+            lo = _mm_min_epu16(lo, max_pixel_value);
+            hi = _mm_min_epu16(hi, max_pixel_value);
+
+            lo = _mm_slli_epi16(lo, 2);
+            hi = _mm_slli_epi16(hi, 2);
+        
+            _mm_store_si128(dst_px, lo);
+            _mm_store_si128(dst_px + 1, hi);
+        }
+        break;
+    default:
+        abort();
+    }
+
+    return zero;
 }
 
 template<int sample_mode, bool blur_first, int precision_mode>
-static __m128i __forceinline process_pixels(__m128i src_pixels, __m128i threshold_vector, __m128i sign_convert_vector, __m128i& one_i8, __m128i& change, __m128i& ref_pixels_1, __m128i& ref_pixels_2, __m128i& ref_pixels_3, __m128i& ref_pixels_4, int row, int column, void* dither_context)
+static __m128i __forceinline process_pixels(__m128i src_pixels, __m128i threshold_vector, __m128i sign_convert_vector, __m128i& one_i8, __m128i& change, __m128i& ref_pixels_1, __m128i& ref_pixels_2, __m128i& ref_pixels_3, __m128i& ref_pixels_4, int row, int column, int height, int dst_pitch, __m128i* dst_px, void* dither_context)
 {
     switch (sample_mode)
     {
@@ -399,7 +445,7 @@ static __m128i __forceinline process_pixels(__m128i src_pixels, __m128i threshol
         {
             return process_pixels_mode12<sample_mode, blur_first>(src_pixels, threshold_vector, sign_convert_vector, one_i8, change, ref_pixels_1, ref_pixels_2, ref_pixels_3, ref_pixels_4);
         } else {
-            return process_pixels_mode12_high<sample_mode, blur_first, precision_mode>(src_pixels, threshold_vector, change, ref_pixels_1, ref_pixels_2, ref_pixels_3, ref_pixels_4, row, column, dither_context);
+            return process_pixels_mode12_high<sample_mode, blur_first, precision_mode>(src_pixels, threshold_vector, change, ref_pixels_1, ref_pixels_2, ref_pixels_3, ref_pixels_4, row, column, height, dst_pitch, dst_px, dither_context);
         }
         break;
     default:
@@ -571,12 +617,31 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
                     src_pixels = _mm_loadu_si128((__m128i*)src_px);
                 }
             }
-            __m128i dst_pixels = process_pixels<sample_mode, blur_first, precision_mode>(src_pixels, threshold_vector, sign_convert_vector, one_i8, change, ref_pixels_1, ref_pixels_2, ref_pixels_3, ref_pixels_4, row, processed_pixels, context_buffer);
-            // write back the result
-            _mm_store_si128((__m128i*)dst_px, dst_pixels);
+            __m128i dst_pixels = process_pixels<sample_mode, blur_first, precision_mode>(src_pixels, threshold_vector, sign_convert_vector, one_i8, change, ref_pixels_1, ref_pixels_2, ref_pixels_3, ref_pixels_4, row, processed_pixels, params.src_height, params.dst_pitch, (__m128i*)dst_px, context_buffer);
+
+            
+            switch (precision_mode)
+            {
+            case PRECISION_LOW:
+            case PRECISION_HIGH_NO_DITHERING:
+            case PRECISION_HIGH_ORDERED_DITHERING:
+            case PRECISION_HIGH_FLOYD_STEINBERG_DITHERING:
+                _mm_store_si128((__m128i*)dst_px, dst_pixels);
+                dst_px += 16;
+                break;
+            case PRECISION_16BIT_STACKED:
+                // already written in process_pixels_mode12_high
+                dst_px += 16;
+                break;
+            case PRECISION_16BIT_INTERLEAVED:
+                // same as above
+                dst_px += 32;
+                break;
+            default:
+                abort();
+            }
 
             src_px += 16;
-            dst_px += 16;
             processed_pixels += 16;
         }
         dither_high::next_row<precision_mode>(context_buffer);

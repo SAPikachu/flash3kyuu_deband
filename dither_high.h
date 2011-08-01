@@ -75,6 +75,10 @@ namespace dither_high
 				pixel_proc_high_f_s_dithering::next_pixel(context);
 			}
 			return _mm_load_si128((__m128i*)buffer);
+        case PRECISION_16BIT_STACKED:
+        case PRECISION_16BIT_INTERLEAVED:
+			return _mm_setzero_si128();
+            break;
 		default:
 			abort();
 			return _mm_setzero_si128();

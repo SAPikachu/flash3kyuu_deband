@@ -35,8 +35,16 @@ static __m128i __inline _cmm_mullo_limit16_epi32(__m128i a, __m128i b)
 	return _mm_unpacklo_epi16(lo_part, hi_part);
 }
 
+static __m128i __inline _mm_min_epu16(__m128i val1, __m128i val2)
+{
+    __m128i sign_convert = _mm_set1_epi16((short)0x8000);
+    val1 = _mm_sub_epi16(val1, sign_convert);
+    val2 = _mm_sub_epi16(val2, sign_convert);
 
+    return _mm_add_epi16(_mm_min_epi16(val1, val2), sign_convert);
+}
 #endif
+
 
 
 #if !defined(SSE_LIMIT) || SSE_LIMIT >= 31
