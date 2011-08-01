@@ -438,7 +438,8 @@ unsigned int __stdcall mt_proc_wrapper(void* filter_instance)
 PVideoFrame __stdcall flash3kyuu_deband::GetFrame(int n, IScriptEnvironment* env)
 {
     PVideoFrame src = child->GetFrame(n, env);
-    PVideoFrame dst = env->NewVideoFrame(vi, PLANE_ALIGNMENT);
+    // interleaved 16bit output needs extra alignment
+    PVideoFrame dst = env->NewVideoFrame(vi, _precision_mode != PRECISION_16BIT_INTERLEAVED ? PLANE_ALIGNMENT : PLANE_ALIGNMENT * 2);
 
     if (_diff_seed_for_each_frame)
     {
