@@ -4,7 +4,7 @@ flash3kyuu_deband(clip c, int "range", int "Y", int "Cb", int "Cr",
 		int "precision_mode")
 		
 由 http://www.geocities.jp/flash3kyuu/auf/banding17.zip 移植，此处仅提供简单参数解释，参数详细意义请参考原始aviutl滤镜的文档。
-滤镜仅支持逐行YV12源。
+滤镜支持逐行YUY2及各平面YUV源。
 		
 range
 	banding检测范围，默认为15
@@ -57,10 +57,17 @@ precision_mode
 	1: 高精度模式, 无dither处理
 	2: 高精度模式, Ordered dithering
 	3: 高精度模式, Floyd-Steinberg dithering
+	4: 高精度模式, 16bit层叠输出，供dither工具集后续处理（http://forum.doom9.org/showthread.php?p=1386559#post1386559）
+	5: 高精度模式, 16bit交织输出，供10bit x264编码
 	
 	说明：
 	#1 该参数仅在sample_mode > 0时有效，sample_mode = 0时设置该参数会出错。
 	#2 不推荐模式0（除非sample_mode为0），需要高速处理的话建议使用模式1或2，否则建议质量较好的模式3。
 	#3 要达到同等强度，高精度模式的阈值及dither设置值为低精度模式下的64倍。
+	#4 10bit x264命令行范例：
+	   avs2yuv -raw "script.avs" -o - | x264-10bit --demuxer raw --input-depth 16 --input-res 1280x720 --fps 24 --output "out.mp4" -
+	   
+	   或使用添加过hack（ https://gist.github.com/1117711 ）的x264编译版：
+	   x264-10bit --input-depth 16 --output "out.mp4" script.avs
 	
 	默认值: 0 (sample_mode = 0) / 3 (sample_mode > 0)

@@ -10,7 +10,7 @@ avisynth.)
 This avisynth plugin debands the video by replacing banded pixels with average 
 value of referenced pixels, and optionally dithers them.
 
-Only YV12 progressive sources are supported.
+Supported colorspaces: YUY2 and all planar YUV formats (Progressive only)
 
 Parameters:		
 
@@ -94,6 +94,9 @@ precision_mode
 	1: High precision, No dithering
 	2: High precision, Ordered dithering
 	3: High precision, Floyd-Steinberg dithering
+	4: High precision, 16bit stacked output, for use with dither toolset
+	   (http://forum.doom9.org/showthread.php?p=1386559#post1386559)
+	5: High precision, 16bit interleaved output, for 10bit x264 encoding
 	
 	Note: 
 	1. In sample mode 0, only mode 0 is available (it doesn't make sense to use
@@ -105,6 +108,12 @@ precision_mode
 	3. In high precision mode, threshold and dither parameters are 64 times
 	   bigger than equivalent in low precision mode.
 	   	      
+	4. 10bit x264 command-line example:
+	   avs2yuv -raw "script.avs" -o - | x264-10bit --demuxer raw --input-depth 16 --input-res 1280x720 --fps 24 --output "out.mp4" -
+	   
+	   Or compile x264 with the patch on https://gist.github.com/1117711, and 
+	   specify the script directly:
+	   x264-10bit --input-depth 16 --output "out.mp4" script.avs
 	
 	Default: 0 (sample_mode = 0) /
 	         3 (sample_mode > 0)

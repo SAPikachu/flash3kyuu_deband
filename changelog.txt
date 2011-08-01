@@ -1,3 +1,11 @@
+1.2.0 (2011-08-01)
+ * Added support for YUY2 (not optimized yet)
+ * Added support for all planar YUV format in AviSynth 2.6
+ * The filter is now compatible with both AviSynth 2.5 and 2.6
+ * 16bit output (precision_mode = 4/5)
+   * Note: The internal processing precision is still 14bit, this will be
+     improved in future versions
+ 
 1.1.0 (2011-06-18)
  * Fixed a bug that high threshold values would produce incorrect result in
    high precision modes.
