@@ -42,8 +42,8 @@ static __forceinline void process_plane_info_block(
     __m128i &src_addrs, 
     const __m128i &src_pitch_vector, 
     const __m128i &src_addr_increment_vector, 
-    __m128i &change, 
-    const __m128i &change_mask, 
+    __m128i &change_1, 
+    __m128i &change_2, 
     const __m128i &minus_one, 
     const __m128i &width_subsample_vector,
     const __m128i &height_subsample_vector,
@@ -56,13 +56,27 @@ static __forceinline void process_plane_info_block(
     __m128i info_block = _mm_load_si128((__m128i*)info_ptr);
 
     if (sample_mode > 0) {
-        // change: bit 16-23
-        // merge it into the variable, and shuffle it to correct place after all 16 elements are loaded
+        // change: bit 16-31
         __m128i change_temp;
         change_temp = info_block;
-        change_temp = _mm_and_si128(change_temp, change_mask);
+        change_temp = _mm_srai_epi32(change_temp, 16);
+
+        switch (ref_part_index)
+        {
+        case 0:
+            change_1 = change_temp;
+            break;
+        case 1:
+            change_1 = _mm_packs_epi32(change_1, change_temp);
+            break;
+        case 2:
+            change_2 = change_temp;
+            break;
+        case 3:
+            change_2 = _mm_packs_epi32(change_2, change_temp);
+            break;
+        }
     
-        change = process_change_part<ref_part_index>(change, change_temp);
     }
 
     // ref1: bit 0-7
@@ -177,7 +191,7 @@ static __forceinline void process_plane_info_block(
 }
 
 
-static __m128i __inline process_pixels_mode0(__m128i src_pixels, __m128i threshold_vector, __m128i change, __m128i& ref_pixels)
+static __m128i __inline process_pixels_mode0(__m128i src_pixels, __m128i threshold_vector, __m128i& ref_pixels)
 {
     __m128i dst_pixels;
     __m128i blend_mask;
@@ -354,14 +368,14 @@ static __m128i __forceinline process_pixels_mode12_high_part(__m128i src_pixels,
 
 
 template<int sample_mode, bool blur_first, int precision_mode>
-static __m128i __forceinline process_pixels_mode12_high(__m128i src_pixels, __m128i threshold_vector, __m128i change, __m128i& ref_pixels_1, __m128i& ref_pixels_2, __m128i& ref_pixels_3, __m128i& ref_pixels_4, int row, int column, int height, int dst_pitch, __m128i* dst_px, void* dither_context)
+static __m128i __forceinline process_pixels_mode12_high(__m128i src_pixels, __m128i threshold_vector, __m128i& change_1, __m128i& change_2, __m128i& ref_pixels_1, __m128i& ref_pixels_2, __m128i& ref_pixels_3, __m128i& ref_pixels_4, int row, int column, int height, int dst_pitch, __m128i* dst_px, void* dither_context)
 {
     __m128i zero = _mm_setzero_si128();
     
     __m128i lo = process_pixels_mode12_high_part<sample_mode, blur_first>
         (_mm_unpacklo_epi8(src_pixels, zero), 
          threshold_vector, 
-         _mm_srai_epi16(_mm_unpacklo_epi8(change, change), 8), 
+         change_1, 
          _mm_unpacklo_epi8(ref_pixels_1, zero), 
          _mm_unpacklo_epi8(ref_pixels_2, zero), 
          _mm_unpacklo_epi8(ref_pixels_3, zero), 
@@ -370,7 +384,7 @@ static __m128i __forceinline process_pixels_mode12_high(__m128i src_pixels, __m1
     __m128i hi = process_pixels_mode12_high_part<sample_mode, blur_first>
         (_mm_unpackhi_epi8(src_pixels, zero), 
          threshold_vector, 
-         _mm_srai_epi16(_mm_unpackhi_epi8(change, change), 8), 
+         change_2, 
          _mm_unpackhi_epi8(ref_pixels_1, zero), 
          _mm_unpackhi_epi8(ref_pixels_2, zero), 
          _mm_unpackhi_epi8(ref_pixels_3, zero), 
@@ -432,20 +446,20 @@ static __m128i __forceinline process_pixels_mode12_high(__m128i src_pixels, __m1
 }
 
 template<int sample_mode, bool blur_first, int precision_mode>
-static __m128i __forceinline process_pixels(__m128i src_pixels, __m128i threshold_vector, __m128i sign_convert_vector, __m128i& one_i8, __m128i& change, __m128i& ref_pixels_1, __m128i& ref_pixels_2, __m128i& ref_pixels_3, __m128i& ref_pixels_4, int row, int column, int height, int dst_pitch, __m128i* dst_px, void* dither_context)
+static __m128i __forceinline process_pixels(__m128i src_pixels, __m128i threshold_vector, __m128i sign_convert_vector, __m128i& one_i8, __m128i& change_1, __m128i& change_2, __m128i& ref_pixels_1, __m128i& ref_pixels_2, __m128i& ref_pixels_3, __m128i& ref_pixels_4, int row, int column, int height, int dst_pitch, __m128i* dst_px, void* dither_context)
 {
     switch (sample_mode)
     {
     case 0:
-        return process_pixels_mode0(src_pixels, threshold_vector, change, ref_pixels_1);
+        return process_pixels_mode0(src_pixels, threshold_vector, ref_pixels_1);
         break;
     case 1:
     case 2:
         if (precision_mode == PRECISION_LOW)
         {
-            return process_pixels_mode12<sample_mode, blur_first>(src_pixels, threshold_vector, sign_convert_vector, one_i8, change, ref_pixels_1, ref_pixels_2, ref_pixels_3, ref_pixels_4);
+            return process_pixels_mode12<sample_mode, blur_first>(src_pixels, threshold_vector, sign_convert_vector, one_i8, change_1, ref_pixels_1, ref_pixels_2, ref_pixels_3, ref_pixels_4);
         } else {
-            return process_pixels_mode12_high<sample_mode, blur_first, precision_mode>(src_pixels, threshold_vector, change, ref_pixels_1, ref_pixels_2, ref_pixels_3, ref_pixels_4, row, column, height, dst_pitch, dst_px, dither_context);
+            return process_pixels_mode12_high<sample_mode, blur_first, precision_mode>(src_pixels, threshold_vector, change_1, change_2, ref_pixels_1, ref_pixels_2, ref_pixels_3, ref_pixels_4, row, column, height, dst_pitch, dst_px, dither_context);
         }
         break;
     default:
@@ -465,11 +479,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
     __m128i src_addr_increment_vector = _mm_set1_epi32(4);
 
     __m128i src_pitch_vector = _mm_set1_epi32(params.src_pitch);
-    
-    __m128i change_extract_mask = _mm_set1_epi32(0x00FF0000);
-
-    __m128i change_shuffle_mask = _mm_set_epi32(0x0f0b0703, 0x0e0a0602, 0x0d090501, 0x0c080400);
-        
+           
     __m128i threshold_vector;
     
     if (precision_mode == PRECISION_LOW || sample_mode == 0)
@@ -511,7 +521,8 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
     } else {
         // set up buffer for cache
         cache = (info_cache*)malloc(sizeof(info_cache));
-        info_data_stream = (char*)_aligned_malloc(params.info_stride * (4 * 2 + 1) * params.src_height, FRAME_LUT_ALIGNMENT);
+        // 4 offsets (2 bytes per item) + 2-byte change
+        info_data_stream = (char*)_aligned_malloc(params.info_stride * (4 * 2 + 2) * params.src_height, FRAME_LUT_ALIGNMENT);
         cache->data_stream = info_data_stream;
         cache->pitch = params.src_pitch;
     }
@@ -533,7 +544,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 
         while (processed_pixels < params.src_width)
         {
-            __m128i change;
+            __m128i change_1, change_2;
 
             __m128i ref_pixels_1;
             __m128i ref_pixels_2;
@@ -542,7 +553,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 
             if (LIKELY(use_cached_info)) {
                 // cache layout: 16 offset groups (1 or 2 offsets / group depending on sample mode) in a pack, 
-                //               followed by 16 bytes of change values
+                //               followed by 32 bytes of change values
                 // in the case of 2 offsets / group, offsets are stored like this:
                 // [1 1 1 1 
                 //  2 2 2 2
@@ -573,16 +584,22 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
                 }
                 info_data_stream += (sample_mode == 2 ? 128 : 64);
                 if (sample_mode > 0) {
-                    change = _mm_load_si128((__m128i*)info_data_stream);
+                    change_1 = _mm_load_si128((__m128i*)info_data_stream);
                     info_data_stream += 16;
+                    if (precision_mode != PRECISION_LOW)
+                    {
+                        change_2 = _mm_load_si128((__m128i*)info_data_stream);
+                        info_data_stream += 16;
+                    }
                 }
             } else {
                 // we need to process the info block
-                change = _mm_setzero_si128();
+                change_1 = _mm_setzero_si128();
+                change_2 = _mm_setzero_si128();
 
             
     #define PROCESS_INFO_BLOCK(n) \
-                process_plane_info_block<sample_mode, n>(info_ptr, src_addrs, src_pitch_vector, src_addr_increment_vector, change, change_extract_mask, minus_one, width_subsample_vector, height_subsample_vector, ref_pixels_1.m128i_u8, ref_pixels_2.m128i_u8, ref_pixels_3.m128i_u8, ref_pixels_4.m128i_u8, info_data_stream);
+                process_plane_info_block<sample_mode, n>(info_ptr, src_addrs, src_pitch_vector, src_addr_increment_vector, change_1, change_2, minus_one, width_subsample_vector, height_subsample_vector, ref_pixels_1.m128i_u8, ref_pixels_2.m128i_u8, ref_pixels_3.m128i_u8, ref_pixels_4.m128i_u8, info_data_stream);
             
                 PROCESS_INFO_BLOCK(0);
                 PROCESS_INFO_BLOCK(1);
@@ -591,12 +608,21 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 
     #undef PROCESS_INFO_BLOCK
 
+                if (precision_mode == PRECISION_LOW)
+                {
+                    change_1 = _mm_packs_epi16(change_1, change_2);
+                }
+
                 if (sample_mode > 0) {
-                    change = postprocess_change_value(change, change_shuffle_mask);
 
                     if (info_data_stream) {
-                        _mm_store_si128((__m128i*)info_data_stream, change);
+                        _mm_store_si128((__m128i*)info_data_stream, change_1);
                         info_data_stream += 16;
+                        if (precision_mode != PRECISION_LOW)
+                        {
+                            _mm_store_si128((__m128i*)info_data_stream, change_2);
+                            info_data_stream += 16;
+                        }
                     }
                 }
             }
@@ -617,7 +643,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
                     src_pixels = _mm_loadu_si128((__m128i*)src_px);
                 }
             }
-            __m128i dst_pixels = process_pixels<sample_mode, blur_first, precision_mode>(src_pixels, threshold_vector, sign_convert_vector, one_i8, change, ref_pixels_1, ref_pixels_2, ref_pixels_3, ref_pixels_4, row, processed_pixels, params.src_height, params.dst_pitch, (__m128i*)dst_px, context_buffer);
+            __m128i dst_pixels = process_pixels<sample_mode, blur_first, precision_mode>(src_pixels, threshold_vector, sign_convert_vector, one_i8, change_1, change_2, ref_pixels_1, ref_pixels_2, ref_pixels_3, ref_pixels_4, row, processed_pixels, params.src_height, params.dst_pitch, (__m128i*)dst_px, context_buffer);
 
             
             switch (precision_mode)

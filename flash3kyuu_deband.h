@@ -39,8 +39,8 @@ FLASH3KYUU_DEBAND_API const char* __stdcall AvisynthPluginInit2(IScriptEnvironme
 
 
 typedef __declspec(align(4)) struct _pixel_dither_info {
-    signed char ref1, ref2, change;
-    signed char unused;
+    signed char ref1, ref2;
+    signed short change;
 } pixel_dither_info;
 
 // alignment for SSE operations

@@ -84,7 +84,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     check_parameter_range(value, lower_bound, upper_bound, #value, env);
     
     int threshold_upper_limit = default_val * 8 - 1;
-    int dither_upper_limit = (precision_mode == PRECISION_LOW || sample_mode == 0) ? 3 : 127;
+    int dither_upper_limit = (precision_mode == PRECISION_LOW || sample_mode == 0) ? 3 : 4096;
 
     CHECK_PARAM(range, 0, 31);
     CHECK_PARAM(Y, 0, threshold_upper_limit);
@@ -228,8 +228,8 @@ void flash3kyuu_deband::init_frame_luts(int n)
         }
         for (int x = 0; x < vi.width; x++)
         {
-            pixel_dither_info info_y = {0, 0, 0, 0};
-            info_y.change = (signed char)(rand_next(seed) % ditherY_limit - _ditherY);
+            pixel_dither_info info_y = {0, 0, 0};
+            info_y.change = (signed short)(rand_next(seed) % ditherY_limit - _ditherY);
 
             int cur_range = min_multi(_range, y, vi.height - y - 1, -1);
             if (_sample_mode == 2)
@@ -266,8 +266,8 @@ void flash3kyuu_deband::init_frame_luts(int n)
                 pixel_dither_info info_cb = info_y;
                 pixel_dither_info info_cr = info_cb;
 
-                info_cb.change = (signed char)(rand_next(seed) % ditherC_limit - _ditherC);
-                info_cr.change = (signed char)(rand_next(seed) % ditherC_limit - _ditherC);
+                info_cb.change = (signed short)(rand_next(seed) % ditherC_limit - _ditherC);
+                info_cr.change = (signed short)(rand_next(seed) % ditherC_limit - _ditherC);
 
                 if (vi.IsPlanar())
                 {
