@@ -26,6 +26,8 @@ static void destroy_cache(void* data)
     free(data);
 }
 
+#define UPDOWNSAMPLING_BIT_SHIFT (INTERNAL_BIT_DEPTH - 8)
+
 static __inline __m128i clamped_absolute_difference(__m128i a, __m128i b, __m128i difference_limit)
 {
     // we need to clamp the result for 2 reasons:
@@ -295,7 +297,7 @@ static __forceinline __m128i generate_blend_mask_high(__m128i a, __m128i b, __m1
 
 static __m128i __forceinline upsample_pixels(__m128i pixels)
 {
-    return _mm_slli_epi16(pixels, 6);
+    return _mm_slli_epi16(pixels, UPDOWNSAMPLING_BIT_SHIFT);
 }
 
 template<int sample_mode, bool blur_first>
@@ -366,6 +368,29 @@ static __m128i __forceinline process_pixels_mode12_high_part(__m128i src_pixels,
     return dst_pixels;
 }
 
+static __m128i __forceinline high_bit_depth_pixels_clamp(__m128i pixels)
+{
+    if (UPDOWNSAMPLING_BIT_SHIFT < 8)
+    {
+        __m128i max_pixel_value = _mm_set1_epi16( (short)( ( 1 << (UPDOWNSAMPLING_BIT_SHIFT + 8) ) - 1 ) );
+        pixels = _mm_min_epu16(pixels, max_pixel_value);
+    }
+    return pixels;
+}
+
+static __m128i __forceinline high_bit_depth_pixels_shift_to_16bit(__m128i pixels)
+{
+    if (UPDOWNSAMPLING_BIT_SHIFT < 8)
+    {
+        pixels = _mm_slli_epi16(pixels, (8 - UPDOWNSAMPLING_BIT_SHIFT));
+    }
+    return pixels;
+}
+
+static __m128i __forceinline high_bit_depth_pixels_shift_to_8bit(__m128i pixels)
+{
+    return _mm_srli_epi16(pixels, UPDOWNSAMPLING_BIT_SHIFT);
+}
 
 template<int sample_mode, bool blur_first, int precision_mode>
 static __m128i __forceinline process_pixels_mode12_high(__m128i src_pixels, __m128i threshold_vector, __m128i& change_1, __m128i& change_2, __m128i& ref_pixels_1, __m128i& ref_pixels_2, __m128i& ref_pixels_3, __m128i& ref_pixels_4, int row, int column, int height, int dst_pitch, __m128i* dst_px, void* dither_context)
@@ -399,26 +424,30 @@ static __m128i __forceinline process_pixels_mode12_high(__m128i src_pixels, __m1
         lo = dither_high::dither<precision_mode>(dither_context, lo, row, column);
         hi = dither_high::dither<precision_mode>(dither_context, hi, row, column + 8);
 
-        lo = _mm_srli_epi16(lo, 6);
-        hi = _mm_srli_epi16(hi, 6);
+        lo = high_bit_depth_pixels_shift_to_8bit(lo);
+        hi = high_bit_depth_pixels_shift_to_8bit(hi);
 
         return _mm_packus_epi16(lo, hi);
         break;
     case PRECISION_16BIT_STACKED:
         {
-            __m128i max_pixel_value = _mm_set1_epi16(0x3fff);
-            lo = _mm_min_epu16(lo, max_pixel_value);
-            hi = _mm_min_epu16(hi, max_pixel_value);
-            __m128i msb_lo = _mm_srli_epi16(lo, 6);
-            __m128i msb_hi = _mm_srli_epi16(hi, 6);
+            lo = high_bit_depth_pixels_clamp(lo);
+            hi = high_bit_depth_pixels_clamp(hi);
+
+            __m128i msb_lo = high_bit_depth_pixels_shift_to_8bit(lo);
+            __m128i msb_hi = high_bit_depth_pixels_shift_to_8bit(hi);
 
             __m128i msb = _mm_packus_epi16(msb_lo, msb_hi);
             _mm_store_si128(dst_px, msb);
 
             __m128i mask = _mm_set1_epi16(0x00ff);
-            __m128i lsb_lo = _mm_slli_epi16(lo, 2);
+            __m128i lsb_lo;
+            __m128i lsb_hi;
+
+            lsb_lo = high_bit_depth_pixels_shift_to_16bit(lo);
+            lsb_hi = high_bit_depth_pixels_shift_to_16bit(hi);
+
             lsb_lo = _mm_and_si128(lsb_lo, mask);
-            __m128i lsb_hi = _mm_slli_epi16(hi, 2);
             lsb_hi = _mm_and_si128(lsb_hi, mask);
         
             __m128i lsb = _mm_packus_epi16(lsb_lo, lsb_hi);
@@ -427,12 +456,11 @@ static __m128i __forceinline process_pixels_mode12_high(__m128i src_pixels, __m1
         break;
     case PRECISION_16BIT_INTERLEAVED:
         {
-            __m128i max_pixel_value = _mm_set1_epi16(0x3fff);
-            lo = _mm_min_epu16(lo, max_pixel_value);
-            hi = _mm_min_epu16(hi, max_pixel_value);
-
-            lo = _mm_slli_epi16(lo, 2);
-            hi = _mm_slli_epi16(hi, 2);
+            lo = high_bit_depth_pixels_clamp(lo);
+            hi = high_bit_depth_pixels_clamp(hi);
+            
+            lo = high_bit_depth_pixels_shift_to_16bit(lo);
+            hi = high_bit_depth_pixels_shift_to_16bit(hi);
         
             _mm_store_si128(dst_px, lo);
             _mm_store_si128(dst_px + 1, hi);

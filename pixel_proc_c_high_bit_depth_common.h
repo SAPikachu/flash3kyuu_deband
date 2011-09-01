@@ -13,7 +13,7 @@
 
 	static inline int upsample(void* context, unsigned char pixel)
 	{
-		return pixel << (BIT_DEPTH - 8);
+		return pixel << (INTERNAL_BIT_DEPTH - 8);
 	}
 
 #if defined(HAS_DOWNSAMPLE)
@@ -22,7 +22,7 @@
 	static inline int downsample(void* context, int pixel, int row, int column)
 	{
 		pixel = dither(context, pixel, row, column);
-		return clamp_pixel(pixel >> (BIT_DEPTH - 8));
+		return clamp_pixel(pixel >> (INTERNAL_BIT_DEPTH - 8));
 	}
 #endif
 

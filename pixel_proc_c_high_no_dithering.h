@@ -2,8 +2,6 @@
 
 namespace pixel_proc_high_no_dithering {
 	
-	static const int BIT_DEPTH = 14;
-
 	static inline void init_context(char context_buffer[CONTEXT_BUFFER_SIZE], int frame_width)
 	{
 		// nothing to do

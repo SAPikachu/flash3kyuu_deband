@@ -50,6 +50,8 @@ typedef __declspec(align(4)) struct _pixel_dither_info {
 // whole multiples of alignment, so SSE codes don't need to check boundaries
 #define FRAME_LUT_STRIDE(width) (((width - 1) | (FRAME_LUT_ALIGNMENT - 1)) + 1)
 
+#define INTERNAL_BIT_DEPTH 16
+
 typedef struct _process_plane_params
 {
     const unsigned char *src_plane_ptr;

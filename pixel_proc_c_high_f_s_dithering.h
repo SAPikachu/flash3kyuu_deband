@@ -4,8 +4,6 @@
 
 namespace pixel_proc_high_f_s_dithering {
 	
-	static const int BIT_DEPTH = 14;
-
 	typedef unsigned short ERROR_TYPE;
 
 	typedef struct _context_t
@@ -84,7 +82,7 @@ namespace pixel_proc_high_f_s_dithering {
 			return pixel;
 		}
 		pixel += *(ctx->current_px_error);
-		int new_error = pixel & ( ( 1 << (BIT_DEPTH - 8) ) - 1 );
+		int new_error = pixel & ( ( 1 << (INTERNAL_BIT_DEPTH - 8) ) - 1 );
 		*(ctx->current_px_error + 1) += (new_error * 7) >> 4;
 		*(ctx->current_px_error + ctx->row_pitch - 1) += (new_error * 3) >> 4;
 		*(ctx->current_px_error + ctx->row_pitch) += (new_error * 5) >> 4;
