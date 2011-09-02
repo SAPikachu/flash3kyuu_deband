@@ -96,6 +96,14 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     CHECK_PARAM(seed, 0, 127);
     CHECK_PARAM(opt, -1, (IMPL_COUNT - 1) );
     CHECK_PARAM(precision_mode, 0, (PRECISION_COUNT - 1) );
+
+    // now the internal bit depth is 16, 
+    // scale parameters to be consistent with 14bit range in previous versions
+    Y <<= 2;
+    Cb <<= 2;
+    Cr <<= 2;
+    ditherY <<= 2;
+    ditherC <<= 2;
     
     return new flash3kyuu_deband(child, range, 
         (unsigned short)Y, (unsigned short)Cb, (unsigned short)Cr, 
