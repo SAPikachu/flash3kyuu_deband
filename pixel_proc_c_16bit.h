@@ -28,12 +28,14 @@ namespace pixel_proc_16bit {
 	}
 
     #define HAS_DOWNSAMPLE
-	static inline int downsample(void* context, int pixel, int row, int column)
-	{
-        // I know the method name is totally wrong...
-		return pixel << (16 - INTERNAL_BIT_DEPTH);
-	}
 
 	#include "pixel_proc_c_high_bit_depth_common.h"
+
+	static inline int downsample(void* context, int pixel, int row, int column, int pixel_min, int pixel_max)
+	{
+        // I know the method name is totally wrong...
+		return clamp_pixel(pixel, pixel_min, pixel_max) << (16 - INTERNAL_BIT_DEPTH);
+	}
+
 
 };

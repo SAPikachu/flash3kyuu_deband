@@ -43,6 +43,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     int opt = args[11].AsInt(-1);
     bool mt = args[12].AsBool(si.dwNumberOfProcessors > 1);
     int precision_mode = args[13].AsInt(sample_mode == 0 ? PRECISION_LOW : PRECISION_HIGH_FLOYD_STEINBERG_DITHERING);
+    bool keep_tv_range = args[14].AsBool(false);
 
     int default_val = (precision_mode == PRECISION_LOW || sample_mode == 0) ? 1 : 64;
     int Y = args[2].AsInt(default_val);
@@ -108,12 +109,14 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     return new flash3kyuu_deband(child, range, 
         (unsigned short)Y, (unsigned short)Cb, (unsigned short)Cr, 
         ditherY, ditherC, sample_mode, seed, 
-        blur_first, diff_seed_for_each_frame, opt, mt, precision_mode);
+        blur_first, diff_seed_for_each_frame, opt, mt, precision_mode, 
+        keep_tv_range);
 }
 
 flash3kyuu_deband::flash3kyuu_deband(PClip child, int range, unsigned short Y, unsigned short Cb, unsigned short Cr, 
         int ditherY, int ditherC, int sample_mode, int seed,
-        bool blur_first, bool diff_seed_for_each_frame, int opt, bool mt, int precision_mode) :
+        bool blur_first, bool diff_seed_for_each_frame, int opt, bool mt, int precision_mode,
+        bool keep_tv_range) :
             GenericVideoFilter(child),
             _range(range),
             _Y(Y),
@@ -131,6 +134,7 @@ flash3kyuu_deband::flash3kyuu_deband(PClip child, int range, unsigned short Y, u
             _opt(opt),
             _mt(mt),
             _precision_mode(precision_mode),
+            _keep_tv_range(keep_tv_range),
             _mt_info(NULL),
             _process_plane_impl(NULL)
 {
@@ -384,21 +388,28 @@ void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned
     case PLANAR_Y:
         params.info_ptr_base = _y_info;
         params.threshold = _Y;
+        params.pixel_max = _keep_tv_range ? TV_RANGE_Y_MAX : FULL_RANGE_Y_MAX;
+        params.pixel_min = _keep_tv_range ? TV_RANGE_Y_MIN : FULL_RANGE_Y_MIN;
         context = &_y_context;
         break;
     case PLANAR_U:
         params.info_ptr_base = _cb_info;
         params.threshold = _Cb;
+        params.pixel_max = _keep_tv_range ? TV_RANGE_C_MAX : FULL_RANGE_C_MAX;
+        params.pixel_min = _keep_tv_range ? TV_RANGE_C_MIN : FULL_RANGE_C_MIN;
         context = &_cb_context;
         break;
     case PLANAR_V:
         params.info_ptr_base = _cr_info;
         params.threshold = _Cr;
+        params.pixel_max = _keep_tv_range ? TV_RANGE_C_MAX : FULL_RANGE_C_MAX;
+        params.pixel_min = _keep_tv_range ? TV_RANGE_C_MIN : FULL_RANGE_C_MIN;
         context = &_cr_context;
         break;
     default:
         abort();
     }
+    
 
     bool copy_plane = false;
     if (vi.IsPlanar() && _precision_mode < PRECISION_16BIT_STACKED)
@@ -412,6 +423,8 @@ void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned
         return;
     }
 
+    params.pixel_max_c = _keep_tv_range ? TV_RANGE_C_MAX : FULL_RANGE_C_MAX;
+    params.pixel_min_c = _keep_tv_range ? TV_RANGE_C_MIN : FULL_RANGE_C_MIN;
     params.threshold_y = _Y;
     params.threshold_cb = _Cb;
     params.threshold_cr = _Cr;

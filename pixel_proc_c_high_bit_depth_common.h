@@ -1,15 +1,4 @@
-
-    static inline unsigned char clamp_pixel(int pixel)
-    {
-        if (pixel > 0xff) {
-            pixel = 0xff;
-        } else if (pixel < 0) {
-            pixel = 0;
-        }
-        return (unsigned char)pixel;
-    }
-
-
+#include "utils.h"
 
 	static inline int upsample(void* context, unsigned char pixel)
 	{
@@ -19,10 +8,10 @@
 #if defined(HAS_DOWNSAMPLE)
 #undef HAS_DOWNSAMPLE
 #else
-	static inline int downsample(void* context, int pixel, int row, int column)
+	static inline int downsample(void* context, int pixel, int row, int column, int pixel_min, int pixel_max)
 	{
 		pixel = dither(context, pixel, row, column);
-		return clamp_pixel(pixel >> (INTERNAL_BIT_DEPTH - 8));
+		return clamp_pixel(pixel, pixel_min, pixel_max) >> (INTERNAL_BIT_DEPTH - 8);
 	}
 #endif
 

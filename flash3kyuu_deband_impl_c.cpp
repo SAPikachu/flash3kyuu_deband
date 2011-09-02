@@ -91,6 +91,9 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
 
     unsigned short threshold = params.threshold;
 
+    int pixel_min = params.pixel_min;
+    int pixel_max = params.pixel_max;
+
     if (!params.vi->IsYUY2())
     {
         pixel_proc_init_context<mode>(context_y, params.src_width);
@@ -108,6 +111,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
 
         info_ptr = params.info_ptr_base + params.info_stride * i;
 
+
         for (int j = 0; j < params.src_width; j++)
         {
             int real_col = j;
@@ -121,16 +125,22 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
                     context = context_y;
                     threshold = params.threshold_y;
                     real_col = j >> 1;
+                    pixel_min = params.pixel_min;
+                    pixel_max = params.pixel_max;
                     break;
                 case 1:
                     context = context_cb;
                     threshold = params.threshold_cb;
                     real_col = j >> 2;
+                    pixel_min = params.pixel_min_c;
+                    pixel_max = params.pixel_max_c;
                     break;
                 case 3:
                     context = context_cr;
                     threshold = params.threshold_cr;
                     real_col = j >> 2;
+                    pixel_min = params.pixel_min_c;
+                    pixel_max = params.pixel_max_c;
                     break;
                 default:
                     abort();
@@ -212,7 +222,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
             } else {
                 new_pixel = avg + info.change;
             }
-            new_pixel = pixel_proc_downsample<mode>(context, new_pixel, i, real_col);
+            new_pixel = pixel_proc_downsample<mode>(context, new_pixel, i, real_col, pixel_min, pixel_max);
             switch (mode)
             {
             case PRECISION_LOW:

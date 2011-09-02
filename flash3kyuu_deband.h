@@ -52,6 +52,19 @@ typedef __declspec(align(4)) struct _pixel_dither_info {
 
 #define INTERNAL_BIT_DEPTH 16
 
+// these range values are defined in internal bit depth
+#define TV_RANGE_Y_MIN (16 << (INTERNAL_BIT_DEPTH - 8))
+#define TV_RANGE_Y_MAX (235 << (INTERNAL_BIT_DEPTH - 8))
+
+#define TV_RANGE_C_MIN TV_RANGE_Y_MIN
+#define TV_RANGE_C_MAX (240 << (INTERNAL_BIT_DEPTH - 8))
+
+#define FULL_RANGE_Y_MIN 0
+#define FULL_RANGE_Y_MAX ((1 << INTERNAL_BIT_DEPTH) - 1)
+
+#define FULL_RANGE_C_MIN FULL_RANGE_Y_MIN
+#define FULL_RANGE_C_MAX FULL_RANGE_Y_MAX
+
 typedef struct _process_plane_params
 {
     const unsigned char *src_plane_ptr;
@@ -71,6 +84,13 @@ typedef struct _process_plane_params
 
     unsigned char width_subsampling;
     unsigned char height_subsampling;
+    
+    int pixel_max;
+    int pixel_min;
+
+    // for use with YUY2
+    int pixel_max_c;
+    int pixel_min_c;
     
     unsigned short threshold_y, threshold_cb, threshold_cr;
     VideoInfo* vi;
@@ -95,6 +115,8 @@ private:
     bool _mt;
 
     int _precision_mode;
+
+    bool _keep_tv_range;
 
     process_plane_impl_t _process_plane_impl;
 
@@ -125,7 +147,8 @@ public:
     void mt_proc(void);
     flash3kyuu_deband(PClip child, int range, unsigned short Y, unsigned short Cb, unsigned short Cr, 
         int ditherY, int ditherC, int sample_mode, int seed,
-        bool blur_first, bool diff_seed_for_each_frame, int opt, bool mt, int precision_mode);
+        bool blur_first, bool diff_seed_for_each_frame, int opt, bool mt, int precision_mode, 
+        bool keep_tv_range);
     ~flash3kyuu_deband();
 
     PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);

@@ -57,10 +57,10 @@ static inline int pixel_proc_upsample(void* context, unsigned char pixel)
 }
 
 template <int mode>
-static inline int pixel_proc_downsample(void* context, int pixel, int row, int column)
+static inline int pixel_proc_downsample(void* context, int pixel, int row, int column, int pixel_min, int pixel_max)
 {
 	CHECK_MODE();
-	return CALL_IMPL(downsample, context, pixel, row, column);
+	return CALL_IMPL(downsample, context, pixel, row, column, pixel_min, pixel_max);
 }
 
 template <int mode>
