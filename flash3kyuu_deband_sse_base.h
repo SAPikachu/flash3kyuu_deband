@@ -482,7 +482,7 @@ static __m128i __forceinline process_pixels_mode12_high(
                 ret = low_bit_depth_pixels_clamp(ret, clamp_high_add, clamp_high_sub, clamp_low);
             }
             return ret;
-        break;
+            break;
         }
     case PRECISION_16BIT_STACKED:
         {
