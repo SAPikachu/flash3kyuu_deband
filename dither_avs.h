@@ -15,6 +15,7 @@ private:
     bool _keep_tv_range;
     
     void process_plane(PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane, IScriptEnvironment* env);
+    void process_plane_yuy2(PVideoFrame src, PVideoFrame dst, unsigned char *dstp, IScriptEnvironment* env);
     void get_pixel_limits(int plane, unsigned char &pixel_min, unsigned char &pixel_max);
 
 

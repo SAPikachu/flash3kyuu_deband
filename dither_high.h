@@ -11,99 +11,167 @@
 
 namespace dither_high
 {
-	static __m128i _ordered_dithering_threshold_map[16] [2];
-	static volatile bool _threshold_map_initialized = false;
+    static __m128i _ordered_dithering_threshold_map[16] [2];
+    static __m128i _ordered_dithering_threshold_map_yuy2[16] [8];
+    static volatile bool _threshold_map_initialized = false;
 
-	static __inline void init_ordered_dithering()
-	{
-		if (UNLIKELY(!_threshold_map_initialized)) {
-			__m128i threhold_row;
-			__m128i zero = _mm_setzero_si128();
-			for (int i = 0; i < 16; i++) 
-			{
-				threhold_row = *(__m128i*)pixel_proc_high_ordered_dithering::THRESHOLD_MAP[i];
-					
-				_ordered_dithering_threshold_map[i][0] = _mm_unpacklo_epi8(threhold_row, zero);
-				_ordered_dithering_threshold_map[i][1] = _mm_unpackhi_epi8(threhold_row, zero);
+    static __inline void init_ordered_dithering()
+    {
+        if (UNLIKELY(!_threshold_map_initialized)) {
+            __m128i threhold_row;
+            __m128i zero = _mm_setzero_si128();
+            for (int i = 0; i < 16; i++) 
+            {
+                threhold_row = *(__m128i*)pixel_proc_high_ordered_dithering::THRESHOLD_MAP[i];
+                    
+                __m128i part_0 = _mm_unpacklo_epi8(threhold_row, zero);
+                __m128i part_1 = _mm_unpackhi_epi8(threhold_row, zero);
 
                 if (INTERNAL_BIT_DEPTH < 16)
                 {
-                    _ordered_dithering_threshold_map[i][0] = _mm_srli_epi16(
-                        _ordered_dithering_threshold_map[i][0], 
-                        16 - INTERNAL_BIT_DEPTH);
-
-                    _ordered_dithering_threshold_map[i][1] = _mm_srli_epi16(
-                        _ordered_dithering_threshold_map[i][1], 
-                        16 - INTERNAL_BIT_DEPTH);
+                    part_0 = _mm_srli_epi16(part_0, 16 - INTERNAL_BIT_DEPTH);
+                    part_1 = _mm_srli_epi16(part_1, 16 - INTERNAL_BIT_DEPTH);
                 }
-			}
-			_mm_mfence();
-			_threshold_map_initialized = true;
-		}
-	}
+                _ordered_dithering_threshold_map[i][0] = part_0;
+                _ordered_dithering_threshold_map[i][1] = part_1;
+                
+                __m128i tmp = _mm_unpacklo_epi8(part_0, part_0);
+                _ordered_dithering_threshold_map_yuy2[i][0] = _mm_unpacklo_epi16(part_0, tmp);
+                _ordered_dithering_threshold_map_yuy2[i][1] = _mm_unpackhi_epi16(part_0, tmp);
 
-	template <int precision_mode>
-	static __inline void init(char context_buffer[CONTEXT_BUFFER_SIZE], int frame_width) 
-	{
-		if (precision_mode == PRECISION_HIGH_FLOYD_STEINBERG_DITHERING)
-		{
-			pixel_proc_high_f_s_dithering::init_context(context_buffer, frame_width);
-		} else if (precision_mode == PRECISION_HIGH_ORDERED_DITHERING) {
-			init_ordered_dithering();
-		}
-	}
+                tmp = _mm_unpackhi_epi8(part_0, part_0);
+                _ordered_dithering_threshold_map_yuy2[i][2] = _mm_unpacklo_epi16(part_1, tmp);
+                _ordered_dithering_threshold_map_yuy2[i][3] = _mm_unpackhi_epi16(part_1, tmp);
 
-	template <int precision_mode>
-	static __inline void complete(void* context) 
-	{
-		if (precision_mode == PRECISION_HIGH_FLOYD_STEINBERG_DITHERING)
-		{
-			pixel_proc_high_f_s_dithering::destroy_context(context);
-		}
-	}
+                tmp = _mm_unpacklo_epi8(part_1, part_1);
+                _ordered_dithering_threshold_map_yuy2[i][4] = _mm_unpacklo_epi16(part_0, tmp);
+                _ordered_dithering_threshold_map_yuy2[i][5] = _mm_unpackhi_epi16(part_0, tmp);
 
-	template <int precision_mode>
-	static __forceinline __m128i dither(void* context, __m128i pixels, int row, int column)
-	{
-		switch (precision_mode)
-		{
-		case PRECISION_LOW:
-		case PRECISION_HIGH_NO_DITHERING:
-			return pixels;
-		case PRECISION_HIGH_ORDERED_DITHERING:
+                tmp = _mm_unpackhi_epi8(part_1, part_1);
+                _ordered_dithering_threshold_map_yuy2[i][6] = _mm_unpacklo_epi16(part_1, tmp);
+                _ordered_dithering_threshold_map_yuy2[i][7] = _mm_unpackhi_epi16(part_1, tmp);
+            }
+            _mm_mfence();
+            _threshold_map_initialized = true;
+        }
+    }
+
+    template <int precision_mode>
+    static __inline void init(char context_buffer[CONTEXT_BUFFER_SIZE], int frame_width) 
+    {
+        if (precision_mode == PRECISION_HIGH_FLOYD_STEINBERG_DITHERING)
+        {
+            pixel_proc_high_f_s_dithering::init_context(context_buffer, frame_width);
+        } else if (precision_mode == PRECISION_HIGH_ORDERED_DITHERING) {
+            init_ordered_dithering();
+        }
+    }
+
+    template <int precision_mode>
+    static __inline void complete(void* context) 
+    {
+        if (precision_mode == PRECISION_HIGH_FLOYD_STEINBERG_DITHERING)
+        {
+            pixel_proc_high_f_s_dithering::destroy_context(context);
+        }
+    }
+    
+    template <int precision_mode>
+    static __forceinline __m128i dither(void* context, __m128i pixels, int row, int column)
+    {
+        switch (precision_mode)
+        {
+        case PRECISION_LOW:
+        case PRECISION_HIGH_NO_DITHERING:
+            return pixels;
+        case PRECISION_HIGH_ORDERED_DITHERING:
             // row: use lowest 4 bits as index, mask = 0b00001111 = 15
             // column: always multiples of 8, so use 8 (bit 4) as selector, mask = 0b00001000
             assert((column & 7) == 0);
-			return _mm_adds_epu16(pixels, _ordered_dithering_threshold_map[row & 15][(column & 8) >> 3]);
-		case PRECISION_HIGH_FLOYD_STEINBERG_DITHERING:
-			// due to an ICC bug, accessing pixels using union will give us incorrect results
-			// so we have to use a buffer here
-			// tested on ICC 12.0.1024.2010
-			__declspec (align(16))
-			unsigned short buffer[8];
-			_mm_store_si128((__m128i*)buffer, pixels);
-			for (int i = 0; i < 8; i++)
-			{
-				buffer[i] = (unsigned short)pixel_proc_high_f_s_dithering::dither(context, buffer[i], row, column + i);
-				pixel_proc_high_f_s_dithering::next_pixel(context);
-			}
-			return _mm_load_si128((__m128i*)buffer);
+            return _mm_adds_epu16(pixels, _ordered_dithering_threshold_map[row & 15][(column & 8) >> 3]);
+        case PRECISION_HIGH_FLOYD_STEINBERG_DITHERING:
+            // due to an ICC bug, accessing pixels using union will give us incorrect results
+            // so we have to use a buffer here
+            // tested on ICC 12.0.1024.2010
+            __declspec (align(16))
+            unsigned short buffer[8];
+            _mm_store_si128((__m128i*)buffer, pixels);
+            for (int i = 0; i < 8; i++)
+            {
+                buffer[i] = (unsigned short)pixel_proc_high_f_s_dithering::dither(context, buffer[i], row, column + i);
+                pixel_proc_high_f_s_dithering::next_pixel(context);
+            }
+            return _mm_load_si128((__m128i*)buffer);
         case PRECISION_16BIT_STACKED:
         case PRECISION_16BIT_INTERLEAVED:
-			return _mm_setzero_si128();
+            return _mm_setzero_si128();
             break;
-		default:
-			abort();
-			return _mm_setzero_si128();
-		}
-	}
-	
-	template <int precision_mode>
-	static __inline void next_row(void* context)
-	{
-		if (precision_mode == PRECISION_HIGH_FLOYD_STEINBERG_DITHERING)
-		{
-			pixel_proc_high_f_s_dithering::next_row(context);
-		}
-	}
+        default:
+            abort();
+            return _mm_setzero_si128();
+        }
+    }
+
+    template <int precision_mode>
+    static __forceinline __m128i dither_yuy2(char contexts[3][CONTEXT_BUFFER_SIZE], __m128i pixels, int row, int column)
+    {
+        switch (precision_mode)
+        {
+        case PRECISION_LOW:
+        case PRECISION_HIGH_NO_DITHERING:
+            return pixels;
+        case PRECISION_HIGH_ORDERED_DITHERING:
+            // row: use lowest 4 bits as index, mask = 0b00001111 = 15
+            // column: always multiples of 8, yuy2 threshold map has 8 items, mask = 0b00111000
+            assert((column & 7) == 0);
+            return _mm_adds_epu16(pixels, _ordered_dithering_threshold_map[row & 15][(column >> 3) & 7]);
+        case PRECISION_HIGH_FLOYD_STEINBERG_DITHERING:
+            // due to an ICC bug, accessing pixels using union will give us incorrect results
+            // so we have to use a buffer here
+            // tested on ICC 12.0.1024.2010
+            __declspec (align(16))
+            unsigned short buffer[8];
+            _mm_store_si128((__m128i*)buffer, pixels);
+            for (int i = 0; i < 8; i++)
+            {
+                int cur_column = column + i;
+                void *cur_context;
+                switch (i & 3)
+                {
+                case 0:
+                case 2:
+                    cur_column >>= 1;
+                    cur_context = contexts[0];
+                    break;
+                case 1:
+                    cur_column >>= 2;
+                    cur_context = contexts[1];
+                    break;
+                case 3:
+                    cur_column >>= 2;
+                    cur_context = contexts[2];
+                    break;
+                }
+                buffer[i] = (unsigned short)pixel_proc_high_f_s_dithering::dither(cur_context, buffer[i], row, cur_column);
+                pixel_proc_high_f_s_dithering::next_pixel(cur_context);
+            }
+            return _mm_load_si128((__m128i*)buffer);
+        case PRECISION_16BIT_STACKED:
+        case PRECISION_16BIT_INTERLEAVED:
+            return _mm_setzero_si128();
+            break;
+        default:
+            abort();
+            return _mm_setzero_si128();
+        }
+    }
+    
+    template <int precision_mode>
+    static __inline void next_row(void* context)
+    {
+        if (precision_mode == PRECISION_HIGH_FLOYD_STEINBERG_DITHERING)
+        {
+            pixel_proc_high_f_s_dithering::next_row(context);
+        }
+    }
 };
