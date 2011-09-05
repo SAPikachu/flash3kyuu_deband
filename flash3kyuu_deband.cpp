@@ -265,6 +265,9 @@ void flash3kyuu_deband::init_frame_luts(int n)
             if (should_set_c) {
                 pixel_dither_info info_cb = info_y;
                 pixel_dither_info info_cr = info_cb;
+                
+                // don't shift ref values here, since subsampling of width and height may be different
+                // shift them in actual processing
 
                 info_cb.change = (signed short)(rand_next(seed) % ditherC_limit - _ditherC);
                 info_cr.change = (signed short)(rand_next(seed) % ditherC_limit - _ditherC);

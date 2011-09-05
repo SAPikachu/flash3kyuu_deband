@@ -94,6 +94,8 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
     int pixel_min = params.pixel_min;
     int pixel_max = params.pixel_max;
 
+    int width_subsamp = params.width_subsampling;
+
     if (!params.vi->IsYUY2())
     {
         pixel_proc_init_context<mode>(context_y, params.src_width);
@@ -127,6 +129,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
                     real_col = j >> 1;
                     pixel_min = params.pixel_min;
                     pixel_max = params.pixel_max;
+                    width_subsamp = 0;
                     break;
                 case 1:
                     context = context_cb;
@@ -134,6 +137,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
                     real_col = j >> 2;
                     pixel_min = params.pixel_min_c;
                     pixel_max = params.pixel_max_c;
+                    width_subsamp = 1;
                     break;
                 case 3:
                     context = context_cr;
@@ -141,6 +145,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
                     real_col = j >> 2;
                     pixel_min = params.pixel_min_c;
                     pixel_max = params.pixel_max_c;
+                    width_subsamp = 1;
                     break;
                 default:
                     abort();
@@ -186,15 +191,15 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
                 
                 assert(info.ref2 >= 0);
                 assert((info.ref2 >> params.height_subsampling) <= i && (info.ref2 >> params.height_subsampling) + i < params.src_height);
-                assert(((info.ref1 * x_multiplier) >> params.width_subsampling) <= j && 
-                       ((info.ref1 * x_multiplier) >> params.width_subsampling) + j < params.src_width);
-                assert(((info.ref2 * x_multiplier) >> params.width_subsampling) <= j && 
-                       ((info.ref2 * x_multiplier) >> params.width_subsampling) + j < params.src_width);
+                assert(((info.ref1 >> width_subsamp) * x_multiplier) <= j && 
+                       ((info.ref1 >> width_subsamp) * x_multiplier) + j < params.src_width);
+                assert(((info.ref2 >> width_subsamp) * x_multiplier) <= j && 
+                       ((info.ref2 >> width_subsamp) * x_multiplier) + j < params.src_width);
 
                 ref_pos = params.src_pitch * (info.ref2 >> params.height_subsampling) + 
-                          ((info.ref1 * x_multiplier) >> params.width_subsampling);
+                          ((info.ref1 * x_multiplier) >> width_subsamp);
 
-                ref_pos_2 = ((info.ref2 * x_multiplier) >> params.width_subsampling) - 
+                ref_pos_2 = ((info.ref2 * x_multiplier) >> width_subsamp) - 
                             params.src_pitch * (info.ref1 >> params.height_subsampling);
 
                 int ref_1_up = pixel_proc_upsample<mode>(context, src_px[ref_pos]);
