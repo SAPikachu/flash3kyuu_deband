@@ -59,7 +59,7 @@ dither_avs::~dither_avs()
 // inline memcpy for small unaligned src memory block
 // dst is assumed to be aligned
 // translated from Agner Fog's memcpy example
-static void __forceinline _inline_memcpy(unsigned char * _Dst, const unsigned char * _Src, size_t _Size)
+static void __forceinline _inline_memcpy(unsigned char * _Dst, const unsigned char * _Src, int _Size)
 {
     assert(_Size < 32);
     assert((((int)_Dst) & 15) == 0); 
@@ -230,8 +230,8 @@ void dither_avs::process_plane(PVideoFrame src, PVideoFrame dst, unsigned char *
         src->GetPitch(plane), \
         dstp, \
         dst->GetPitch(plane), \
-        vi.width, \
-        vi.height, \
+        vi.width >> vi.GetPlaneWidthSubsampling(plane), \
+        vi.height >> vi.GetPlaneHeightSubsampling(plane), \
         _stacked, \
         _input_depth, \
         pixel_min, \
