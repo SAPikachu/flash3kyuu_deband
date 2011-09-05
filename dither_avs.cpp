@@ -100,47 +100,47 @@ static void __forceinline _inline_memcpy(unsigned char * _Dst, const unsigned ch
 
 #define memcpy _inline_memcpy
 
-static void __forceinline read_pixels(unsigned char const*&src_ptr_cur, int src_pitch, int target_height, bool aligned, bool stacked, bool need_special_read, int remaining_pixels, __m128i pixels[2])
+static void __forceinline read_pixels(unsigned char const*&src_ptr_cur, int src_pitch, int target_height, bool aligned, bool stacked, bool need_special_read, int remaining_pixels, __m128i& pixels_0, __m128i& pixels_1)
 {
     if (stacked)
     {
         // msb in 0, lsb in 1
-        __m128i pixels_temp[2];
+        __m128i pixels_temp_0, pixels_temp_1;
         if (aligned)
         {
-            pixels_temp[0] = _mm_load_si128((__m128i*)src_ptr_cur);
-            pixels_temp[1] = _mm_load_si128((__m128i*)(src_ptr_cur + target_height * src_pitch));
+            pixels_temp_0 = _mm_load_si128((__m128i*)src_ptr_cur);
+            pixels_temp_1 = _mm_load_si128((__m128i*)(src_ptr_cur + target_height * src_pitch));
         } else {
-            pixels_temp[0] = _mm_loadu_si128((__m128i*)src_ptr_cur);
+            pixels_temp_0 = _mm_loadu_si128((__m128i*)src_ptr_cur);
             if (!need_special_read)
             {
-                pixels_temp[1] = _mm_loadu_si128((__m128i*)(src_ptr_cur + target_height * src_pitch));
+                pixels_temp_1 = _mm_loadu_si128((__m128i*)(src_ptr_cur + target_height * src_pitch));
             } else {
                 __declspec(align(16))
                 unsigned char buffer[16];
                 memcpy(buffer, src_ptr_cur + target_height * src_pitch, remaining_pixels);
-                pixels_temp[1] = _mm_load_si128((__m128i*)buffer);
+                pixels_temp_1 = _mm_load_si128((__m128i*)buffer);
             }
         }
         src_ptr_cur += 16;
-        pixels[0] = _mm_unpacklo_epi8(pixels_temp[1], pixels_temp[0]);
-        pixels[1] = _mm_unpackhi_epi8(pixels_temp[1], pixels_temp[0]);
+        pixels_0 = _mm_unpacklo_epi8(pixels_temp_1, pixels_temp_0);
+        pixels_1 = _mm_unpackhi_epi8(pixels_temp_1, pixels_temp_0);
     } else {
         if (aligned)
         {
-            pixels[0] = _mm_load_si128((__m128i*)src_ptr_cur);
-            pixels[1] = _mm_load_si128((__m128i*)(src_ptr_cur + 16));
+            pixels_0 = _mm_load_si128((__m128i*)src_ptr_cur);
+            pixels_1 = _mm_load_si128((__m128i*)(src_ptr_cur + 16));
         } else {
             if (!need_special_read)
             {
-                pixels[0] = _mm_loadu_si128((__m128i*)src_ptr_cur);
-                pixels[1] = _mm_loadu_si128((__m128i*)(src_ptr_cur + 16));
+                pixels_0 = _mm_loadu_si128((__m128i*)src_ptr_cur);
+                pixels_1 = _mm_loadu_si128((__m128i*)(src_ptr_cur + 16));
             } else {
                 __declspec(align(16))
                 unsigned char buffer[32];
                 memcpy(buffer, src_ptr_cur, remaining_pixels * 2);
-                pixels[0] = _mm_load_si128((__m128i*)buffer);
-                pixels[1] = _mm_load_si128((__m128i*)(buffer + 16));
+                pixels_0 = _mm_load_si128((__m128i*)buffer);
+                pixels_1 = _mm_load_si128((__m128i*)(buffer + 16));
             }
         }
         src_ptr_cur += 32;
@@ -180,23 +180,23 @@ static void process_plane_impl(const unsigned char* src_ptr, const int src_pitch
         unsigned char* dst_ptr_cur = dst_ptr + dst_pitch * row;
         for (int column = 0; column < target_width; column += 16)
         {
-            __m128i pixels[2];
+            __m128i pixels_0, pixels_1;
             int remaining_pixels = target_width - column;
             bool need_special_read = ((src_pitch & 15) != 0) && (row == target_height - 1) && (remaining_pixels < 16);
-            read_pixels(src_ptr_cur, src_pitch, target_height, aligned, stacked, need_special_read, remaining_pixels, pixels);
+            read_pixels(src_ptr_cur, src_pitch, target_height, aligned, stacked, need_special_read, remaining_pixels, pixels_0, pixels_1);
             __m128i pixels_out;
             if (need_shifting)
             {
-                pixels[0] = _mm_sll_epi16(pixels[0], pixel_shift_vector);
-                pixels[1] = _mm_sll_epi16(pixels[1], pixel_shift_vector);
+                pixels_0 = _mm_sll_epi16(pixels_0, pixel_shift_vector);
+                pixels_1 = _mm_sll_epi16(pixels_1, pixel_shift_vector);
             }
-            pixels[0] = dither_high::dither<mode+2>(context_buffer, pixels[0], row, column);
-            pixels[1] = dither_high::dither<mode+2>(context_buffer, pixels[1], row, column + 8);
+            pixels_0 = dither_high::dither<mode+2>(context_buffer, pixels_0, row, column);
+            pixels_1 = dither_high::dither<mode+2>(context_buffer, pixels_1, row, column + 8);
 
-            pixels[0] = _mm_srli_epi16(pixels[0], INTERNAL_BIT_DEPTH - 8);
-            pixels[1] = _mm_srli_epi16(pixels[1], INTERNAL_BIT_DEPTH - 8);
+            pixels_0 = _mm_srli_epi16(pixels_0, INTERNAL_BIT_DEPTH - 8);
+            pixels_1 = _mm_srli_epi16(pixels_1, INTERNAL_BIT_DEPTH - 8);
 
-            pixels_out = _mm_packus_epi16(pixels[0], pixels[1]);
+            pixels_out = _mm_packus_epi16(pixels_0, pixels_1);
             if (need_clamping)
             {
                 pixels_out = low_bit_depth_pixels_clamp(pixels_out, clamp_high_add, clamp_high_sub, clamp_low);
