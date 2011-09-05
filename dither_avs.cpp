@@ -56,6 +56,50 @@ dither_avs::~dither_avs()
 {
 }
 
+// inline memcpy for small unaligned src memory block
+// dst is assumed to be aligned
+// translated from Agner Fog's memcpy example
+static void __forceinline _inline_memcpy(unsigned char * _Dst, const unsigned char * _Src, size_t _Size)
+{
+    assert(_Size < 32);
+    assert((((int)_Dst) & 15) == 0); 
+    assert((((int)_Src) & 15) != 0); 
+
+    _Dst += _Size;
+    _Src += _Size;
+    _Size = -_Size;
+    if (_Size <= -16)
+    {
+        _mm_store_si128((__m128i*)(_Dst + _Size), _mm_loadu_si128((__m128i*)(_Src + _Size)));
+        _Size += 16;
+    }
+    if (_Size <= -8)
+    {
+        *(__int64*)(_Dst + _Size) = *(__int64*)(_Src + _Size);
+        _Size += 8;
+    }
+    if (_Size <= -4)
+    {
+        *(int*)(_Dst + _Size) = *(int*)(_Src + _Size);
+        _Size += 4;
+        if (_Size == 0)
+        {
+            return;
+        }
+    }
+    if (_Size <= -2)
+    {
+        *(short*)(_Dst + _Size) = *(short*)(_Src + _Size);
+        _Size += 2;
+    }
+    if (_Size <= -1)
+    {
+        *(char*)(_Dst + _Size) = *(char*)(_Src + _Size);
+    }
+}
+
+#define memcpy _inline_memcpy
+
 static void __forceinline read_pixels(unsigned char const*&src_ptr_cur, int src_pitch, int target_height, bool aligned, bool stacked, bool need_special_read, int remaining_pixels, __m128i pixels[2])
 {
     if (stacked)
@@ -72,7 +116,10 @@ static void __forceinline read_pixels(unsigned char const*&src_ptr_cur, int src_
             {
                 pixels_temp[1] = _mm_loadu_si128((__m128i*)(src_ptr_cur + target_height * src_pitch));
             } else {
-                memcpy(&pixels_temp[1], src_ptr_cur + target_height * src_pitch, remaining_pixels);
+                __declspec(align(16))
+                unsigned char buffer[16];
+                memcpy(buffer, src_ptr_cur + target_height * src_pitch, remaining_pixels);
+                pixels_temp[1] = _mm_load_si128((__m128i*)buffer);
             }
         }
         src_ptr_cur += 16;
@@ -89,7 +136,11 @@ static void __forceinline read_pixels(unsigned char const*&src_ptr_cur, int src_
                 pixels[0] = _mm_loadu_si128((__m128i*)src_ptr_cur);
                 pixels[1] = _mm_loadu_si128((__m128i*)(src_ptr_cur + 16));
             } else {
-                memcpy(pixels, src_ptr_cur, remaining_pixels * 2);
+                __declspec(align(16))
+                unsigned char buffer[32];
+                memcpy(buffer, src_ptr_cur, remaining_pixels * 2);
+                pixels[0] = _mm_load_si128((__m128i*)buffer);
+                pixels[1] = _mm_load_si128((__m128i*)(buffer + 16));
             }
         }
         src_ptr_cur += 32;
