@@ -11,24 +11,12 @@
 #include "impl_dispatch.h"
 #include "icc_override.h"
 
-static void check_parameter_range(int value, int lower_bound, int upper_bound, char* param_name, IScriptEnvironment* env) {
-    if (value < lower_bound || value > upper_bound) {
-        char msg[1024];
-        sprintf_s(msg, "flash3kyuu_deband: Invalid value for parameter %s: %d, must be %d ~ %d.",
-            param_name, value, lower_bound, upper_bound);
-        env->ThrowError(_strdup(msg));
-    }
-}
+#include "check.h"
 
 AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScriptEnvironment* env){
     PClip child = args[0].AsClip();
     const VideoInfo& vi = child->GetVideoInfo();
-    if (!vi.IsYUV() || !(vi.IsYUY2() || vi.IsPlanar())) {
-        env->ThrowError("flash3kyuu_deband: Only YUY2 and planar YUV clips are supported.");
-    }
-    if (vi.IsFieldBased()) {
-        env->ThrowError("flash3kyuu_deband: Field-based clip is not supported.");
-    }
+    check_video_format("flash3kyuu_deband", vi, env);
 
     SYSTEM_INFO si;
     memset(&si, 0, sizeof(si));
@@ -82,7 +70,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     }
 
 #define CHECK_PARAM(value, lower_bound, upper_bound) \
-    check_parameter_range(value, lower_bound, upper_bound, #value, env);
+    check_parameter_range("flash3kyuu_deband", value, lower_bound, upper_bound, #value, env);
     
     int threshold_upper_limit = default_val * 8 - 1;
     int dither_upper_limit = (precision_mode == PRECISION_LOW || sample_mode == 0) ? 3 : 4096;

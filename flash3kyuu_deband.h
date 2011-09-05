@@ -19,6 +19,8 @@
 
 #include "mt_info.h"
 
+#include "constants.h"
+
 #ifdef FLASH3KYUU_DEBAND_EXPORTS
 #define FLASH3KYUU_DEBAND_API extern "C" __declspec(dllexport)
 #else
@@ -42,28 +44,6 @@ typedef __declspec(align(4)) struct _pixel_dither_info {
     signed char ref1, ref2;
     signed short change;
 } pixel_dither_info;
-
-// alignment for SSE operations
-#define FRAME_LUT_ALIGNMENT 16
-#define PLANE_ALIGNMENT 16
-
-// whole multiples of alignment, so SSE codes don't need to check boundaries
-#define FRAME_LUT_STRIDE(width) (((width - 1) | (FRAME_LUT_ALIGNMENT - 1)) + 1)
-
-#define INTERNAL_BIT_DEPTH 16
-
-// these range values are defined in internal bit depth
-#define TV_RANGE_Y_MIN (16 << (INTERNAL_BIT_DEPTH - 8))
-#define TV_RANGE_Y_MAX (235 << (INTERNAL_BIT_DEPTH - 8))
-
-#define TV_RANGE_C_MIN TV_RANGE_Y_MIN
-#define TV_RANGE_C_MAX (240 << (INTERNAL_BIT_DEPTH - 8))
-
-#define FULL_RANGE_Y_MIN 0
-#define FULL_RANGE_Y_MAX ((1 << INTERNAL_BIT_DEPTH) - 1)
-
-#define FULL_RANGE_C_MIN FULL_RANGE_Y_MIN
-#define FULL_RANGE_C_MAX FULL_RANGE_Y_MAX
 
 typedef struct _process_plane_params
 {

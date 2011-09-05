@@ -94,6 +94,9 @@
     <ClInclude Include="asmlib.h" />
     <ClInclude Include="avisynth.h" />
     <ClInclude Include="avisynth_videoinfo_26.h" />
+    <ClInclude Include="check.h" />
+    <ClInclude Include="constants.h" />
+    <ClInclude Include="dither_avs.h" />
     <ClInclude Include="dither_high.h" />
     <ClInclude Include="flash3kyuu_deband.h" />
     <ClInclude Include="flash3kyuu_deband_sse_base.h" />
@@ -110,6 +113,7 @@
     <ClInclude Include="pixel_proc_c_8bit.h" />
     <ClInclude Include="process_plane_context.h" />
     <ClInclude Include="sse_compat.h" />
+    <ClInclude Include="sse_utils.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="test.h" />
@@ -119,7 +123,9 @@
     <ClCompile Include="avisynth_init.cpp" />
     <ClCompile Include="avisynth_videoinfo_26.cpp" />
     <ClCompile Include="benchmark.cpp" />
+    <ClCompile Include="check.cpp" />
     <ClCompile Include="correctness_test.cpp" />
+    <ClCompile Include="dither_avs.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
