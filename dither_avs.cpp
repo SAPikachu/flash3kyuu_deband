@@ -188,13 +188,13 @@ static void process_plane_impl(const unsigned char* src_ptr, const int src_pitch
             if (need_shifting)
             {
                 pixels[0] = _mm_sll_epi16(pixels[0], pixel_shift_vector);
-                pixels[1] = _mm_sll_epi16(pixels[0], pixel_shift_vector);
+                pixels[1] = _mm_sll_epi16(pixels[1], pixel_shift_vector);
             }
             pixels[0] = dither_high::dither<mode+2>(context_buffer, pixels[0], row, column);
             pixels[1] = dither_high::dither<mode+2>(context_buffer, pixels[1], row, column + 8);
 
             pixels[0] = _mm_srli_epi16(pixels[0], INTERNAL_BIT_DEPTH - 8);
-            pixels[1] = _mm_srli_epi16(pixels[0], INTERNAL_BIT_DEPTH - 8);
+            pixels[1] = _mm_srli_epi16(pixels[1], INTERNAL_BIT_DEPTH - 8);
 
             pixels_out = _mm_packus_epi16(pixels[0], pixels[1]);
             if (need_clamping)

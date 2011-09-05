@@ -5,3 +5,4 @@ Release/*
 
 
 *.dyn
+*.obj
