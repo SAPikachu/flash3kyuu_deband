@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "check.h"
 #include <stdio.h>
 
@@ -14,11 +15,11 @@ void check_video_format(const char* name, const VideoInfo& vi, IScriptEnvironmen
 {
     char name_buffer[256];
     if (!vi.IsYUV() || !(vi.IsYUY2() || vi.IsPlanar())) {
-        sprintf(name_buffer, "%s: Only YUY2 and planar YUV clips are supported.", name);
-        env->ThrowError(strdup(name_buffer));
+        sprintf_s(name_buffer, "%s: Only YUY2 and planar YUV clips are supported.", name);
+        env->ThrowError(_strdup(name_buffer));
     }
     if (vi.IsFieldBased()) {
-        sprintf(name_buffer, "%s: Field-based clip is not supported.", name);
-        env->ThrowError(strdup(name_buffer));
+        sprintf_s(name_buffer, "%s: Field-based clip is not supported.", name);
+        env->ThrowError(_strdup(name_buffer));
     }
 }

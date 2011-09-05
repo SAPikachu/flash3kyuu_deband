@@ -121,7 +121,7 @@ static void process_plane_impl(const unsigned char* src_ptr, const int src_pitch
         clamp_low = _mm_set1_epi8((char)(pixel_min));
     }
 
-    bool aligned = ((src_ptr & 15) == 0) && ((src_pitch & 15) == 0);
+    bool aligned = (((int)src_ptr & 15) == 0) && ((src_pitch & 15) == 0);
 
     for (int row = 0; row < target_height; row++)
     {
@@ -142,8 +142,8 @@ static void process_plane_impl(const unsigned char* src_ptr, const int src_pitch
             pixels[0] = dither_high::dither<mode+2>(context_buffer, pixels[0], row, column);
             pixels[1] = dither_high::dither<mode+2>(context_buffer, pixels[1], row, column + 8);
 
-            pixels[0] = _mm_srl_epi16(pixels[0], INTERNAL_BIT_DEPTH - 8);
-            pixels[1] = _mm_srl_epi16(pixels[0], INTERNAL_BIT_DEPTH - 8);
+            pixels[0] = _mm_srli_epi16(pixels[0], INTERNAL_BIT_DEPTH - 8);
+            pixels[1] = _mm_srli_epi16(pixels[0], INTERNAL_BIT_DEPTH - 8);
 
             pixels_out = _mm_packus_epi16(pixels[0], pixels[1]);
             if (need_clamping)

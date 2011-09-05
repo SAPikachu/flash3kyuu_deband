@@ -1,5 +1,7 @@
 #pragma once
 
+#include "stdafx.h"
+
 #include "avisynth.h"
 
 AVSValue __cdecl Create_dither(AVSValue args, void* user_data, IScriptEnvironment* env);
