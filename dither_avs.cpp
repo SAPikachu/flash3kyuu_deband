@@ -354,7 +354,7 @@ PVideoFrame __stdcall dither_avs::GetFrame(int n, IScriptEnvironment* env)
         process_plane(src, dst, dst->GetWritePtr(PLANAR_V), PLANAR_V, env);
     } else {
         // YUY2
-        abort();
+        process_plane_yuy2(src, dst, dst->GetWritePtr(), env);
     }
 
     return dst;
