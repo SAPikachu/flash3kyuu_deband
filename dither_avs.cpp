@@ -17,7 +17,7 @@ AVSValue __cdecl Create_dither(AVSValue args, void* user_data, IScriptEnvironmen
     int mode = args[1].AsInt(1);
     bool stacked = args[2].AsBool(true);
     int input_depth = args[3].AsInt(16);
-    bool keep_tv_range = args[4].AsBool(true);
+    bool keep_tv_range = args[4].AsBool(false);
     
     if (stacked && (vi.height & 3))
     {
