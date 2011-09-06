@@ -2,7 +2,7 @@
 *.user
 Debug/*
 Release/*
-
+x64/*
 
 *.dyn
 *.obj

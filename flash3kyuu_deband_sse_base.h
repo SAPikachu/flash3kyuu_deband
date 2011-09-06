@@ -8,6 +8,8 @@
 
 #include "dither_high.h"
 
+#include "x64_compat.h"
+
 /****************************************************************************
  * NOTE: DON'T remove static from any function in this file, it is required *
  *       for generating code in multiple SSE versions.                      *
@@ -807,7 +809,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 template<int sample_mode, bool blur_first, int precision_mode>
 static void __cdecl process_plane_sse_impl(const process_plane_params& params, process_plane_context* context)
 {
-    if ( ( (int)params.src_plane_ptr & (PLANE_ALIGNMENT - 1) ) == 0 && (params.src_pitch & (PLANE_ALIGNMENT - 1) ) == 0 )
+    if ( ( (POINTER_INT)params.src_plane_ptr & (PLANE_ALIGNMENT - 1) ) == 0 && (params.src_pitch & (PLANE_ALIGNMENT - 1) ) == 0 )
     {
         _process_plane_sse_impl<sample_mode, blur_first, precision_mode, true>(params, context);
     } else {

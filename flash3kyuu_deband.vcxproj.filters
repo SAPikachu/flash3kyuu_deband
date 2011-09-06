@@ -99,6 +99,9 @@
     <ClInclude Include="sse_utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="x64_compat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

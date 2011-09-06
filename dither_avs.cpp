@@ -8,6 +8,8 @@
 
 #include "sse_utils.h"
 
+#include "x64_compat.h"
+
 AVSValue __cdecl Create_dither(AVSValue args, void* user_data, IScriptEnvironment* env)
 {
     PClip child = args[0].AsClip();
@@ -62,8 +64,8 @@ dither_avs::~dither_avs()
 static void __forceinline _inline_memcpy(unsigned char * _Dst, const unsigned char * _Src, int _Size)
 {
     assert(_Size < 32);
-    assert((((int)_Dst) & 15) == 0); 
-    assert((((int)_Src) & 15) != 0); 
+    assert((((POINTER_INT)_Dst) & 15) == 0); 
+    assert((((POINTER_INT)_Src) & 15) != 0); 
 
     _Dst += _Size;
     _Src += _Size;
@@ -192,7 +194,7 @@ static void process_plane_impl(const unsigned char* src_ptr, const int src_pitch
         clamp_low = _mm_set1_epi8((char)(pixel_min));
     }
 
-    bool aligned = (((int)src_ptr & 15) == 0) && ((src_pitch & 15) == 0);
+    bool aligned = (((POINTER_INT)src_ptr & 15) == 0) && ((src_pitch & 15) == 0);
 
     for (int row = 0; row < target_height; row++)
     {
@@ -244,7 +246,7 @@ static void process_plane_impl_yuy2(const unsigned char* src_ptr, const int src_
         clamp_high_sub = _mm_add_epi8(clamp_high_add, clamp_low);
     }
 
-    bool aligned = (((int)src_ptr & 15) == 0) && ((src_pitch & 15) == 0);
+    bool aligned = (((POINTER_INT)src_ptr & 15) == 0) && ((src_pitch & 15) == 0);
     
     for (int row = 0; row < target_height; row++)
     {
