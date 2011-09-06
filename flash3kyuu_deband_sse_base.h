@@ -45,7 +45,7 @@ static __inline __m128i clamped_absolute_difference(__m128i a, __m128i b, __m128
 template <int sample_mode, int ref_part_index>
 static __forceinline void process_plane_info_block(
     pixel_dither_info *&info_ptr, 
-    const unsigned char* &src_addr_start, 
+    const unsigned char* src_addr_start, 
     const __m128i &src_pitch_vector, 
     __m128i &change_1, 
     __m128i &change_2, 
@@ -149,10 +149,10 @@ static __forceinline void process_plane_info_block(
     // load ref bytes
     for (int i = 0; i < 4; i++)
     {
-        ref_pixels_1_components[4 * ref_part_index + i] = *(src_addr_start + i + ref_offset1.m128i_i32[i]);
+        ref_pixels_1_components[4 * ref_part_index + i] = *(src_addr_start + 4 * ref_part_index + i + ref_offset1.m128i_i32[i]);
         if (sample_mode > 0)
         {
-            ref_pixels_2_components[4 * ref_part_index + i] = *(src_addr_start + i + ref_offset2.m128i_i32[i]);
+            ref_pixels_2_components[4 * ref_part_index + i] = *(src_addr_start + 4 * ref_part_index + i + ref_offset2.m128i_i32[i]);
         }
     }
 
@@ -163,12 +163,11 @@ static __forceinline void process_plane_info_block(
                 
         for (int i = 0; i < 4; i++)
         {
-            ref_pixels_3_components[4 * ref_part_index + i] = *(src_addr_start + i + ref_offset1.m128i_i32[i]);
-            ref_pixels_4_components[4 * ref_part_index + i] = *(src_addr_start + i + ref_offset2.m128i_i32[i]);
+            ref_pixels_3_components[4 * ref_part_index + i] = *(src_addr_start + 4 * ref_part_index + i + ref_offset1.m128i_i32[i]);
+            ref_pixels_4_components[4 * ref_part_index + i] = *(src_addr_start + 4 * ref_part_index + i + ref_offset2.m128i_i32[i]);
         }
     }
     info_ptr += 4;
-    src_addr_start += 4;
 }
 
 
@@ -675,7 +674,6 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
                         info_data_stream += 16;
                     }
                 }
-                src_px += 16;
             } else {
                 // we need to process the info block
                 change_1 = _mm_setzero_si128();
@@ -752,6 +750,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
             }
 
             processed_pixels += 16;
+            src_px += 16;
         }
         dither_high::next_row<precision_mode>(context_buffer);
     }
