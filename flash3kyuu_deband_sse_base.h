@@ -45,9 +45,8 @@ static __inline __m128i clamped_absolute_difference(__m128i a, __m128i b, __m128
 template <int sample_mode, int ref_part_index>
 static __forceinline void process_plane_info_block(
     pixel_dither_info *&info_ptr, 
-    __m128i &src_addrs, 
+    const unsigned char* &src_addr_start, 
     const __m128i &src_pitch_vector, 
-    const __m128i &src_addr_increment_vector, 
     __m128i &change_1, 
     __m128i &change_2, 
     const __m128i &minus_one, 
@@ -90,14 +89,6 @@ static __forceinline void process_plane_info_block(
     __m128i ref1 = info_block;
     ref1 = _mm_slli_epi32(ref1, 24); // << 24
     ref1 = _mm_srai_epi32(ref1, 24); // >> 24
-
-
-    // temporarily store computed addresses
-    __declspec(align(16))
-    unsigned char* address_buffer_1[4];
-
-    __declspec(align(16))
-    unsigned char* address_buffer_2[4];
 
     __m128i ref_offset1;
     __m128i ref_offset2;
@@ -144,11 +135,6 @@ static __forceinline void process_plane_info_block(
     default:
         abort();
     }
-    _mm_store_si128((__m128i*)address_buffer_1, _mm_add_epi32(src_addrs, ref_offset1));
-
-    if (sample_mode > 0) {
-        _mm_store_si128((__m128i*)address_buffer_2, _mm_add_epi32(src_addrs, ref_offset2));
-    }
 
     if (info_data_stream){
         _mm_store_si128((__m128i*)info_data_stream, ref_offset1);
@@ -159,41 +145,30 @@ static __forceinline void process_plane_info_block(
             info_data_stream += 16;
         }
     }
-    // load ref bytes
-    ref_pixels_1_components[4 * ref_part_index + 0] = *(address_buffer_1[0]);
-    ref_pixels_1_components[4 * ref_part_index + 1] = *(address_buffer_1[1]);
-    ref_pixels_1_components[4 * ref_part_index + 2] = *(address_buffer_1[2]);
-    ref_pixels_1_components[4 * ref_part_index + 3] = *(address_buffer_1[3]);
 
-    if (sample_mode > 0) {
-        ref_pixels_2_components[4 * ref_part_index + 0] = *(address_buffer_2[0]);
-        ref_pixels_2_components[4 * ref_part_index + 1] = *(address_buffer_2[1]);
-        ref_pixels_2_components[4 * ref_part_index + 2] = *(address_buffer_2[2]);
-        ref_pixels_2_components[4 * ref_part_index + 3] = *(address_buffer_2[3]);
+    // load ref bytes
+    for (int i = 0; i < 4; i++)
+    {
+        ref_pixels_1_components[4 * ref_part_index + i] = *(src_addr_start + i + ref_offset1.m128i_i32[i]);
+        if (sample_mode > 0)
+        {
+            ref_pixels_2_components[4 * ref_part_index + i] = *(src_addr_start + i + ref_offset2.m128i_i32[i]);
+        }
     }
 
     if (sample_mode == 2) {
-
         // another direction, negates all offsets
         ref_offset1 = _cmm_negate_all_epi32(ref_offset1, minus_one);
-        _mm_store_si128((__m128i*)address_buffer_1, _mm_add_epi32(src_addrs, ref_offset1));
-
         ref_offset2 = _cmm_negate_all_epi32(ref_offset2, minus_one);
-        _mm_store_si128((__m128i*)address_buffer_2, _mm_add_epi32(src_addrs, ref_offset2));
-
-        ref_pixels_3_components[4 * ref_part_index + 0] = *(address_buffer_1[0]);
-        ref_pixels_3_components[4 * ref_part_index + 1] = *(address_buffer_1[1]);
-        ref_pixels_3_components[4 * ref_part_index + 2] = *(address_buffer_1[2]);
-        ref_pixels_3_components[4 * ref_part_index + 3] = *(address_buffer_1[3]);
-
-        ref_pixels_4_components[4 * ref_part_index + 0] = *(address_buffer_2[0]);
-        ref_pixels_4_components[4 * ref_part_index + 1] = *(address_buffer_2[1]);
-        ref_pixels_4_components[4 * ref_part_index + 2] = *(address_buffer_2[2]);
-        ref_pixels_4_components[4 * ref_part_index + 3] = *(address_buffer_2[3]);
-
+                
+        for (int i = 0; i < 4; i++)
+        {
+            ref_pixels_3_components[4 * ref_part_index + i] = *(src_addr_start + i + ref_offset1.m128i_i32[i]);
+            ref_pixels_4_components[4 * ref_part_index + i] = *(src_addr_start + i + ref_offset2.m128i_i32[i]);
+        }
     }
     info_ptr += 4;
-    src_addrs = _mm_add_epi32(src_addrs, src_addr_increment_vector);
+    src_addr_start += 4;
 }
 
 
@@ -565,11 +540,6 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 {
     pixel_dither_info* info_ptr = params.info_ptr_base;
 
-    // used to compute 4 consecutive addresses
-    __m128i src_addr_offset_vector = _mm_set_epi32(3, 2, 1, 0);
-
-    __m128i src_addr_increment_vector = _mm_set1_epi32(4);
-
     __m128i src_pitch_vector = _mm_set1_epi32(params.src_pitch);
            
     __m128i threshold_vector;
@@ -655,11 +625,6 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 
         int processed_pixels = 0;
 
-        // 4 addresses at a time
-        __m128i src_addrs = _mm_set1_epi32((int)src_px);
-        // add offset
-        src_addrs = _mm_add_epi32(src_addrs, src_addr_offset_vector);
-
         while (processed_pixels < params.src_width)
         {
             __m128i change_1, change_2;
@@ -710,6 +675,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
                         info_data_stream += 16;
                     }
                 }
+                src_px += 16;
             } else {
                 // we need to process the info block
                 change_1 = _mm_setzero_si128();
@@ -717,7 +683,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 
             
     #define PROCESS_INFO_BLOCK(n) \
-                process_plane_info_block<sample_mode, n>(info_ptr, src_addrs, src_pitch_vector, src_addr_increment_vector, change_1, change_2, minus_one, width_subsample_vector, height_subsample_vector, ref_pixels_1.m128i_u8, ref_pixels_2.m128i_u8, ref_pixels_3.m128i_u8, ref_pixels_4.m128i_u8, info_data_stream);
+                process_plane_info_block<sample_mode, n>(info_ptr, src_px, src_pitch_vector, change_1, change_2, minus_one, width_subsample_vector, height_subsample_vector, ref_pixels_1.m128i_u8, ref_pixels_2.m128i_u8, ref_pixels_3.m128i_u8, ref_pixels_4.m128i_u8, info_data_stream);
             
                 PROCESS_INFO_BLOCK(0);
                 PROCESS_INFO_BLOCK(1);
@@ -785,7 +751,6 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
                 abort();
             }
 
-            src_px += 16;
             processed_pixels += 16;
         }
         dither_high::next_row<precision_mode>(context_buffer);
