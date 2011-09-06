@@ -85,7 +85,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;FLASH3KYUU_DEBAND_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <UseMSVC>false</UseMSVC>
+      <UseMSVC>true</UseMSVC>
       <PreprocessToFile>false</PreprocessToFile>
     </ClCompile>
     <Link>
@@ -101,7 +101,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;FLASH3KYUU_DEBAND_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <UseMSVC>false</UseMSVC>
+      <UseMSVC>true</UseMSVC>
       <PreprocessToFile>false</PreprocessToFile>
     </ClCompile>
     <Link>
@@ -125,7 +125,7 @@
       <GenerateAlternateCodePaths>None</GenerateAlternateCodePaths>
       <UseProcessorExtensions>None</UseProcessorExtensions>
       <AdditionalOptions>/Qopenmp-link:static %(AdditionalOptions)</AdditionalOptions>
-      <UseMSVC>true</UseMSVC>
+      <UseMSVC>false</UseMSVC>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -151,7 +151,7 @@
       <GenerateAlternateCodePaths>None</GenerateAlternateCodePaths>
       <UseProcessorExtensions>None</UseProcessorExtensions>
       <AdditionalOptions>/Qopenmp-link:static %(AdditionalOptions)</AdditionalOptions>
-      <UseMSVC>true</UseMSVC>
+      <UseMSVC>false</UseMSVC>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
