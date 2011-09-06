@@ -24,7 +24,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 
     int range = args[1].AsInt(15);
 
-    int sample_mode = args[7].AsInt(1);
+    int sample_mode = args[7].AsInt(2);
     int seed = args[8].AsInt(0);
     bool blur_first = args[9].AsBool(true);
     bool diff_seed_for_each_frame = args[10].AsBool(false);
