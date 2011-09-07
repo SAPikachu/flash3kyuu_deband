@@ -1,7 +1,7 @@
 flash3kyuu_deband(clip c, int "range", int "Y", int "Cb", int "Cr", 
 		int "ditherY", int "ditherC", int "sample_mode", int "seed", 
 		bool "blur_first", bool "diff_seed", int "opt", bool "mt", 
-		int "precision_mode")
+		int "precision_mode", bool "keep_tv_range")
 		
 由 http://www.geocities.jp/flash3kyuu/auf/banding17.zip 移植，此处仅提供简单参数解释，参数详细意义请参考原始aviutl滤镜的文档。
 滤镜支持逐行YUY2、YV12、YV16、YV24及YV411。
