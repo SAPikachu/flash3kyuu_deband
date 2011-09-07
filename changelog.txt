@@ -1,3 +1,14 @@
+1.3.0 (2011-09-07)
+ * Added x64 version
+ * Added a downsample filter: f3kdb_dither
+ * Internal precision is increased to 16bit
+ * New parameter: keep_tv_range, please see readme.txt for details
+ * Default sample_mode is changed to 2 as it is better in most cases
+ * Fixed: Floyd-Steinberg dithering may produce incorrect result for full-range 
+          videos
+ * Fixed: Broken YUY2 debanding
+ * Minor optimizations
+  
 1.2.0 (2011-08-01)
  * Added support for YUY2 (not optimized yet)
  * Added support for all planar YUV format in AviSynth 2.6

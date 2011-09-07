@@ -4,7 +4,7 @@ flash3kyuu_deband(clip c, int "range", int "Y", int "Cb", int "Cr",
 		int "precision_mode")
 		
 由 http://www.geocities.jp/flash3kyuu/auf/banding17.zip 移植，此处仅提供简单参数解释，参数详细意义请参考原始aviutl滤镜的文档。
-滤镜支持逐行YUY2及各平面YUV源。
+滤镜支持逐行YUY2、YV12、YV16、YV24及YV411。
 		
 range
 	banding检测范围，默认为15
@@ -26,7 +26,7 @@ sample_mode
 	1：使用2个样本进行模糊处理
 	2：使用4个样本进行模糊处理
 	
-	默认为1
+	默认为2
 	
 seed
 	随机数种子，一般不需要设置
@@ -71,3 +71,49 @@ precision_mode
 	   x264-10bit --input-depth 16 --output "out.mp4" script.avs
 	
 	默认值: 0 (sample_mode = 0) / 3 (sample_mode > 0)
+	
+keep_tv_range
+	如设置为true，所有处理后的像素会被裁剪到TV range (luma: 16 ~ 235, 
+	chroma: 16 ~ 240)。
+	
+	如果视频源是TV range，推荐设置为true，因为dither后的像素有可能会超出范围。
+	
+	如果视频源是full-range，*不要*设置此参数为true，否则所有超出TV range的像素会被裁剪。
+	
+	默认值: false
+	
+--------------------------------------------------------------------------------
+
+f3kdb_dither(clip c, int "mode", bool "stacked", int "input_depth", 
+             bool "keep_tv_range")
+
+使用flash3kyuu_deband的dither算法把高位深视频转换为正常的8bit视频。
+
+支持的颜色空间与flash3kyuu_deband相同。
+
+需求支持SSE2的CPU (Pentium 4 / AMD K8 或更新)
+
+mode
+	0: Ordered dithering
+	1: Floyd-Steinberg dithering
+	
+	默认值: 1
+	
+stacked
+	true: 源数据为层叠格式 
+		  (即 flash3kyuu_deband precision_mode = 4 的输出格式)
+	false: 源数据为交织格式 
+		  (即 flash3kyuu_deband precision_mode = 5 的输出格式)
+		  
+	默认值: true
+	
+input_depth
+	指定输入数据位深
+	
+	默认值: 16
+	有效范围: 9 ~ 16
+	
+keep_tv_range
+	请参考flash3kyuu_deband的同名参数
+	
+	默认值: false

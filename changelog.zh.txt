@@ -1,3 +1,13 @@
+1.3.0 (2011-09-07)
+	新增x64版本
+	新增降色深滤镜：f3kdb_dither
+	内部处理精度提升至16bit
+	新增参数：keep_tv_range，具体说明请参考readme.zh.txt
+	修改sample_mode的默认值到2
+	Bug修复：Floyd-Steinberg dither用于full-range视频时，结果可能会有错误
+	Bug修复：错误的YUY2 debanding
+	少量优化
+  
 1.2.0 (2011-08-01)
 	新增支持YUY2（未优化）
 	新增支持AviSynth 2.6中新的平面YUV格式

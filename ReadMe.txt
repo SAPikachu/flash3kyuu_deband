@@ -1,7 +1,7 @@
 flash3kyuu_deband(clip c, int "range", int "Y", int "Cb", int "Cr", 
 		int "ditherY", int "ditherC", int "sample_mode", int "seed", 
 		bool "blur_first", bool "diff_seed", int "opt", bool "mt", 
-		int "precision_mode")
+		int "precision_mode", bool "keep_tv_range")
 		
 Ported from http://www.geocities.jp/flash3kyuu/auf/banding17.zip . 
 (I'm not the author of the original aviutl plugin, just ported the algorithm to
@@ -10,7 +10,7 @@ avisynth.)
 This avisynth plugin debands the video by replacing banded pixels with average 
 value of referenced pixels, and optionally dithers them.
 
-Supported colorspaces: YUY2 and all planar YUV formats (Progressive only)
+Supported colorspaces: YUY2, YV12, YV16, YV24, YV411 (Progressive only)
 
 Parameters:		
 
@@ -44,7 +44,7 @@ sample_mode
 	2: Take 4 pixels as reference pixel. Reference pixels are in the square 
 	   around current pixel. Dither after processing.
 
-	Default: 1
+	Default: 2
 	
 seed
 	Seed for random number generation. 
@@ -117,3 +117,54 @@ precision_mode
 	
 	Default: 0 (sample_mode = 0) /
 	         3 (sample_mode > 0)
+	   
+keep_tv_range
+	If set to true, all processed pixels will be clamped to TV range 
+	(luma: 16 ~ 235, chroma: 16 ~ 240). 
+	
+	It is recommended to set this to true for TV-range videos, since pixel 
+	values may overflow/underflow after dithering. 
+	
+	DON'T set this to true for full-range videos, as all out-of-range pixels
+	will be clamped to TV range.
+	
+	Default: false
+	
+--------------------------------------------------------------------------------
+
+f3kdb_dither(clip c, int "mode", bool "stacked", int "input_depth", 
+             bool "keep_tv_range")
+
+Downsamples high bit-depth video to regular 8-bit video using dither routines 
+of flash3kyuu_deband.
+
+Supported colorspaces: The same as flash3kyuu_deband.
+
+Requires SSE2-capable CPUs (Pentium 4 / AMD K8 or later)
+
+Parameters:
+
+mode
+	0: Ordered dithering
+	1: Floyd-Steinberg dithering
+	
+	Default: 1
+	
+stacked
+	true: Input data is stacked 
+		  (like output of flash3kyuu_deband precision_mode = 4)
+	false: Input data is interleaved 
+		  (like output of flash3kyuu_deband precision_mode = 5)
+		  
+	Default: true
+	
+input_depth
+	Specifies input bit depth
+	
+	Default: 16
+	Valid range: 9 ~ 16
+	
+keep_tv_range
+	See description of keep_tv_range in flash3kyuu_deband
+	
+	Default: false
