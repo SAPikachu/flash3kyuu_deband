@@ -2,6 +2,7 @@
 *.user
 Debug/*
 Release/*
+Release_MSVC/*
 x64/*
 
 *.dyn
