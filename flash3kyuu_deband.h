@@ -84,8 +84,6 @@ typedef void (__cdecl *process_plane_impl_t)(const process_plane_params& params,
 class flash3kyuu_deband : public GenericVideoFilter, public flash3kyuu_deband_parameter_storage_t {
 private:
     process_plane_impl_t _process_plane_impl;
-
-    process_plane_params _params_template;
         
     pixel_dither_info *_y_info;
     pixel_dither_info *_cb_info;
@@ -109,7 +107,6 @@ private:
 
 public:
     void mt_proc(void);
-    void init_params_template(void);
     flash3kyuu_deband(PClip child, flash3kyuu_deband_parameter_storage_t& o);
     ~flash3kyuu_deband();
 
