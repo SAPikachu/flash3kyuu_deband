@@ -11,6 +11,10 @@ FLASH3KYUU_DEBAND_API const char* __stdcall AvisynthPluginInit2(IScriptEnvironme
 		FLASH3KYUU_DEBAND_AVS_PARAMS, 
 		Create_flash3kyuu_deband, 
 		NULL);
+	env->AddFunction("f3kdb", 
+		FLASH3KYUU_DEBAND_AVS_PARAMS, 
+		Create_flash3kyuu_deband, 
+		NULL);
 	env->AddFunction("f3kdb_dither", 
 		"c[mode]i[stacked]b[input_depth]i[keep_tv_range]b", 
 		Create_dither, 
