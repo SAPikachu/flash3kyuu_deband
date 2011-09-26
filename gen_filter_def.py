@@ -17,6 +17,8 @@ def generate_output():
         p("b", "mt"),
         p("i", "precision_mode"),
         p("b", "keep_tv_range"),
+        p("i", "input_mode"),
+        p("i", "input_depth"),
     ))
 
 PARAM_TYPES = {

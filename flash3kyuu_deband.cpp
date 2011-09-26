@@ -34,6 +34,8 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     bool mt = ARG(mt).AsBool(si.dwNumberOfProcessors > 1);
     int precision_mode = ARG(precision_mode).AsInt(sample_mode == 0 ? PRECISION_LOW : PRECISION_HIGH_FLOYD_STEINBERG_DITHERING);
     bool keep_tv_range = ARG(keep_tv_range).AsBool(false);
+    int input_mode = ARG(input_mode).AsInt(LOW_BIT_DEPTH);
+    int input_depth = ARG(input_depth).AsInt(input_mode == LOW_BIT_DEPTH ? 8 : 16);
 
     int default_val = (precision_mode == PRECISION_LOW || sample_mode == 0) ? 1 : 64;
     int Y = ARG(Y).AsInt(default_val);
@@ -65,6 +67,11 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
         }
     }
 
+    if (input_mode == LOW_BIT_DEPTH && input_depth != 8)
+    {
+        env->ThrowError("flash3kyuu_deband: When input_mode = 0, setting input_depth has no effect.");
+    }
+
     if (vi.IsYUY2())
     {
         // currently only C code is available
@@ -87,6 +94,10 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     CHECK_PARAM(seed, 0, 127);
     CHECK_PARAM(opt, -1, (IMPL_COUNT - 1) );
     CHECK_PARAM(precision_mode, 0, (PRECISION_COUNT - 1) );
+    if (input_mode != LOW_BIT_DEPTH)
+    {
+        CHECK_PARAM(input_depth, 9, 16);
+    }
 
     // now the internal bit depth is 16, 
     // scale parameters to be consistent with 14bit range in previous versions
