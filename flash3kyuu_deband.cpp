@@ -72,6 +72,14 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     {
         env->ThrowError("flash3kyuu_deband: When input_mode = 0, setting input_depth has no effect.");
     }
+    
+    if (input_mode == HIGH_BIT_DEPTH_STACKED && ( vi.height & ( ( 1 << ( vi.GetPlaneHeightSubsampling(PLANAR_U) + 1 ) ) - 1 ) ) != 0)
+    {
+        env->ThrowError("flash3kyuu_deband: It seems the source clip is not a stacked high bit-depth clip. (Height MOD)");
+    } else if (input_mode == HIGH_BIT_DEPTH_INTERLEAVED && ( vi.width & ( ( 1 << ( vi.GetPlaneWidthSubsampling(PLANAR_U) + 1 ) ) - 1 ) ) != 0)
+    {
+        env->ThrowError("flash3kyuu_deband: It seems the source clip is not an interleaved high bit-depth clip. (Width MOD)");
+    }
 
     if (vi.IsYUY2())
     {
@@ -329,6 +337,14 @@ void flash3kyuu_deband::init(void)
     _src_vi = child->GetVideoInfo();
 
     init_frame_luts(0);
+
+    if (_input_mode == HIGH_BIT_DEPTH_STACKED)
+    {
+        vi.height /= 2;
+    } else if (_input_mode == HIGH_BIT_DEPTH_INTERLEAVED)
+    {
+        vi.width /= 2;
+    }
 
     if (_precision_mode == PRECISION_16BIT_STACKED)
     {
