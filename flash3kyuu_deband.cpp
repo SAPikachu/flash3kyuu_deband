@@ -413,6 +413,10 @@ void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned
     params.threshold_cb = _Cb;
     params.threshold_cr = _Cr;
     params.range = (plane == PLANAR_Y ? _range : _range >> 1);
+
+    params.input_mode = (INPUT_MODE)_input_mode;
+    params.input_depth = _input_depth;
+
     _process_plane_impl(params, context);
 }
 
