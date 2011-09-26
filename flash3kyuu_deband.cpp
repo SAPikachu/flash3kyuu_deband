@@ -7,6 +7,8 @@
 #include <process.h>
 #include <windows.h>
 
+#define FLASH3KYUU_DEBAND_SIMPLE_MACRO_NAME
+
 #include "flash3kyuu_deband.h"
 #include "impl_dispatch.h"
 #include "icc_override.h"
@@ -14,7 +16,7 @@
 #include "check.h"
 
 AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScriptEnvironment* env){
-    PClip child = args[0].AsClip();
+    PClip child = ARG(child).AsClip();
     const VideoInfo& vi = child->GetVideoInfo();
     check_video_format("flash3kyuu_deband", vi, env);
 
@@ -22,23 +24,23 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     memset(&si, 0, sizeof(si));
     GetSystemInfo(&si);
 
-    int range = args[1].AsInt(15);
+    int range = ARG(range).AsInt(15);
 
-    int sample_mode = args[7].AsInt(2);
-    int seed = args[8].AsInt(0);
-    bool blur_first = args[9].AsBool(true);
-    bool diff_seed_for_each_frame = args[10].AsBool(false);
-    int opt = args[11].AsInt(-1);
-    bool mt = args[12].AsBool(si.dwNumberOfProcessors > 1);
-    int precision_mode = args[13].AsInt(sample_mode == 0 ? PRECISION_LOW : PRECISION_HIGH_FLOYD_STEINBERG_DITHERING);
-    bool keep_tv_range = args[14].AsBool(false);
+    int sample_mode = ARG(sample_mode).AsInt(2);
+    int seed = ARG(seed).AsInt(0);
+    bool blur_first = ARG(blur_first).AsBool(true);
+    bool diff_seed_for_each_frame = ARG(diff_seed_for_each_frame).AsBool(false);
+    int opt = ARG(opt).AsInt(-1);
+    bool mt = ARG(mt).AsBool(si.dwNumberOfProcessors > 1);
+    int precision_mode = ARG(precision_mode).AsInt(sample_mode == 0 ? PRECISION_LOW : PRECISION_HIGH_FLOYD_STEINBERG_DITHERING);
+    bool keep_tv_range = ARG(keep_tv_range).AsBool(false);
 
     int default_val = (precision_mode == PRECISION_LOW || sample_mode == 0) ? 1 : 64;
-    int Y = args[2].AsInt(default_val);
-    int Cb = args[3].AsInt(default_val);
-    int Cr = args[4].AsInt(default_val);
-    int ditherY = args[5].AsInt(sample_mode == 0 ? 0 : default_val);
-    int ditherC = args[6].AsInt(sample_mode == 0 ? 0 : default_val);
+    int Y = ARG(Y).AsInt(default_val);
+    int Cb = ARG(Cb).AsInt(default_val);
+    int Cr = ARG(Cr).AsInt(default_val);
+    int ditherY = ARG(ditherY).AsInt(sample_mode == 0 ? 0 : default_val);
+    int ditherC = ARG(ditherC).AsInt(sample_mode == 0 ? 0 : default_val);
 
     if (sample_mode == 0)
     {
