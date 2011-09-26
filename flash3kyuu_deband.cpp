@@ -94,35 +94,15 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     ditherY <<= 2;
     ditherC <<= 2;
     
-    return new flash3kyuu_deband(child, range, 
-        (unsigned short)Y, (unsigned short)Cb, (unsigned short)Cr, 
-        ditherY, ditherC, sample_mode, seed, 
-        blur_first, diff_seed_for_each_frame, opt, mt, precision_mode, 
-        keep_tv_range);
+    return FLASH3KYUU_DEBAND_CREATE_CLASS(flash3kyuu_deband);
 }
 
-flash3kyuu_deband::flash3kyuu_deband(PClip child, int range, unsigned short Y, unsigned short Cb, unsigned short Cr, 
-        int ditherY, int ditherC, int sample_mode, int seed,
-        bool blur_first, bool diff_seed_for_each_frame, int opt, bool mt, int precision_mode,
-        bool keep_tv_range) :
+flash3kyuu_deband::flash3kyuu_deband(PClip child, flash3kyuu_deband_parameter_storage_t& o) :
             GenericVideoFilter(child),
-            _range(range),
-            _Y(Y),
-            _Cb(Cb),
-            _Cr(Cr),
-            _ditherY(ditherY),
-            _ditherC(ditherC),
-            _sample_mode(sample_mode),
-            _seed(seed),
-            _blur_first(blur_first),
-            _diff_seed_for_each_frame(diff_seed_for_each_frame),
+            flash3kyuu_deband_parameter_storage_t(o),
             _y_info(NULL),
             _cb_info(NULL),
             _cr_info(NULL),
-            _opt(opt),
-            _mt(mt),
-            _precision_mode(precision_mode),
-            _keep_tv_range(keep_tv_range),
             _mt_info(NULL),
             _process_plane_impl(NULL)
 {

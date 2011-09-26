@@ -127,6 +127,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;alibcof32o.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>gen_filter_def.py &gt; flash3kyuu_deband.def.h</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -169,6 +172,9 @@
       <AdditionalLibraryDirectories>D:\Intel\ComposerXE-2011\ipp\lib\ia32</AdditionalLibraryDirectories>
       <AdditionalDependencies>alibcof32o.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>gen_filter_def.py &gt; flash3kyuu_deband.def.h</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_MSVC|Win32'">
     <ClCompile>
@@ -195,6 +201,9 @@
       <AdditionalLibraryDirectories>D:\Intel\ComposerXE-2011\ipp\lib\ia32</AdditionalLibraryDirectories>
       <AdditionalDependencies>alibcof32o.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>gen_filter_def.py &gt; flash3kyuu_deband.def.h</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -259,6 +268,7 @@
     <ClInclude Include="constants.h" />
     <ClInclude Include="dither_avs.h" />
     <ClInclude Include="dither_high.h" />
+    <ClInclude Include="flash3kyuu_deband.def.h" />
     <ClInclude Include="flash3kyuu_deband.h" />
     <ClInclude Include="flash3kyuu_deband_sse_base.h" />
     <ClInclude Include="icc_override.h" />

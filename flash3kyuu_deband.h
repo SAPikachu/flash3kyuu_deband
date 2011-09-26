@@ -15,6 +15,8 @@
 #include <memory.h>
 #include <malloc.h>
 
+#include "flash3kyuu_deband.def.h"
+
 #include "process_plane_context.h"
 
 #include "mt_info.h"
@@ -79,29 +81,11 @@ typedef struct _process_plane_params
 
 typedef void (__cdecl *process_plane_impl_t)(const process_plane_params& params, process_plane_context* context);
 
-class flash3kyuu_deband : public GenericVideoFilter {
+class flash3kyuu_deband : public GenericVideoFilter, public flash3kyuu_deband_parameter_storage_t {
 private:
-    int _range; 
-    unsigned short _Y, _Cb, _Cr;
-    int _ditherY, _ditherC;
-
-    int _sample_mode;
-    int _seed;
-
-    bool _blur_first;
-    bool _diff_seed_for_each_frame;
-
-    int _opt;
-    bool _mt;
-
-    int _precision_mode;
-
-    bool _keep_tv_range;
-
     process_plane_impl_t _process_plane_impl;
 
-    // used by test code
-    void* other_data;
+    process_plane_params _params_template;
         
     pixel_dither_info *_y_info;
     pixel_dither_info *_cb_info;
@@ -125,10 +109,8 @@ private:
 
 public:
     void mt_proc(void);
-    flash3kyuu_deband(PClip child, int range, unsigned short Y, unsigned short Cb, unsigned short Cr, 
-        int ditherY, int ditherC, int sample_mode, int seed,
-        bool blur_first, bool diff_seed_for_each_frame, int opt, bool mt, int precision_mode, 
-        bool keep_tv_range);
+    void init_params_template(void);
+    flash3kyuu_deband(PClip child, flash3kyuu_deband_parameter_storage_t& o);
     ~flash3kyuu_deband();
 
     PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);

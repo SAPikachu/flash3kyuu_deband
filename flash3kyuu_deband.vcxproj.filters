@@ -102,6 +102,9 @@
     <ClInclude Include="x64_compat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="flash3kyuu_deband.def.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
