@@ -19,6 +19,7 @@ def generate_output():
         p("b", "keep_tv_range"),
         p("i", "input_mode"),
         p("i", "input_depth"),
+        p("b", "enable_fast_skip_plane"),
     ))
 
 PARAM_TYPES = {

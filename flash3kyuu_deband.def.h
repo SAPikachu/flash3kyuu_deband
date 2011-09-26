@@ -8,7 +8,7 @@
 
 #include "avisynth.h"
 
-static const char* FLASH3KYUU_DEBAND_AVS_PARAMS = "c[range]i[Y]i[Cb]i[Cr]i[ditherY]i[ditherC]i[sample_mode]i[seed]i[blur_first]b[diff_seed]b[opt]i[mt]b[precision_mode]i[keep_tv_range]b[input_mode]i[input_depth]i";
+static const char* FLASH3KYUU_DEBAND_AVS_PARAMS = "c[range]i[Y]i[Cb]i[Cr]i[ditherY]i[ditherC]i[sample_mode]i[seed]i[blur_first]b[diff_seed]b[opt]i[mt]b[precision_mode]i[keep_tv_range]b[input_mode]i[input_depth]i[enable_fast_skip_plane]b";
 
 class flash3kyuu_deband_parameter_storage_t
 {
@@ -30,6 +30,7 @@ protected:
     bool _keep_tv_range; 
     int _input_mode; 
     int _input_depth; 
+    bool _enable_fast_skip_plane; 
 
 public:
 
@@ -51,9 +52,10 @@ public:
         _keep_tv_range = o._keep_tv_range; 
         _input_mode = o._input_mode; 
         _input_depth = o._input_depth; 
+        _enable_fast_skip_plane = o._enable_fast_skip_plane; 
     }
 
-    flash3kyuu_deband_parameter_storage_t( int range, unsigned short Y, unsigned short Cb, unsigned short Cr, int ditherY, int ditherC, int sample_mode, int seed, bool blur_first, bool diff_seed_for_each_frame, int opt, bool mt, int precision_mode, bool keep_tv_range, int input_mode, int input_depth )
+    flash3kyuu_deband_parameter_storage_t( int range, unsigned short Y, unsigned short Cb, unsigned short Cr, int ditherY, int ditherC, int sample_mode, int seed, bool blur_first, bool diff_seed_for_each_frame, int opt, bool mt, int precision_mode, bool keep_tv_range, int input_mode, int input_depth, bool enable_fast_skip_plane )
     {
         _range = range; 
         _Y = Y; 
@@ -71,19 +73,20 @@ public:
         _keep_tv_range = keep_tv_range; 
         _input_mode = input_mode; 
         _input_depth = input_depth; 
+        _enable_fast_skip_plane = enable_fast_skip_plane; 
     }
 };
 
 typedef struct _FLASH3KYUU_DEBAND_RAW_ARGS
 {
-    AVSValue child, range, Y, Cb, Cr, ditherY, ditherC, sample_mode, seed, blur_first, diff_seed_for_each_frame, opt, mt, precision_mode, keep_tv_range, input_mode, input_depth;
+    AVSValue child, range, Y, Cb, Cr, ditherY, ditherC, sample_mode, seed, blur_first, diff_seed_for_each_frame, opt, mt, precision_mode, keep_tv_range, input_mode, input_depth, enable_fast_skip_plane;
 } FLASH3KYUU_DEBAND_RAW_ARGS;
 
 #define FLASH3KYUU_DEBAND_ARG_INDEX(name) (offsetof(FLASH3KYUU_DEBAND_RAW_ARGS, name) / sizeof(AVSValue))
 
 #define FLASH3KYUU_DEBAND_ARG(name) args[FLASH3KYUU_DEBAND_ARG_INDEX(name)]
 
-#define FLASH3KYUU_DEBAND_CREATE_CLASS(klass) new klass( child, flash3kyuu_deband_parameter_storage_t( range, (unsigned short)Y, (unsigned short)Cb, (unsigned short)Cr, ditherY, ditherC, sample_mode, seed, blur_first, diff_seed_for_each_frame, opt, mt, precision_mode, keep_tv_range, input_mode, input_depth ) )
+#define FLASH3KYUU_DEBAND_CREATE_CLASS(klass) new klass( child, flash3kyuu_deband_parameter_storage_t( range, (unsigned short)Y, (unsigned short)Cb, (unsigned short)Cr, ditherY, ditherC, sample_mode, seed, blur_first, diff_seed_for_each_frame, opt, mt, precision_mode, keep_tv_range, input_mode, input_depth, enable_fast_skip_plane ) )
 
 #ifdef FLASH3KYUU_DEBAND_SIMPLE_MACRO_NAME
 

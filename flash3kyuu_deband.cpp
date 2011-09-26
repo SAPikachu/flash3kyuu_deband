@@ -36,6 +36,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     bool keep_tv_range = ARG(keep_tv_range).AsBool(false);
     int input_mode = ARG(input_mode).AsInt(LOW_BIT_DEPTH);
     int input_depth = ARG(input_depth).AsInt(input_mode == LOW_BIT_DEPTH ? 8 : 16);
+    bool enable_fast_skip_plane = ARG(enable_fast_skip_plane).AsBool(true);
 
     int default_val = (precision_mode == PRECISION_LOW || sample_mode == 0) ? 1 : 64;
     int Y = ARG(Y).AsInt(default_val);
@@ -396,7 +397,7 @@ void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned
     
 
     bool copy_plane = false;
-    if (vi.IsPlanar() && _precision_mode < PRECISION_16BIT_STACKED)
+    if (_enable_fast_skip_plane && vi.IsPlanar() && _precision_mode < PRECISION_16BIT_STACKED)
     {
         copy_plane = params.threshold == 0;
     }
