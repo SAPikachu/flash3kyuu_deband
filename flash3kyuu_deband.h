@@ -67,7 +67,6 @@ typedef struct _process_plane_params
     unsigned short threshold;
     pixel_dither_info *info_ptr_base;
     int info_stride;
-    int range;
 
     int plane;
 
