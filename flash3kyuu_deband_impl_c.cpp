@@ -95,7 +95,7 @@ static __inline int read_pixel(const process_plane_params& params, void* context
     switch (params.input_mode)
     {
     case HIGH_BIT_DEPTH_STACKED:
-        ret = *ptr << 8 | *(ptr + params.plane_height_in_pixels * params.src_pitch / 2);
+        ret = *ptr << 8 | *(ptr + params.plane_height_in_pixels * params.src_pitch);
         break;
     case HIGH_BIT_DEPTH_INTERLEAVED:
         ret = *(unsigned short*)ptr;
@@ -230,9 +230,9 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
                        ((info.ref2 >> width_subsamp) * x_multiplier) + j < params.plane_width_in_pixels);
 
                 ref_pos = params.src_pitch * (info.ref2 >> params.height_subsampling) + 
-                          ((info.ref1 * x_multiplier) >> width_subsamp);
+                          ((info.ref1 * x_multiplier) >> width_subsamp) * pixel_step;
 
-                ref_pos_2 = ((info.ref2 * x_multiplier) >> width_subsamp) - 
+                ref_pos_2 = ((info.ref2 * x_multiplier) >> width_subsamp) * pixel_step - 
                             params.src_pitch * (info.ref1 >> params.height_subsampling);
 
                 int ref_1_up = read_pixel<mode>(params, context, src_px, ref_pos);
