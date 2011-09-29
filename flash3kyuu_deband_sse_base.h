@@ -534,6 +534,60 @@ static __m128i __forceinline process_pixels(
     return src_pixels;
 }
 
+template<bool aligned>
+static __m128i load_m128(const unsigned char *ptr)
+{
+    if (aligned)
+    {
+        return _mm_load_si128((const __m128i*)ptr);
+    } else {
+        return _mm_loadu_si128((const __m128i*)ptr);
+    }
+}
+
+template<int precision_mode, bool aligned>
+static void __forceinline read_pixels(
+    const process_plane_params& params, 
+    const unsigned char *ptr, 
+    __m128i upsample_shift,
+    __m128i& pixels_1, 
+    __m128i& pixels_2)
+{
+    if (precision_mode == PRECISION_LOW)
+    {
+        return load_m128<aligned>(ptr);
+    }
+    __m128i p1;
+    p1 = load_m128<aligned>(ptr);
+
+    switch (params.input_mode)
+    {
+    case LOW_BIT_DEPTH:
+        {
+            __m128i zero = _mm_setzero_si128();
+            pixels_1 = _mm_unpacklo_epi8(zero, p1);
+            pixels_2 = _mm_unpackhi_epi8(zero, p1);
+            return;
+        }
+        break;
+    case HIGH_BIT_DEPTH_STACKED:
+        {
+            __m128i p2 = load_m128<aligned>(ptr + params.plane_height_in_pixels * params.src_pitch);
+            pixels_1 = _mm_unpacklo_epi8(p2, p1);
+            pixels_2 = _mm_unpackhi_epi8(p2, p1);
+        }
+        break;
+    case HIGH_BIT_DEPTH_INTERLEAVED:
+        pixels_1 = p1;
+        pixels_2 = load_m128<aligned>(ptr + 16);
+        break;
+    default:
+        abort();
+    }
+    pixels_1 = _mm_sll_epi16(pixels_1, upsample_shift);
+    pixels_2 = _mm_sll_epi16(pixels_2, upsample_shift);
+}
+
 template<int sample_mode, bool blur_first, int precision_mode, bool aligned>
 static void __cdecl _process_plane_sse_impl(const process_plane_params& params, process_plane_context* context)
 {
