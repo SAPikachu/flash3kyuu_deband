@@ -280,7 +280,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
             }
 
             src_px += pixel_step;
-            dst_px += pixel_step;
+            dst_px++;
             info_ptr++;
             pixel_proc_next_pixel<mode>(context);
         }
