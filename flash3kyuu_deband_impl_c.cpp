@@ -220,7 +220,6 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
                         x_multiplier = 4;
                     }
                 } 
-                x_multiplier *= pixel_step;
                 
                 assert(info.ref2 >= 0);
                 assert((info.ref2 >> params.height_subsampling) <= i && 
