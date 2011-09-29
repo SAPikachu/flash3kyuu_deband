@@ -81,6 +81,35 @@ static __forceinline void __cdecl process_plane_plainc_mode0(const process_plane
     }
 }
 
+template <int mode>
+static __inline int read_pixel(const process_plane_params& params, void* context, const unsigned char* base, int offset = 0)
+{
+    const unsigned char* ptr = base + offset;
+    if (params.input_mode == LOW_BIT_DEPTH)
+    {
+        return pixel_proc_upsample<mode>(context, *ptr);
+    }
+
+    int ret;
+
+    switch (params.input_mode)
+    {
+    case HIGH_BIT_DEPTH_STACKED:
+        ret = *ptr << 8 | *(ptr + params.plane_height_in_pixels * params.src_pitch / 2);
+        break;
+    case HIGH_BIT_DEPTH_INTERLEAVED:
+        ret = *(unsigned short*)ptr;
+        break;
+    default:
+        // shouldn't happen!
+        abort();
+        return 0;
+    }
+
+    ret <<= (INTERNAL_BIT_DEPTH - params.input_depth);
+    return ret;
+}
+
 template <int sample_mode, bool blur_first, int mode>
 static __forceinline void __cdecl process_plane_plainc_mode12(const process_plane_params& params, process_plane_context*)
 {
@@ -98,15 +127,17 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
 
     if (!params.vi->IsYUY2())
     {
-        pixel_proc_init_context<mode>(context_y, params.src_width);
+        pixel_proc_init_context<mode>(context_y, params.plane_width_in_pixels);
     } else {
-        pixel_proc_init_context<mode>(context_y, params.src_width / 2);
-        pixel_proc_init_context<mode>(context_cb, params.src_width / 4);
-        pixel_proc_init_context<mode>(context_cr, params.src_width / 4);
+        pixel_proc_init_context<mode>(context_y, params.plane_width_in_pixels / 2);
+        pixel_proc_init_context<mode>(context_cb, params.plane_width_in_pixels / 4);
+        pixel_proc_init_context<mode>(context_cr, params.plane_width_in_pixels / 4);
     }
     char* context = context_y;
 
-    for (int i = 0; i < params.src_height; i++)
+    int pixel_step = params.input_mode == HIGH_BIT_DEPTH_INTERLEAVED ? 2 : 1;
+
+    for (int i = 0; i < params.plane_height_in_pixels; i++)
     {
         const unsigned char* src_px = params.src_plane_ptr + params.src_pitch * i;
         unsigned char* dst_px = params.dst_plane_ptr + params.dst_pitch * i;
@@ -114,7 +145,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
         info_ptr = params.info_ptr_base + params.info_stride * i;
 
 
-        for (int j = 0; j < params.src_width; j++)
+        for (int j = 0; j < params.plane_width_in_pixels; j++)
         {
             int real_col = j;
             if (params.vi->IsYUY2())
@@ -152,10 +183,11 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
                 }
             }
             pixel_dither_info info = *info_ptr;
-            int src_px_up = pixel_proc_upsample<mode>(context, *src_px);
+            int src_px_up = read_pixel<mode>(params, context, src_px);
             
             assert(info.ref1 >= 0);
-            assert((info.ref1 >> params.height_subsampling) <= i && (info.ref1 >> params.height_subsampling) + i < params.src_height);
+            assert((info.ref1 >> params.height_subsampling) <= i && 
+                   (info.ref1 >> params.height_subsampling) + i < params.plane_height_in_pixels);
 
             int avg;
             bool use_org_px_as_base;
@@ -163,8 +195,8 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
             if (sample_mode == 1)
             {
                 ref_pos = (info.ref1 >> params.height_subsampling) * params.src_pitch;
-                int ref_1_up = pixel_proc_upsample<mode>(context, src_px[ref_pos]);
-                int ref_2_up = pixel_proc_upsample<mode>(context, src_px[-ref_pos]);
+                int ref_1_up = read_pixel<mode>(params, context, src_px, ref_pos);
+                int ref_2_up = read_pixel<mode>(params, context, src_px, -ref_pos);
                 avg = pixel_proc_avg_2<mode>(context, ref_1_up, ref_2_up);
                 if (blur_first)
                 {
@@ -188,13 +220,15 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
                         x_multiplier = 4;
                     }
                 } 
+                x_multiplier *= pixel_step;
                 
                 assert(info.ref2 >= 0);
-                assert((info.ref2 >> params.height_subsampling) <= i && (info.ref2 >> params.height_subsampling) + i < params.src_height);
+                assert((info.ref2 >> params.height_subsampling) <= i && 
+                       (info.ref2 >> params.height_subsampling) + i < params.plane_height_in_pixels);
                 assert(((info.ref1 >> width_subsamp) * x_multiplier) <= j && 
-                       ((info.ref1 >> width_subsamp) * x_multiplier) + j < params.src_width);
+                       ((info.ref1 >> width_subsamp) * x_multiplier) + j < params.plane_width_in_pixels);
                 assert(((info.ref2 >> width_subsamp) * x_multiplier) <= j && 
-                       ((info.ref2 >> width_subsamp) * x_multiplier) + j < params.src_width);
+                       ((info.ref2 >> width_subsamp) * x_multiplier) + j < params.plane_width_in_pixels);
 
                 ref_pos = params.src_pitch * (info.ref2 >> params.height_subsampling) + 
                           ((info.ref1 * x_multiplier) >> width_subsamp);
@@ -202,10 +236,10 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
                 ref_pos_2 = ((info.ref2 * x_multiplier) >> width_subsamp) - 
                             params.src_pitch * (info.ref1 >> params.height_subsampling);
 
-                int ref_1_up = pixel_proc_upsample<mode>(context, src_px[ref_pos]);
-                int ref_2_up = pixel_proc_upsample<mode>(context, src_px[ref_pos_2]);
-                int ref_3_up = pixel_proc_upsample<mode>(context, src_px[-ref_pos]);
-                int ref_4_up = pixel_proc_upsample<mode>(context, src_px[-ref_pos_2]);
+                int ref_1_up = read_pixel<mode>(params, context, src_px, ref_pos);
+                int ref_2_up = read_pixel<mode>(params, context, src_px, ref_pos_2);
+                int ref_3_up = read_pixel<mode>(params, context, src_px, -ref_pos);
+                int ref_4_up = read_pixel<mode>(params, context, src_px, -ref_pos_2);
 
                 avg = pixel_proc_avg_4<mode>(context, ref_1_up, ref_2_up, ref_3_up, ref_4_up);
 
@@ -238,7 +272,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
                 break;
             case PRECISION_16BIT_STACKED:
                 *dst_px = (unsigned char)((new_pixel >> 8) & 0xFF);
-                *(dst_px + params.src_height * params.dst_pitch) = (unsigned char)(new_pixel & 0xFF);
+                *(dst_px + params.plane_height_in_pixels * params.dst_pitch) = (unsigned char)(new_pixel & 0xFF);
                 break;
             case PRECISION_16BIT_INTERLEAVED:
                 *((unsigned short*)dst_px) = (unsigned short)(new_pixel & 0xFFFF);
@@ -246,8 +280,8 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
                 break;
             }
 
-            src_px++;
-            dst_px++;
+            src_px += pixel_step;
+            dst_px += pixel_step;
             info_ptr++;
             pixel_proc_next_pixel<mode>(context);
         }

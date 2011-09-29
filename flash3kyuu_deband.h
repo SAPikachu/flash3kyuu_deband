@@ -64,6 +64,9 @@ typedef struct _process_plane_params
     unsigned char *dst_plane_ptr;
     int dst_pitch;
 
+    int plane_width_in_pixels;
+    int plane_height_in_pixels;
+
     unsigned short threshold;
     pixel_dither_info *info_ptr_base;
     int info_stride;

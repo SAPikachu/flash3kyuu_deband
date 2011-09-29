@@ -105,7 +105,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     CHECK_PARAM(precision_mode, 0, (PRECISION_COUNT - 1) );
     if (input_mode != LOW_BIT_DEPTH)
     {
-        CHECK_PARAM(input_depth, 9, 16);
+        CHECK_PARAM(input_depth, 9, INTERNAL_BIT_DEPTH);
     }
 
     // now the internal bit depth is 16, 
@@ -172,6 +172,16 @@ static int inline min_multi( int first, ... )
     return ret;
 }
 
+static int get_frame_lut_stride(int width_in_pixels, VideoInfo& vi)
+{
+    // whole multiples of alignment, so SSE codes don't need to check boundaries
+    int width = width_in_pixels;
+    if (vi.IsYUY2())
+    {
+        width *= 2;
+    }
+    return (((width - 1) | (FRAME_LUT_ALIGNMENT - 1)) + 1);
+}
 
 void flash3kyuu_deband::init_frame_luts(int n)
 {
@@ -183,12 +193,14 @@ void flash3kyuu_deband::init_frame_luts(int n)
         seed -= n;
     }
 
-    const VideoInfo& vi = GetVideoInfo();
+
+    int height_in_pixels = _precision_mode != PRECISION_16BIT_STACKED ? vi.height : vi.height / 2;
+    int width_in_pixels =  _precision_mode != PRECISION_16BIT_INTERLEAVED ? vi.width : vi.width / 2;
 
     int y_stride;
-    y_stride = FRAME_LUT_STRIDE(vi.RowSize(PLANAR_Y));
+    y_stride = get_frame_lut_stride(width_in_pixels, vi);
 
-    int y_size = sizeof(pixel_dither_info) * y_stride * vi.height;
+    int y_size = sizeof(pixel_dither_info) * y_stride * height_in_pixels;
     _y_info = (pixel_dither_info*)_aligned_malloc(y_size, FRAME_LUT_ALIGNMENT);
 
     // ensure unused items are also initialized
@@ -198,8 +210,8 @@ void flash3kyuu_deband::init_frame_luts(int n)
     bool has_chroma_plane = vi.IsPlanar() && !vi.IsY8();
     if (has_chroma_plane)
     {
-        c_stride = FRAME_LUT_STRIDE(vi.RowSize(PLANAR_U));
-        int c_size = sizeof(pixel_dither_info) * c_stride * (vi.height >> vi.GetPlaneHeightSubsampling(PLANAR_U));
+        c_stride = get_frame_lut_stride(width_in_pixels >> vi.GetPlaneWidthSubsampling(PLANAR_U), vi);
+        int c_size = sizeof(pixel_dither_info) * c_stride * (height_in_pixels >> vi.GetPlaneHeightSubsampling(PLANAR_U));
         _cb_info = (pixel_dither_info*)_aligned_malloc(c_size, FRAME_LUT_ALIGNMENT);
         _cr_info = (pixel_dither_info*)_aligned_malloc(c_size, FRAME_LUT_ALIGNMENT);
 
@@ -211,7 +223,7 @@ void flash3kyuu_deband::init_frame_luts(int n)
 
     int ditherY_limit = _ditherY * 2 + 1;
     int ditherC_limit = _ditherC * 2 + 1;
-    
+
     int width_subsamp = 0;
     int height_subsamp = 0;
     if (!vi.IsY8())
@@ -220,7 +232,7 @@ void flash3kyuu_deband::init_frame_luts(int n)
         height_subsamp = vi.GetPlaneHeightSubsampling(PLANAR_U);
     }
 
-    for (int y = 0; y < vi.height; y++)
+    for (int y = 0; y < height_in_pixels; y++)
     {
         y_info_ptr = _y_info + y * y_stride;
         if (has_chroma_plane)
@@ -228,15 +240,15 @@ void flash3kyuu_deband::init_frame_luts(int n)
             cb_info_ptr = _cb_info + (y >> height_subsamp) * c_stride;
             cr_info_ptr = _cr_info + (y >> height_subsamp) * c_stride;
         }
-        for (int x = 0; x < vi.width; x++)
+        for (int x = 0; x < width_in_pixels; x++)
         {
             pixel_dither_info info_y = {0, 0, 0};
             info_y.change = (signed short)(rand_next(seed) % ditherY_limit - _ditherY);
 
-            int cur_range = min_multi(_range, y, vi.height - y - 1, -1);
+            int cur_range = min_multi(_range, y, height_in_pixels - y - 1, -1);
             if (_sample_mode == 2)
             {
-                cur_range = min_multi(cur_range, x, vi.width - x - 1, -1);
+                cur_range = min_multi(cur_range, x, width_in_pixels - x - 1, -1);
             }
 
             if (cur_range > 0) {
@@ -259,7 +271,7 @@ void flash3kyuu_deband::init_frame_luts(int n)
             if (has_chroma_plane)
             {
                 should_set_c = ((x & ( ( 1 << width_subsamp ) - 1)) == 0 && 
-                                (y & ( ( 1 << height_subsamp ) - 1)) == 0);
+                    (y & ( ( 1 << height_subsamp ) - 1)) == 0);
             } else if (vi.IsYUY2()) {
                 should_set_c = ((x & 1) == 0);
             }
@@ -267,7 +279,7 @@ void flash3kyuu_deband::init_frame_luts(int n)
             if (should_set_c) {
                 pixel_dither_info info_cb = info_y;
                 pixel_dither_info info_cr = info_cb;
-                
+
                 // don't shift ref values here, since subsampling of width and height may be different
                 // shift them in actual processing
 
@@ -330,14 +342,6 @@ void flash3kyuu_deband::init(void)
 {
     ___intel_cpu_indicator_init();
 
-    init_context(&_y_context);
-    init_context(&_cb_context);
-    init_context(&_cr_context);
-
-    _src_vi = child->GetVideoInfo();
-
-    init_frame_luts(0);
-
     if (_input_mode == HIGH_BIT_DEPTH_STACKED)
     {
         vi.height /= 2;
@@ -352,6 +356,14 @@ void flash3kyuu_deband::init(void)
     } else if (_precision_mode == PRECISION_16BIT_INTERLEAVED) {
         vi.width *= 2;
     }
+
+    init_context(&_y_context);
+    init_context(&_cb_context);
+    init_context(&_cr_context);
+
+    _src_vi = child->GetVideoInfo();
+
+    init_frame_luts(0);
 
     _process_plane_impl = get_process_plane_impl(_sample_mode, _blur_first, _opt, _precision_mode);
 
@@ -376,10 +388,17 @@ void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned
     params.width_subsampling = _src_vi.GetPlaneWidthSubsampling(plane);
     params.height_subsampling = _src_vi.GetPlaneHeightSubsampling(plane);
 
+    params.plane_width_in_pixels = _precision_mode != PRECISION_16BIT_INTERLEAVED ? vi.width : vi.width / 2;
+    params.plane_height_in_pixels = _precision_mode != PRECISION_16BIT_STACKED ? vi.height : vi.height / 2;
+
+    params.plane_width_in_pixels >>= params.width_subsampling;
+    params.plane_height_in_pixels >>= params.height_subsampling;
+
+
     params.vi = &_src_vi;
     params.dst_vi = &vi;
 
-    params.info_stride = FRAME_LUT_STRIDE(params.src_width);
+    params.info_stride = get_frame_lut_stride(params.plane_width_in_pixels, vi);
 
     process_plane_context* context;
 
@@ -432,6 +451,7 @@ void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned
 
     params.input_mode = (INPUT_MODE)_input_mode;
     params.input_depth = _input_depth;
+
 
     _process_plane_impl(params, context);
 }

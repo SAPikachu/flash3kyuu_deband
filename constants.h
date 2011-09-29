@@ -4,9 +4,6 @@
 #define FRAME_LUT_ALIGNMENT 16
 #define PLANE_ALIGNMENT 16
 
-// whole multiples of alignment, so SSE codes don't need to check boundaries
-#define FRAME_LUT_STRIDE(width) (((width - 1) | (FRAME_LUT_ALIGNMENT - 1)) + 1)
-
 #define INTERNAL_BIT_DEPTH 16
 
 // these range values are defined in internal bit depth
