@@ -857,7 +857,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 
     int info_cache_block_size = (sample_mode == 2 ? 128 : 64);
 
-    for (int row = 0; row < params.src_height; row++)
+    for (int row = 0; row < params.plane_height_in_pixels; row++)
     {
         const unsigned char* src_px = params.src_plane_ptr + params.src_pitch * row;
         unsigned char* dst_px = params.dst_plane_ptr + params.dst_pitch * row;
@@ -867,7 +867,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 
         int processed_pixels = 0;
 
-        while (processed_pixels < params.src_width)
+        while (processed_pixels < params.plane_width_in_pixels)
         {
             __m128i change_1, change_2;
             
