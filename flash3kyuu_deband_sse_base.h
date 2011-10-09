@@ -419,6 +419,8 @@ static __m128i __forceinline process_pixels_mode12_high(
          ref_pixels_3_1, 
          ref_pixels_4_1 );
     
+    DUMP_VALUE_GROUP("new_pixel_before_downsample", lo, hi);
+
     switch (precision_mode)
     {
     case PRECISION_LOW:
@@ -426,7 +428,6 @@ static __m128i __forceinline process_pixels_mode12_high(
     case PRECISION_HIGH_ORDERED_DITHERING:
     case PRECISION_HIGH_FLOYD_STEINBERG_DITHERING:
         {
-            DUMP_VALUE_GROUP("new_pixel_before_downsample", lo, hi);
             lo = dither_high::dither<precision_mode>(dither_context, lo, row, column);
             hi = dither_high::dither<precision_mode>(dither_context, hi, row, column + 8);
 
