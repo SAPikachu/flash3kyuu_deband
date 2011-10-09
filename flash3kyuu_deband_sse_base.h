@@ -44,6 +44,29 @@ static __inline __m128i clamped_absolute_difference(__m128i a, __m128i b, __m128
     return _mm_min_epu8(diff, difference_limit);
 }
 
+#ifdef ENABLE_DEBUG_DUMP
+
+template<int precision_mode>
+static void __forceinline _dump_value_group(const TCHAR* name, __m128i part1, __m128i part2, bool is_signed=false)
+{
+    if (precision_mode == PRECISION_LOW)
+    {
+        DUMP_VALUE_S(name, part1, 1, is_signed);
+    } else {
+        DUMP_VALUE_S(name, part1, 2, is_signed);
+        DUMP_VALUE_S(name, part2, 2, is_signed);
+    }
+}
+
+#define DUMP_VALUE_GROUP(name, ...) _dump_value_group<precision_mode>(TEXT(name), __VA_ARGS__)
+
+#else
+
+#define DUMP_VALUE_GROUP(name, plane) ((void)0)
+
+#endif
+
+
 template <int sample_mode, int ref_part_index>
 static __forceinline void process_plane_info_block(
     pixel_dither_info *&info_ptr, 
@@ -89,7 +112,7 @@ static __forceinline void process_plane_info_block(
     ref1 = _mm_slli_epi32(ref1, 24); // << 24
     ref1 = _mm_srai_epi32(ref1, 24); // >> 24
 
-    DUMP_VALUE("ref1", ref1, 4);
+    DUMP_VALUE("ref1", ref1, 4, true);
 
     __m128i ref_offset1;
     __m128i ref_offset2;
@@ -103,13 +126,13 @@ static __forceinline void process_plane_info_block(
         temp_ref1 = _mm_sra_epi32(temp_ref1, height_subsample_vector);
         temp_ref1 = _cmm_mullo_limit16_epi32(temp_ref1, _mm_srai_epi32(ref1, 31));
         ref_offset1 = _cmm_mullo_limit16_epi32(src_pitch_vector, temp_ref1); // packed DWORD multiplication
-        DUMP_VALUE("ref_pos", ref_offset1, 4);
+        DUMP_VALUE("ref_pos", ref_offset1, 4, true);
         break;
     case 1:
         // ref1 is guarenteed to be postive
         temp_ref1 = _mm_sra_epi32(ref1, height_subsample_vector);
         ref_offset1 = _cmm_mullo_limit16_epi32(src_pitch_vector, temp_ref1); // packed DWORD multiplication
-        DUMP_VALUE("ref_pos", ref_offset1, 4);
+        DUMP_VALUE("ref_pos", ref_offset1, 4, true);
 
         ref_offset2 = _cmm_negate_all_epi32(ref_offset1, minus_one); // negates all offsets
         break;
@@ -127,14 +150,14 @@ static __forceinline void process_plane_info_block(
         ref2_fix = _mm_sra_epi32(ref2, height_subsample_vector);
         ref_offset1 = _cmm_mullo_limit16_epi32(src_pitch_vector, ref2_fix); // packed DWORD multiplication
         ref_offset1 = _mm_add_epi32(ref_offset1, _mm_sll_epi32(ref1_fix, pixel_step_shift_bits));
-        DUMP_VALUE("ref_pos", ref_offset1, 4);
+        DUMP_VALUE("ref_pos", ref_offset1, 4, true);
 
         // ref_px_2 = info.ref2 - src_pitch * info.ref1;
         ref1_fix = _mm_sra_epi32(ref1, height_subsample_vector);
         ref2_fix = _mm_sra_epi32(ref2, width_subsample_vector);
         ref_offset2 = _cmm_mullo_limit16_epi32(src_pitch_vector, ref1_fix); // packed DWORD multiplication
         ref_offset2 = _mm_sub_epi32(_mm_sll_epi32(ref2_fix, pixel_step_shift_bits), ref_offset2);
-        DUMP_VALUE("ref_pos_2", ref_offset2, 4);
+        DUMP_VALUE("ref_pos_2", ref_offset2, 4, true);
         break;
     default:
         abort();
@@ -274,65 +297,53 @@ static __forceinline __m128i generate_blend_mask_high(__m128i a, __m128i b, __m1
     return _mm_cmpgt_epi16(converted_threshold, converted_diff);
 }
 
-static __m128i __forceinline upsample_pixels(__m128i pixels)
-{
-    return _mm_slli_epi16(pixels, UPDOWNSAMPLING_BIT_SHIFT);
-}
 
 template<int sample_mode, bool blur_first>
 static __m128i __forceinline process_pixels_mode12_high_part(__m128i src_pixels, __m128i threshold_vector, __m128i change, const __m128i& ref_pixels_1, const __m128i& ref_pixels_2, const __m128i& ref_pixels_3, const __m128i& ref_pixels_4)
 {	
-    __m128i src_pixels_part = upsample_pixels(src_pixels);
-    
-    __m128i ref_part_1 = upsample_pixels(ref_pixels_1);
-    __m128i ref_part_2 = upsample_pixels(ref_pixels_2);
-
     __m128i use_orig_pixel_blend_mask;
     __m128i avg;
 
     if (!blur_first)
     {
-        use_orig_pixel_blend_mask = generate_blend_mask_high(src_pixels_part, ref_part_1, threshold_vector);
+        use_orig_pixel_blend_mask = generate_blend_mask_high(src_pixels, ref_pixels_1, threshold_vector);
 
         // note: use AND instead of OR, because two operands are reversed
         // (different from low bit-depth mode!)
         use_orig_pixel_blend_mask = _mm_and_si128(
             use_orig_pixel_blend_mask, 
-            generate_blend_mask_high(src_pixels_part, ref_part_2, threshold_vector) );
+            generate_blend_mask_high(src_pixels, ref_pixels_2, threshold_vector) );
     }
 
-    avg = _mm_avg_epu16(ref_part_1, ref_part_2);
+    avg = _mm_avg_epu16(ref_pixels_1, ref_pixels_2);
 
     if (sample_mode == 2)
     {
-        __m128i ref_part_3 = upsample_pixels(ref_pixels_3);
-        __m128i ref_part_4 = upsample_pixels(ref_pixels_4);
-
         if (!blur_first)
         {
             use_orig_pixel_blend_mask = _mm_and_si128(
                 use_orig_pixel_blend_mask, 
-                generate_blend_mask_high(src_pixels_part, ref_part_3, threshold_vector) );
+                generate_blend_mask_high(src_pixels, ref_pixels_3, threshold_vector) );
 
             use_orig_pixel_blend_mask = _mm_and_si128(
                 use_orig_pixel_blend_mask, 
-                generate_blend_mask_high(src_pixels_part, ref_part_4, threshold_vector) );
+                generate_blend_mask_high(src_pixels, ref_pixels_4, threshold_vector) );
         }
 
-        avg = _mm_avg_epu16(avg, _mm_avg_epu16(ref_part_3, ref_part_4));
+        avg = _mm_avg_epu16(avg, _mm_avg_epu16(ref_pixels_3, ref_pixels_4));
 
     }
 
     if (blur_first)
     {
-        use_orig_pixel_blend_mask = generate_blend_mask_high(src_pixels_part, avg, threshold_vector);
+        use_orig_pixel_blend_mask = generate_blend_mask_high(src_pixels, avg, threshold_vector);
     }
 
     // if mask is 0xff (NOT over threshold), select second operand, otherwise select first
     // note this is different from low bitdepth code
     __m128i dst_pixels;
 
-    dst_pixels = _cmm_blendv_by_cmp_mask_epi8(src_pixels_part, avg, use_orig_pixel_blend_mask);
+    dst_pixels = _cmm_blendv_by_cmp_mask_epi8(src_pixels, avg, use_orig_pixel_blend_mask);
     
     __m128i sign_convert_vector = _mm_set1_epi16((short)0x8000);
 
@@ -415,6 +426,7 @@ static __m128i __forceinline process_pixels_mode12_high(
     case PRECISION_HIGH_ORDERED_DITHERING:
     case PRECISION_HIGH_FLOYD_STEINBERG_DITHERING:
         {
+            DUMP_VALUE_GROUP("new_pixel_before_downsample", lo, hi);
             lo = dither_high::dither<precision_mode>(dither_context, lo, row, column);
             hi = dither_high::dither<precision_mode>(dither_context, hi, row, column + 8);
 
@@ -744,43 +756,6 @@ static void __forceinline read_reference_pixels(
     }
 }
 
-#ifdef ENABLE_DEBUG_DUMP
-
-static void dump_value_group_impl(const TCHAR* dump_name, __m128i value, int word_size_in_bytes)
-{
-    __declspec(align(16))
-    char buffer[16];
-
-    _mm_store_si128((__m128i*)buffer, value);
-
-    int item;
-    for (int i = 0; i < 16 / word_size_in_bytes; i++)
-    {
-        item = 0;
-        memcpy(&item, buffer + i * word_size_in_bytes, word_size_in_bytes);
-        DUMP_VALUE_S(dump_name, item);
-    }
-}
-
-template<int precision_mode>
-static void __forceinline _dump_value_group(const TCHAR* name, __m128i part1, __m128i part2)
-{
-    if (precision_mode == PRECISION_LOW)
-    {
-        dump_value_group_impl(name, part1, 1);
-    } else {
-        dump_value_group_impl(name, part1, 2);
-        dump_value_group_impl(name, part2, 2);
-    }
-}
-
-#define DUMP_VALUE_GROUP(name, part1, part2) _dump_value_group<precision_mode>(TEXT(name), part1, part2)
-
-#else
-
-#define DUMP_VALUE_GROUP(name, plane) ((void)0)
-
-#endif
 
 template<int sample_mode, bool blur_first, int precision_mode, bool aligned>
 static void __cdecl _process_plane_sse_impl(const process_plane_params& params, process_plane_context* context)
@@ -983,7 +958,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 
             READ_REFS(data_stream_block_start);
             
-            DUMP_VALUE_GROUP("change", change_1, change_2);
+            DUMP_VALUE_GROUP("change", change_1, change_2, true);
             DUMP_VALUE_GROUP("ref1_up", ref_pixels_1_0, ref_pixels_1_1);
             DUMP_VALUE_GROUP("ref2_up", ref_pixels_2_0, ref_pixels_2_1);
             DUMP_VALUE_GROUP("ref3_up", ref_pixels_3_0, ref_pixels_3_1);

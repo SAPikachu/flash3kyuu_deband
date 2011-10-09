@@ -9,7 +9,7 @@ void dump_init(const TCHAR* dump_base_name, int plane);
 
 void dump_value(const TCHAR* dump_name, int value);
 
-void dump_value(const TCHAR* dump_name, __m128i value, int word_size_in_bytes);
+void dump_value(const TCHAR* dump_name, __m128i value, int word_size_in_bytes, bool is_signed);
 
 void dump_finish();
 

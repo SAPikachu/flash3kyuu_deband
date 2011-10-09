@@ -185,7 +185,7 @@ void dump_value(const TCHAR* dump_name, int value)
     fwrite(&value, 4, 1, fd);
 }
 
-void dump_value(const TCHAR* dump_name, __m128i value, int word_size_in_bytes)
+void dump_value(const TCHAR* dump_name, __m128i value, int word_size_in_bytes, bool is_signed)
 {
     assert(word_size_in_bytes == 1 || word_size_in_bytes == 2 || word_size_in_bytes == 4);
 
@@ -201,6 +201,12 @@ void dump_value(const TCHAR* dump_name, __m128i value, int word_size_in_bytes)
     {
         item = 0;
         memcpy(&item, buffer + i * word_size_in_bytes, word_size_in_bytes);
+        if (is_signed)
+        {
+            int bits = (4 - word_size_in_bytes) * 8;
+            item <<= bits;
+            item >>= bits;
+        }
         fwrite(&item, 4, 1, fd);
     }
 }
