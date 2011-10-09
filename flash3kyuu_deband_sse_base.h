@@ -1021,7 +1021,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
             }
 
             processed_pixels += 16;
-            src_px += 16;
+            src_px += params.input_mode != HIGH_BIT_DEPTH_INTERLEAVED ? 16 : 32;
         }
         dither_high::next_row<precision_mode>(context_buffer);
     }
