@@ -597,6 +597,7 @@ static void __forceinline read_pixels(
     if (precision_mode == PRECISION_LOW)
     {
         pixels_1 = load_m128<aligned>(ptr);
+        return;
     }
     __m128i p1;
     p1 = load_m128<aligned>(ptr);
