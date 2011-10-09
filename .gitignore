@@ -1,6 +1,7 @@
 
 *.user
 Debug/*
+Debug with dump/*
 Release/*
 Release_MSVC/*
 x64/*
