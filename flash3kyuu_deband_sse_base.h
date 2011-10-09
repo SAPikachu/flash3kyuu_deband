@@ -961,10 +961,10 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
             READ_REFS(data_stream_block_start);
             
             DUMP_VALUE_GROUP("change", change_1, change_2, true);
-            DUMP_VALUE_GROUP("ref1_up", ref_pixels_1_0, ref_pixels_1_1);
-            DUMP_VALUE_GROUP("ref2_up", ref_pixels_2_0, ref_pixels_2_1);
-            DUMP_VALUE_GROUP("ref3_up", ref_pixels_3_0, ref_pixels_3_1);
-            DUMP_VALUE_GROUP("ref4_up", ref_pixels_4_0, ref_pixels_4_1);
+            DUMP_VALUE_GROUP("ref_1_up", ref_pixels_1_0, ref_pixels_1_1);
+            DUMP_VALUE_GROUP("ref_2_up", ref_pixels_2_0, ref_pixels_2_1);
+            DUMP_VALUE_GROUP("ref_3_up", ref_pixels_3_0, ref_pixels_3_1);
+            DUMP_VALUE_GROUP("ref_4_up", ref_pixels_4_0, ref_pixels_4_1);
 
             __m128i src_pixels_0, src_pixels_1;
             // abuse the guard bytes on the end of frame, as long as they are present there won't be segfault
