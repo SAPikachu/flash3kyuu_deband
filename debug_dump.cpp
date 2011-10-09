@@ -86,7 +86,7 @@ debug_dump_t* get_or_create_dump_handle(void)
     return ret;
 }
 
-void dump_init(TCHAR* dump_base_name, int plane)
+void dump_init(const TCHAR* dump_base_name, int plane)
 {
     debug_dump_t* handle = get_or_create_dump_handle();
 
@@ -141,7 +141,7 @@ void dump_finish(void)
     TlsSetValue(_tls_slot, NULL);
 }
 
-static FILE* find_or_create_dump_fd(TCHAR* dump_name)
+static FILE* find_or_create_dump_fd(const TCHAR* dump_name)
 {
     debug_dump_t* handle = get_dump_handle();
 
@@ -179,13 +179,13 @@ static FILE* find_or_create_dump_fd(TCHAR* dump_name)
     return NULL;
 }
 
-void dump_value(TCHAR* dump_name, int value)
+void dump_value(const TCHAR* dump_name, int value)
 {
     FILE* fd = find_or_create_dump_fd(dump_name);
     fwrite(&value, 4, 1, fd);
 }
 
-void dump_value(TCHAR* dump_name, __m128i value, int word_size_in_bytes)
+void dump_value(const TCHAR* dump_name, __m128i value, int word_size_in_bytes)
 {
     assert(word_size_in_bytes == 1 || word_size_in_bytes == 2 || word_size_in_bytes == 4);
 
