@@ -105,6 +105,9 @@
     <ClInclude Include="flash3kyuu_deband.def.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="debug_dump.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -156,6 +159,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="check.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="debug_dump.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

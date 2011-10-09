@@ -9,6 +9,8 @@
 
 #include <limits.h>
 
+#include "debug_dump.h"
+
 static inline bool _is_above_threshold(int threshold, int diff) {
     return abs(diff) >= threshold;
 }
@@ -137,6 +139,8 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
 
     int pixel_step = params.input_mode == HIGH_BIT_DEPTH_INTERLEAVED ? 2 : 1;
 
+    DUMP_INIT("c", params.plane);
+
     for (int i = 0; i < params.plane_height_in_pixels; i++)
     {
         const unsigned char* src_px = params.src_plane_ptr + params.src_pitch * i;
@@ -184,10 +188,15 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
             }
             pixel_dither_info info = *info_ptr;
             int src_px_up = read_pixel<mode>(params, context, src_px);
+
+            DUMP_VALUE("src_px_up", src_px_up);
             
             assert(info.ref1 >= 0);
             assert((info.ref1 >> params.height_subsampling) <= i && 
                    (info.ref1 >> params.height_subsampling) + i < params.plane_height_in_pixels);
+
+            
+            DUMP_VALUE("ref1", info.ref1);
 
             int avg;
             bool use_org_px_as_base;
@@ -195,9 +204,17 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
             if (sample_mode == 1)
             {
                 ref_pos = (info.ref1 >> params.height_subsampling) * params.src_pitch;
+                
+                DUMP_VALUE("ref_pos", ref_pos);
+
                 int ref_1_up = read_pixel<mode>(params, context, src_px, ref_pos);
                 int ref_2_up = read_pixel<mode>(params, context, src_px, -ref_pos);
+                
+                DUMP_VALUE("ref_1_up", ref_1_up);
+                DUMP_VALUE("ref_2_up", ref_2_up);
+
                 avg = pixel_proc_avg_2<mode>(context, ref_1_up, ref_2_up);
+
                 if (blur_first)
                 {
                     int diff = avg - src_px_up;
@@ -229,16 +246,29 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
                 assert(((info.ref2 >> width_subsamp) * x_multiplier) <= j && 
                        ((info.ref2 >> width_subsamp) * x_multiplier) + j < params.plane_width_in_pixels);
 
+                
+                DUMP_VALUE("ref2", info.ref2);
+
                 ref_pos = params.src_pitch * (info.ref2 >> params.height_subsampling) + 
                           ((info.ref1 * x_multiplier) >> width_subsamp) * pixel_step;
 
                 ref_pos_2 = ((info.ref2 * x_multiplier) >> width_subsamp) * pixel_step - 
                             params.src_pitch * (info.ref1 >> params.height_subsampling);
 
+                
+                DUMP_VALUE("ref_pos", ref_pos);
+                DUMP_VALUE("ref_pos_2", ref_pos_2);
+
                 int ref_1_up = read_pixel<mode>(params, context, src_px, ref_pos);
                 int ref_2_up = read_pixel<mode>(params, context, src_px, ref_pos_2);
                 int ref_3_up = read_pixel<mode>(params, context, src_px, -ref_pos);
                 int ref_4_up = read_pixel<mode>(params, context, src_px, -ref_pos_2);
+
+                
+                DUMP_VALUE("ref_1_up", ref_1_up);
+                DUMP_VALUE("ref_2_up", ref_2_up);
+                DUMP_VALUE("ref_3_up", ref_3_up);
+                DUMP_VALUE("ref_4_up", ref_4_up);
 
                 avg = pixel_proc_avg_4<mode>(context, ref_1_up, ref_2_up, ref_3_up, ref_4_up);
 
@@ -254,13 +284,23 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
                     use_org_px_as_base = is_above_threshold(threshold, diff1, diff2, diff3, diff4);
                 }
             }
+            
+            DUMP_VALUE("avg", avg);
+            DUMP_VALUE("change", info.change);
+
             int new_pixel;
+
             if (use_org_px_as_base) {
                 new_pixel = src_px_up + info.change;
             } else {
                 new_pixel = avg + info.change;
             }
+            
+            DUMP_VALUE("new_pixel_before_downsample", new_pixel);
+
             new_pixel = pixel_proc_downsample<mode>(context, new_pixel, i, real_col, pixel_min, pixel_max);
+            
+            DUMP_VALUE("dst", new_pixel);
             switch (mode)
             {
             case PRECISION_LOW:
@@ -291,6 +331,9 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
             pixel_proc_next_row<mode>(context_cr);
         }
     }
+
+    DUMP_FINISH();
+
     pixel_proc_destroy_context<mode>(context_y);
     if (params.vi->IsYUY2())
     {
