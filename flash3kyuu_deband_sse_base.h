@@ -62,7 +62,7 @@ static void __forceinline _dump_value_group(const TCHAR* name, __m128i part1, __
 
 #else
 
-#define DUMP_VALUE_GROUP(name, plane) ((void)0)
+#define DUMP_VALUE_GROUP(name, ...) ((void)0)
 
 #endif
 
