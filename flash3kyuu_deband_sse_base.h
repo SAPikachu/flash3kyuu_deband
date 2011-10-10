@@ -338,6 +338,8 @@ static __m128i __forceinline process_pixels_mode12_high_part(__m128i src_pixels,
     {
         use_orig_pixel_blend_mask = generate_blend_mask_high(src_pixels, avg, threshold_vector);
     }
+    
+    DUMP_VALUE("avg", avg, 2, false);
 
     // if mask is 0xff (NOT over threshold), select second operand, otherwise select first
     // note this is different from low bitdepth code
@@ -994,7 +996,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
                                      need_clamping, 
                                      row, 
                                      processed_pixels, 
-                                     params.src_height, 
+                                     params.plane_height_in_pixels, 
                                      params.dst_pitch, 
                                      (__m128i*)dst_px, 
                                      context_buffer);
