@@ -640,9 +640,7 @@ static unsigned short read_pixel(
     const unsigned char* base,
     int offset)
 {
-    int pixel_step = params.input_mode != HIGH_BIT_DEPTH_INTERLEAVED ? 1 : 2;
-
-    const unsigned char* ptr = base + offset * pixel_step;
+    const unsigned char* ptr = base + offset;
 
     if (precision_mode == PRECISION_LOW)
     {
