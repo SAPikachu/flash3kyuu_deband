@@ -51,6 +51,11 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
         {
             env->ThrowError("flash3kyuu_deband: sample_mode = 0 is valid only when precision_mode = 0.");
         }
+
+        if (input_mode != LOW_BIT_DEPTH)
+        {
+            env->ThrowError("flash3kyuu_deband: sample_mode = 0 is valid only when input_mode = 0.");
+        }
         
         if (!blur_first)
         {
@@ -67,10 +72,15 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
             env->ThrowError("flash3kyuu_deband: When sample_mode = 0, setting ditherC has no effect.");
         }
     }
-
+    
     if (input_mode == LOW_BIT_DEPTH && input_depth != 8)
     {
         env->ThrowError("flash3kyuu_deband: When input_mode = 0, setting input_depth has no effect.");
+    }
+
+    if (input_mode != LOW_BIT_DEPTH && precision_mode == PRECISION_LOW)
+    {
+        env->ThrowError("flash3kyuu_deband: input_mode > 0 is only valid in high precision mode.");
     }
     
     if (input_mode == HIGH_BIT_DEPTH_STACKED && ( vi.height & ( ( 1 << ( vi.GetPlaneHeightSubsampling(PLANAR_U) + 1 ) ) - 1 ) ) != 0)
