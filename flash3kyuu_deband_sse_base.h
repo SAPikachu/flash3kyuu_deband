@@ -330,6 +330,7 @@ static __m128i __forceinline process_pixels_mode12_high_part(__m128i src_pixels,
                 generate_blend_mask_high(src_pixels, ref_pixels_4, threshold_vector) );
         }
 
+        avg = _mm_subs_epu16(avg, _mm_set1_epi16(1));
         avg = _mm_avg_epu16(avg, _mm_avg_epu16(ref_pixels_3, ref_pixels_4));
 
     }
