@@ -139,7 +139,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
 
     int pixel_step = params.input_mode == HIGH_BIT_DEPTH_INTERLEAVED ? 2 : 1;
 
-    DUMP_INIT("c", params.plane);
+    DUMP_INIT("c", params.plane, params.plane_width_in_pixels);
 
     for (int i = 0; i < params.plane_height_in_pixels; i++)
     {
@@ -325,6 +325,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12(const process_plan
             pixel_proc_next_pixel<mode>(context);
         }
         pixel_proc_next_row<mode>(context_y);
+        DUMP_NEXT_LINE();
         if (params.vi->IsYUY2())
         {
             pixel_proc_next_row<mode>(context_cb);

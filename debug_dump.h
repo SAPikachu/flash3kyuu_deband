@@ -5,7 +5,9 @@
 
 #include <emmintrin.h>
 
-void dump_init(const TCHAR* dump_base_name, int plane);
+void dump_init(const TCHAR* dump_base_name, int plane, int items_per_line);
+
+void dump_next_line();
 
 void dump_value(const TCHAR* dump_name, int value);
 
@@ -15,7 +17,9 @@ void dump_finish();
 
 #ifdef ENABLE_DEBUG_DUMP
 
-#define DUMP_INIT(name, plane) dump_init( TEXT(name), plane )
+#define DUMP_INIT(name, plane, items_per_line) dump_init( TEXT(name), plane, items_per_line )
+
+#define DUMP_NEXT_LINE() dump_next_line()
 
 #define DUMP_VALUE(name, ...) dump_value(TEXT(name), __VA_ARGS__)
 
@@ -25,7 +29,9 @@ void dump_finish();
 
 #else
 
-#define DUMP_INIT(name, plane) ((void)0)
+#define DUMP_INIT(name, ...) ((void)0)
+
+#define DUMP_NEXT_LINE() ((void)0)
 
 #define DUMP_VALUE(name, ...) ((void)0)
 

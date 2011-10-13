@@ -723,21 +723,21 @@ static void __forceinline read_reference_pixels(
 
     for (int i = 0; i < 16; i++)
     {
-
+        int i_fix = i * (params.input_mode != HIGH_BIT_DEPTH_INTERLEAVED ? 1 : 2);
         switch (sample_mode)
         {
         case 0:
-            tmp_1[i] = read_pixel<precision_mode>(params, src_px_start, i + *(int*)(info_data_start + 4 * i));
+            tmp_1[i] = read_pixel<precision_mode>(params, src_px_start, i_fix + *(int*)(info_data_start + 4 * i));
             break;
         case 1:
-            tmp_1[i] = read_pixel<precision_mode>(params, src_px_start, i + *(int*)(info_data_start + 4 * i));
-            tmp_2[i] = read_pixel<precision_mode>(params, src_px_start, i + -*(int*)(info_data_start + 4 * i));
+            tmp_1[i] = read_pixel<precision_mode>(params, src_px_start, i_fix + *(int*)(info_data_start + 4 * i));
+            tmp_2[i] = read_pixel<precision_mode>(params, src_px_start, i_fix + -*(int*)(info_data_start + 4 * i));
             break;
         case 2:
-            tmp_1[i] = read_pixel<precision_mode>(params, src_px_start, i + *(int*)(info_data_start + 4 * (i + i / 4 * 4)));
-            tmp_2[i] = read_pixel<precision_mode>(params, src_px_start, i + *(int*)(info_data_start + 4 * (i + i / 4 * 4 + 4)));
-            tmp_3[i] = read_pixel<precision_mode>(params, src_px_start, i + -*(int*)(info_data_start + 4 * (i + i / 4 * 4)));
-            tmp_4[i] = read_pixel<precision_mode>(params, src_px_start, i + -*(int*)(info_data_start + 4 * (i + i / 4 * 4 + 4)));
+            tmp_1[i] = read_pixel<precision_mode>(params, src_px_start, i_fix + *(int*)(info_data_start + 4 * (i + i / 4 * 4)));
+            tmp_2[i] = read_pixel<precision_mode>(params, src_px_start, i_fix + *(int*)(info_data_start + 4 * (i + i / 4 * 4 + 4)));
+            tmp_3[i] = read_pixel<precision_mode>(params, src_px_start, i_fix + -*(int*)(info_data_start + 4 * (i + i / 4 * 4)));
+            tmp_4[i] = read_pixel<precision_mode>(params, src_px_start, i_fix + -*(int*)(info_data_start + 4 * (i + i / 4 * 4 + 4)));
             break;
         }
     }
@@ -764,7 +764,7 @@ template<int sample_mode, bool blur_first, int precision_mode, bool aligned>
 static void __cdecl _process_plane_sse_impl(const process_plane_params& params, process_plane_context* context)
 {
 
-    DUMP_INIT("sse", params.plane);
+    DUMP_INIT("sse", params.plane, params.plane_width_in_pixels);
 
     pixel_dither_info* info_ptr = params.info_ptr_base;
 
@@ -792,7 +792,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 
     char context_buffer[DITHER_CONTEXT_BUFFER_SIZE];
 
-    dither_high::init<precision_mode>(context_buffer, params.src_width);
+    dither_high::init<precision_mode>(context_buffer, params.plane_width_in_pixels);
 
     info_cache *cache = NULL;
     
@@ -1025,6 +1025,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
             processed_pixels += 16;
             src_px += params.input_mode != HIGH_BIT_DEPTH_INTERLEAVED ? 16 : 32;
         }
+        DUMP_NEXT_LINE();
         dither_high::next_row<precision_mode>(context_buffer);
     }
     

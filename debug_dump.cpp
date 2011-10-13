@@ -16,12 +16,14 @@
 typedef struct _debug_dump_stage_t
 {
     FILE* fd;
+    int items_in_current_line;
     TCHAR name[DUMP_MAX_NAME_LENGTH + 1];
 } debug_dump_stage_t;
 
 typedef struct _debug_dump_t
 {
     TCHAR dump_path[MAX_PATH];
+    int items_per_line;
     debug_dump_stage_t stages[DUMP_MAX_STAGES];
 } debug_dump_t;
 
@@ -86,9 +88,11 @@ debug_dump_t* get_or_create_dump_handle(void)
     return ret;
 }
 
-void dump_init(const TCHAR* dump_base_name, int plane)
+void dump_init(const TCHAR* dump_base_name, int plane, int items_per_line)
 {
     debug_dump_t* handle = get_or_create_dump_handle();
+
+    handle->items_per_line = items_per_line;
 
     assert(handle);
     assert(dump_base_name);
@@ -141,7 +145,29 @@ void dump_finish(void)
     TlsSetValue(_tls_slot, NULL);
 }
 
-static FILE* find_or_create_dump_fd(const TCHAR* dump_name)
+void dump_next_line()
+{
+    debug_dump_t* handle = get_dump_handle();
+    assert(handle);
+
+    const int dummy_value = 0xdeadbeef;
+
+    for (int i = 0; i < DUMP_MAX_STAGES; i++)
+    {
+        if (!handle->stages[i].fd)
+        {
+            return;
+        }
+        while (handle->stages[i].items_in_current_line < handle->items_per_line)
+        {
+            fwrite(&dummy_value, 4, 1, handle->stages[i].fd);
+            handle->stages[i].items_in_current_line++;
+        }
+        handle->stages[i].items_in_current_line = 0;
+    }
+}
+
+static debug_dump_stage_t* find_or_create_dump_stage(const TCHAR* dump_name)
 {
     debug_dump_t* handle = get_dump_handle();
 
@@ -154,7 +180,7 @@ static FILE* find_or_create_dump_fd(const TCHAR* dump_name)
     {
         if (!_tcscmp(dump_name, handle->stages[i].name))
         {
-            return handle->stages[i].fd;
+            return &handle->stages[i];
         }
 
         if (!handle->stages[i].fd)
@@ -170,7 +196,7 @@ static FILE* find_or_create_dump_fd(const TCHAR* dump_name)
                 abort();
             }
             _tcscpy(handle->stages[i].name, dump_name);
-            return handle->stages[i].fd;
+            return &handle->stages[i];
         }
     }
 
@@ -181,15 +207,22 @@ static FILE* find_or_create_dump_fd(const TCHAR* dump_name)
 
 void dump_value(const TCHAR* dump_name, int value)
 {
-    FILE* fd = find_or_create_dump_fd(dump_name);
-    fwrite(&value, 4, 1, fd);
+    debug_dump_stage_t* stage = find_or_create_dump_stage(dump_name);
+    debug_dump_t* handle = get_dump_handle();
+    if (stage->items_in_current_line >= handle->items_per_line)
+    {
+        return;
+    }
+    fwrite(&value, 4, 1, stage->fd);
+    stage->items_in_current_line++;
 }
 
 void dump_value(const TCHAR* dump_name, __m128i value, int word_size_in_bytes, bool is_signed)
 {
     assert(word_size_in_bytes == 1 || word_size_in_bytes == 2 || word_size_in_bytes == 4);
-
-    FILE* fd = find_or_create_dump_fd(dump_name);
+    
+    debug_dump_stage_t* stage = find_or_create_dump_stage(dump_name);
+    debug_dump_t* handle = get_dump_handle();
 
     __declspec(align(16))
     char buffer[16];
@@ -199,6 +232,10 @@ void dump_value(const TCHAR* dump_name, __m128i value, int word_size_in_bytes, b
     int item;
     for (int i = 0; i < 16 / word_size_in_bytes; i++)
     {
+        if (stage->items_in_current_line >= handle->items_per_line)
+        {
+            return;
+        }
         item = 0;
         memcpy(&item, buffer + i * word_size_in_bytes, word_size_in_bytes);
         if (is_signed)
@@ -207,6 +244,7 @@ void dump_value(const TCHAR* dump_name, __m128i value, int word_size_in_bytes, b
             item <<= bits;
             item >>= bits;
         }
-        fwrite(&item, 4, 1, fd);
+        fwrite(&item, 4, 1, stage->fd);
+        stage->items_in_current_line++;
     }
 }
