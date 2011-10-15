@@ -636,7 +636,9 @@ static void __forceinline read_pixels(
 
 template<int precision_mode>
 static unsigned short read_pixel(
-    const process_plane_params& params,
+    INPUT_MODE input_mode,
+    int plane_height_in_pixels,
+    int src_pitch,
     const unsigned char* base,
     int offset)
 {
@@ -647,13 +649,13 @@ static unsigned short read_pixel(
         return *ptr;
     }
 
-    switch (params.input_mode)
+    switch (input_mode)
     {
     case LOW_BIT_DEPTH:
         return *ptr;
         break;
     case HIGH_BIT_DEPTH_STACKED:
-        return *ptr << 8 | *(ptr + params.plane_height_in_pixels * params.src_pitch);
+        return *ptr << 8 | *(ptr + plane_height_in_pixels * src_pitch);
         break;
     case HIGH_BIT_DEPTH_INTERLEAVED:
         return *(unsigned short*)ptr;
@@ -721,39 +723,42 @@ static void __forceinline read_reference_pixels(
     //  1 1 1 1
     //  2 2 2 2]
 
-    int i_fix = 0;
-    int i_fix_step = (params.input_mode != HIGH_BIT_DEPTH_INTERLEAVED ? 1 : 2);
+    INPUT_MODE input_mode = params.input_mode;
+    int plane_height_in_pixels = params.plane_height_in_pixels;
+    int src_pitch = params.src_pitch;
 
-    for (int i = 0; i < 16; i++)
-    {
-        switch (sample_mode)
-        {
-        case 0:
-            tmp_1[i] = read_pixel<precision_mode>(params, src_px_start, i_fix + *(int*)(info_data_start + 4 * i));
-            break;
-        case 1:
-            tmp_1[i] = read_pixel<precision_mode>(params, src_px_start, i_fix + *(int*)(info_data_start + 4 * i));
-            tmp_2[i] = read_pixel<precision_mode>(params, src_px_start, i_fix + -*(int*)(info_data_start + 4 * i));
-            break;
-        case 2:
-            tmp_1[i] = read_pixel<precision_mode>(params, src_px_start, i_fix + *(int*)(info_data_start + 4 * (i + i / 4 * 4)));
-            tmp_2[i] = read_pixel<precision_mode>(params, src_px_start, i_fix + *(int*)(info_data_start + 4 * (i + i / 4 * 4 + 4)));
-            tmp_3[i] = read_pixel<precision_mode>(params, src_px_start, i_fix + -*(int*)(info_data_start + 4 * (i + i / 4 * 4)));
-            tmp_4[i] = read_pixel<precision_mode>(params, src_px_start, i_fix + -*(int*)(info_data_start + 4 * (i + i / 4 * 4 + 4)));
-            break;
-        }
-        i_fix += i_fix_step;
-    }
+    int i_fix = 0;
+    int i_fix_step = (input_mode != HIGH_BIT_DEPTH_INTERLEAVED ? 1 : 2);
+    
     switch (sample_mode)
     {
     case 0:
+        for (int i = 0; i < 16; i++)
+        {
+            tmp_1[i] = read_pixel<precision_mode>(input_mode, plane_height_in_pixels, src_pitch, src_px_start, i_fix + *(int*)(info_data_start + 4 * i));
+            i_fix += i_fix_step;
+        }
         transfer_reference_pixels<precision_mode>(shift, tmp_1, ref_pixels_1_0, ref_pixels_1_1);
         break;
     case 1:
+        for (int i = 0; i < 16; i++)
+        {
+            tmp_1[i] = read_pixel<precision_mode>(input_mode, plane_height_in_pixels, src_pitch, src_px_start, i_fix + *(int*)(info_data_start + 4 * i));
+            tmp_2[i] = read_pixel<precision_mode>(input_mode, plane_height_in_pixels, src_pitch, src_px_start, i_fix + -*(int*)(info_data_start + 4 * i));
+            i_fix += i_fix_step;
+        }
         transfer_reference_pixels<precision_mode>(shift, tmp_1, ref_pixels_1_0, ref_pixels_1_1);
         transfer_reference_pixels<precision_mode>(shift, tmp_2, ref_pixels_2_0, ref_pixels_2_1);
         break;
     case 2:
+        for (int i = 0; i < 16; i++)
+        {
+            tmp_1[i] = read_pixel<precision_mode>(input_mode, plane_height_in_pixels, src_pitch, src_px_start, i_fix + *(int*)(info_data_start + 4 * (i + i / 4 * 4)));
+            tmp_2[i] = read_pixel<precision_mode>(input_mode, plane_height_in_pixels, src_pitch, src_px_start, i_fix + *(int*)(info_data_start + 4 * (i + i / 4 * 4 + 4)));
+            tmp_3[i] = read_pixel<precision_mode>(input_mode, plane_height_in_pixels, src_pitch, src_px_start, i_fix + -*(int*)(info_data_start + 4 * (i + i / 4 * 4)));
+            tmp_4[i] = read_pixel<precision_mode>(input_mode, plane_height_in_pixels, src_pitch, src_px_start, i_fix + -*(int*)(info_data_start + 4 * (i + i / 4 * 4 + 4)));
+            i_fix += i_fix_step;
+        }
         transfer_reference_pixels<precision_mode>(shift, tmp_1, ref_pixels_1_0, ref_pixels_1_1);
         transfer_reference_pixels<precision_mode>(shift, tmp_2, ref_pixels_2_0, ref_pixels_2_1);
         transfer_reference_pixels<precision_mode>(shift, tmp_3, ref_pixels_3_0, ref_pixels_3_1);
