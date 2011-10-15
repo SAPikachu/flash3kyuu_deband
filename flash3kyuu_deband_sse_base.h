@@ -721,9 +721,11 @@ static void __forceinline read_reference_pixels(
     //  1 1 1 1
     //  2 2 2 2]
 
+    int i_fix = 0;
+    int i_fix_step = (params.input_mode != HIGH_BIT_DEPTH_INTERLEAVED ? 1 : 2);
+
     for (int i = 0; i < 16; i++)
     {
-        int i_fix = i * (params.input_mode != HIGH_BIT_DEPTH_INTERLEAVED ? 1 : 2);
         switch (sample_mode)
         {
         case 0:
@@ -740,6 +742,7 @@ static void __forceinline read_reference_pixels(
             tmp_4[i] = read_pixel<precision_mode>(params, src_px_start, i_fix + -*(int*)(info_data_start + 4 * (i + i / 4 * 4 + 4)));
             break;
         }
+        i_fix += i_fix_step;
     }
     switch (sample_mode)
     {
