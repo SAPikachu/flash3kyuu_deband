@@ -634,9 +634,8 @@ static void __forceinline read_pixels(
     pixels_2 = _mm_sll_epi16(pixels_2, upsample_shift);
 }
 
-template<int precision_mode>
+template<int precision_mode, INPUT_MODE input_mode>
 static unsigned short read_pixel(
-    INPUT_MODE input_mode,
     int plane_height_in_pixels,
     int src_pitch,
     const unsigned char* base,
@@ -688,7 +687,7 @@ static void __forceinline transfer_reference_pixels(
 }
 
 
-template<int sample_mode, int precision_mode>
+template<int sample_mode, int precision_mode, INPUT_MODE input_mode>
 static void __forceinline read_reference_pixels(
     const process_plane_params& params,
     __m128i shift,
@@ -723,7 +722,6 @@ static void __forceinline read_reference_pixels(
     //  1 1 1 1
     //  2 2 2 2]
 
-    INPUT_MODE input_mode = params.input_mode;
     int plane_height_in_pixels = params.plane_height_in_pixels;
     int src_pitch = params.src_pitch;
 
@@ -735,7 +733,7 @@ static void __forceinline read_reference_pixels(
     case 0:
         for (int i = 0; i < 16; i++)
         {
-            tmp_1[i] = read_pixel<precision_mode>(input_mode, plane_height_in_pixels, src_pitch, src_px_start, i_fix + *(int*)(info_data_start + 4 * i));
+            tmp_1[i] = read_pixel<precision_mode, input_mode>(plane_height_in_pixels, src_pitch, src_px_start, i_fix + *(int*)(info_data_start + 4 * i));
             i_fix += i_fix_step;
         }
         transfer_reference_pixels<precision_mode>(shift, tmp_1, ref_pixels_1_0, ref_pixels_1_1);
@@ -743,8 +741,8 @@ static void __forceinline read_reference_pixels(
     case 1:
         for (int i = 0; i < 16; i++)
         {
-            tmp_1[i] = read_pixel<precision_mode>(input_mode, plane_height_in_pixels, src_pitch, src_px_start, i_fix + *(int*)(info_data_start + 4 * i));
-            tmp_2[i] = read_pixel<precision_mode>(input_mode, plane_height_in_pixels, src_pitch, src_px_start, i_fix + -*(int*)(info_data_start + 4 * i));
+            tmp_1[i] = read_pixel<precision_mode, input_mode>(plane_height_in_pixels, src_pitch, src_px_start, i_fix + *(int*)(info_data_start + 4 * i));
+            tmp_2[i] = read_pixel<precision_mode, input_mode>(plane_height_in_pixels, src_pitch, src_px_start, i_fix + -*(int*)(info_data_start + 4 * i));
             i_fix += i_fix_step;
         }
         transfer_reference_pixels<precision_mode>(shift, tmp_1, ref_pixels_1_0, ref_pixels_1_1);
@@ -753,10 +751,10 @@ static void __forceinline read_reference_pixels(
     case 2:
         for (int i = 0; i < 16; i++)
         {
-            tmp_1[i] = read_pixel<precision_mode>(input_mode, plane_height_in_pixels, src_pitch, src_px_start, i_fix + *(int*)(info_data_start + 4 * (i + i / 4 * 4)));
-            tmp_2[i] = read_pixel<precision_mode>(input_mode, plane_height_in_pixels, src_pitch, src_px_start, i_fix + *(int*)(info_data_start + 4 * (i + i / 4 * 4 + 4)));
-            tmp_3[i] = read_pixel<precision_mode>(input_mode, plane_height_in_pixels, src_pitch, src_px_start, i_fix + -*(int*)(info_data_start + 4 * (i + i / 4 * 4)));
-            tmp_4[i] = read_pixel<precision_mode>(input_mode, plane_height_in_pixels, src_pitch, src_px_start, i_fix + -*(int*)(info_data_start + 4 * (i + i / 4 * 4 + 4)));
+            tmp_1[i] = read_pixel<precision_mode, input_mode>(plane_height_in_pixels, src_pitch, src_px_start, i_fix + *(int*)(info_data_start + 4 * (i + i / 4 * 4)));
+            tmp_2[i] = read_pixel<precision_mode, input_mode>(plane_height_in_pixels, src_pitch, src_px_start, i_fix + *(int*)(info_data_start + 4 * (i + i / 4 * 4 + 4)));
+            tmp_3[i] = read_pixel<precision_mode, input_mode>(plane_height_in_pixels, src_pitch, src_px_start, i_fix + -*(int*)(info_data_start + 4 * (i + i / 4 * 4)));
+            tmp_4[i] = read_pixel<precision_mode, input_mode>(plane_height_in_pixels, src_pitch, src_px_start, i_fix + -*(int*)(info_data_start + 4 * (i + i / 4 * 4 + 4)));
             i_fix += i_fix_step;
         }
         transfer_reference_pixels<precision_mode>(shift, tmp_1, ref_pixels_1_0, ref_pixels_1_1);
@@ -867,6 +865,8 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 
     int info_cache_block_size = (sample_mode == 2 ? 128 : 64);
 
+    int input_mode = params.input_mode;
+
     for (int row = 0; row < params.plane_height_in_pixels; row++)
     {
         const unsigned char* src_px = params.src_plane_ptr + params.src_pitch * row;
@@ -890,7 +890,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
             __m128i ref_pixels_4_0;
             __m128i ref_pixels_4_1;
 
-#define READ_REFS(data_stream) read_reference_pixels<sample_mode, precision_mode>( \
+#define READ_REFS(data_stream, inp_mode) read_reference_pixels<sample_mode, precision_mode, inp_mode>( \
                     params, \
                     upsample_to_16_shift_bits, \
                     src_px, \
@@ -967,7 +967,19 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
                 }
             }
 
-            READ_REFS(data_stream_block_start);
+            switch (input_mode)
+            {
+            case LOW_BIT_DEPTH:
+                READ_REFS(data_stream_block_start, LOW_BIT_DEPTH);
+                break;
+            case HIGH_BIT_DEPTH_INTERLEAVED:
+                READ_REFS(data_stream_block_start, HIGH_BIT_DEPTH_INTERLEAVED);
+                break;
+            case HIGH_BIT_DEPTH_STACKED:
+                READ_REFS(data_stream_block_start, HIGH_BIT_DEPTH_STACKED);
+                break;
+            }
+            
             
             DUMP_VALUE_GROUP("change", change_1, change_2, true);
             DUMP_VALUE_GROUP("ref_1_up", ref_pixels_1_0, ref_pixels_1_1);
