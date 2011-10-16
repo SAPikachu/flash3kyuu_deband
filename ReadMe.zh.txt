@@ -58,7 +58,7 @@ precision_mode
 	2: 高精度模式, Ordered dithering
 	3: 高精度模式, Floyd-Steinberg dithering
 	4: 高精度模式, 16bit层叠输出，供dither工具集后续处理（http://forum.doom9.org/showthread.php?p=1386559#post1386559）
-	5: 高精度模式, 16bit交织输出，供10bit x264编码
+	5: 高精度模式, 16bit交织输出，供10bit x264编码 （此模式下帧宽度会变成原始的2倍，并且预览时会花屏。正确压制后就会恢复正常。）
 	
 	说明：
 	#1 该参数仅在sample_mode > 0时有效，sample_mode = 0时设置该参数会出错。

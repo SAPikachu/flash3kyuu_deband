@@ -97,6 +97,8 @@ precision_mode
 	4: High precision, 16bit stacked output, for use with dither toolset
 	   (http://forum.doom9.org/showthread.php?p=1386559#post1386559)
 	5: High precision, 16bit interleaved output, for 10bit x264 encoding
+	   (Frames will be 2x wider and look garbled when previewing, they will 
+	    return to normal when correctly encoded)
 	
 	Note: 
 	1. In sample mode 0, only mode 0 is available (it doesn't make sense to use
