@@ -339,6 +339,7 @@
     <ClInclude Include="flash3kyuu_deband.def.h" />
     <ClInclude Include="flash3kyuu_deband.h" />
     <ClInclude Include="flash3kyuu_deband_sse_base.h" />
+    <ClInclude Include="flash3kyuu_deband_sse_base_low_precision.h" />
     <ClInclude Include="icc_override.h" />
     <ClInclude Include="impl_dispatch.h" />
     <ClInclude Include="impl_dispatch_decl.h" />

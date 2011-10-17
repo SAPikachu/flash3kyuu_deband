@@ -32,6 +32,8 @@ static void destroy_cache(void* data)
     free(data);
 }
 
+#include "flash3kyuu_deband_sse_base_low_precision.h"
+
 #define UPDOWNSAMPLING_BIT_SHIFT (INTERNAL_BIT_DEPTH - 8)
 
 static __inline __m128i clamped_absolute_difference(__m128i a, __m128i b, __m128i difference_limit)
@@ -769,6 +771,7 @@ static void __forceinline read_reference_pixels(
 template<int sample_mode, bool blur_first, int precision_mode, bool aligned>
 static void __cdecl _process_plane_sse_impl(const process_plane_params& params, process_plane_context* context)
 {
+    assert(precision_mode != PRECISION_LOW);
 
     DUMP_INIT("sse", params.plane, params.plane_width_in_pixels);
 
@@ -1069,6 +1072,11 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 template<int sample_mode, bool blur_first, int precision_mode>
 static void __cdecl process_plane_sse_impl(const process_plane_params& params, process_plane_context* context)
 {
+    if (precision_mode == PRECISION_LOW)
+    {
+        sse_low_precision_mode::process_plane_sse_impl<sample_mode, blur_first>(params, context);
+        return;
+    }
     if ( ( (POINTER_INT)params.src_plane_ptr & (PLANE_ALIGNMENT - 1) ) == 0 && (params.src_pitch & (PLANE_ALIGNMENT - 1) ) == 0 )
     {
         _process_plane_sse_impl<sample_mode, blur_first, precision_mode, true>(params, context);
