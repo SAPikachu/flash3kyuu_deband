@@ -338,6 +338,7 @@
     <ClInclude Include="dither_high.h" />
     <ClInclude Include="flash3kyuu_deband.def.h" />
     <ClInclude Include="flash3kyuu_deband.h" />
+    <ClInclude Include="flash3kyuu_deband_impl_c_low.h" />
     <ClInclude Include="flash3kyuu_deband_sse_base.h" />
     <ClInclude Include="flash3kyuu_deband_sse_base_low_precision.h" />
     <ClInclude Include="icc_override.h" />
