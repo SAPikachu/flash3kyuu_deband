@@ -25,6 +25,10 @@
         // consistent with SSE code
         int avg1 = (pixel1 + pixel2 + 1) >> 1;
         int avg2 = (pixel3 + pixel4 + 1) >> 1;
-        return (avg1 + avg2) >> 1;
+        if (avg1 > 0)
+        {
+            avg1 -= 1;
+        }
+        return (avg1 + avg2 + 1) >> 1;
     }
 
