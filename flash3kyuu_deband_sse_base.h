@@ -178,109 +178,6 @@ static __forceinline void process_plane_info_block(
     info_ptr += 4;
 }
 
-
-static __m128i __inline process_pixels_mode0(__m128i src_pixels, __m128i threshold_vector, const __m128i& ref_pixels)
-{
-    __m128i dst_pixels;
-    __m128i blend_mask;
-
-    __m128i difference;
-
-    difference = clamped_absolute_difference(src_pixels, ref_pixels, threshold_vector);
-    // mask: if difference >= threshold, set to 0xff, otherwise 0x00
-    // difference is already clamped to threshold, so we compare for equality here
-    blend_mask = _mm_cmpeq_epi8(difference, threshold_vector);
-
-    // if mask is 0xff (over threshold), select second operand, otherwise select first
-    dst_pixels = _cmm_blendv_by_cmp_mask_epi8(ref_pixels, src_pixels, blend_mask);
-
-    return dst_pixels;
-}
-
-template<int sample_mode, bool blur_first>
-static __m128i __inline process_pixels_mode12(
-    __m128i src_pixels, 
-    __m128i threshold_vector, 
-    __m128i sign_convert_vector, 
-    const __m128i& one_i8, 
-    const __m128i& change, 
-    const __m128i& ref_pixels_1, 
-    const __m128i& ref_pixels_2, 
-    const __m128i& ref_pixels_3, 
-    const __m128i& ref_pixels_4,
-    const __m128i& clamp_high_add,
-    const __m128i& clamp_high_sub,
-    const __m128i& clamp_low,
-    bool need_clamping)
-{
-    __m128i dst_pixels;
-    __m128i use_orig_pixel_blend_mask;
-    __m128i avg;
-
-    __m128i difference;
-
-    if (!blur_first)
-    {
-        difference = clamped_absolute_difference(src_pixels, ref_pixels_1, threshold_vector);
-        // mask: if difference >= threshold, set to 0xff, otherwise 0x00
-        // difference is already clamped to threshold, so we compare for equality here
-        use_orig_pixel_blend_mask = _mm_cmpeq_epi8(difference, threshold_vector);
-
-        difference = clamped_absolute_difference(src_pixels, ref_pixels_2, threshold_vector);
-        // use OR to combine the masks
-        use_orig_pixel_blend_mask = _mm_or_si128(_mm_cmpeq_epi8(difference, threshold_vector), use_orig_pixel_blend_mask);
-    }
-
-    avg = _mm_avg_epu8(ref_pixels_1, ref_pixels_2);
-
-    if (sample_mode == 2)
-    {
-
-        if (!blur_first)
-        {
-            difference = clamped_absolute_difference(src_pixels, ref_pixels_3, threshold_vector);
-            use_orig_pixel_blend_mask = _mm_or_si128(_mm_cmpeq_epi8(difference, threshold_vector), use_orig_pixel_blend_mask);
-
-            difference = clamped_absolute_difference(src_pixels, ref_pixels_4, threshold_vector);
-            use_orig_pixel_blend_mask = _mm_or_si128(_mm_cmpeq_epi8(difference, threshold_vector), use_orig_pixel_blend_mask);
-        }
-        // PAVGB adds 1 before calculating average, so we subtract 1 here to be consistent with c version
-
-        __m128i avg2_tmp = _mm_avg_epu8(ref_pixels_3, ref_pixels_4);
-        __m128i avg2 = _mm_min_epu8(avg, avg2_tmp);
-
-        avg = _mm_max_epu8(avg, avg2_tmp);
-        avg = _mm_subs_epu8(avg, one_i8);
-
-        avg = _mm_avg_epu8(avg, avg2);
-
-    }
-
-    if (blur_first)
-    {
-        difference = clamped_absolute_difference(src_pixels, avg, threshold_vector);
-        use_orig_pixel_blend_mask = _mm_cmpeq_epi8(difference, threshold_vector);
-    }
-
-    // if mask is 0xff (over threshold), select second operand, otherwise select first
-    src_pixels = _cmm_blendv_by_cmp_mask_epi8(avg, src_pixels, use_orig_pixel_blend_mask);
-
-    // convert to signed form, since change is signed
-    src_pixels = _mm_sub_epi8(src_pixels, sign_convert_vector);
-
-    // saturated add
-    src_pixels = _mm_adds_epi8(src_pixels, change);
-
-    // convert back to unsigned
-    dst_pixels = _mm_add_epi8(src_pixels, sign_convert_vector);
-
-    if (need_clamping)
-    {
-        dst_pixels = low_bit_depth_pixels_clamp(dst_pixels, clamp_high_add, clamp_high_sub, clamp_low);
-    }
-    return dst_pixels;
-}
-
 static __forceinline __m128i generate_blend_mask_high(__m128i a, __m128i b, __m128i threshold)
 {
     __m128i diff1 = _mm_subs_epu16(a, b);
@@ -527,53 +424,32 @@ static __m128i __forceinline process_pixels(
 {
     switch (sample_mode)
     {
-    case 0:
-        return process_pixels_mode0(src_pixels_0, threshold_vector, ref_pixels_1_0);
-        break;
     case 1:
     case 2:
-        if (precision_mode == PRECISION_LOW)
-        {
-            return process_pixels_mode12<sample_mode, blur_first>(
-                       src_pixels_0, 
-                       threshold_vector, 
-                       sign_convert_vector, 
-                       one_i8, 
-                       change_1, 
-                       ref_pixels_1_0, 
-                       ref_pixels_2_0, 
-                       ref_pixels_3_0, 
-                       ref_pixels_4_0, 
-                       clamp_high_add, 
-                       clamp_high_sub, 
-                       clamp_low, 
-                       need_clamping);
-        } else {
-            return process_pixels_mode12_high<sample_mode, blur_first, precision_mode>(
-                       src_pixels_0, 
-                       src_pixels_1, 
-                       threshold_vector, 
-                       change_1, 
-                       change_2, 
-                       ref_pixels_1_0, 
-                       ref_pixels_1_1, 
-                       ref_pixels_2_0, 
-                       ref_pixels_2_1, 
-                       ref_pixels_3_0, 
-                       ref_pixels_3_1, 
-                       ref_pixels_4_0, 
-                       ref_pixels_4_1, 
-                       clamp_high_add, 
-                       clamp_high_sub, 
-                       clamp_low, 
-                       need_clamping, 
-                       row, 
-                       column, 
-                       height, 
-                       dst_pitch, 
-                       dst_px, 
-                       dither_context);
-        }
+        return process_pixels_mode12_high<sample_mode, blur_first, precision_mode>(
+                    src_pixels_0, 
+                    src_pixels_1, 
+                    threshold_vector, 
+                    change_1, 
+                    change_2, 
+                    ref_pixels_1_0, 
+                    ref_pixels_1_1, 
+                    ref_pixels_2_0, 
+                    ref_pixels_2_1, 
+                    ref_pixels_3_0, 
+                    ref_pixels_3_1, 
+                    ref_pixels_4_0, 
+                    ref_pixels_4_1, 
+                    clamp_high_add, 
+                    clamp_high_sub, 
+                    clamp_low, 
+                    need_clamping, 
+                    row, 
+                    column, 
+                    height, 
+                    dst_pitch, 
+                    dst_px, 
+                    dither_context);
         break;
     default:
         abort();
@@ -600,11 +476,6 @@ static void __forceinline read_pixels(
     __m128i& pixels_1, 
     __m128i& pixels_2)
 {
-    if (precision_mode == PRECISION_LOW)
-    {
-        pixels_1 = load_m128<aligned>(ptr);
-        return;
-    }
     __m128i p1;
     p1 = load_m128<aligned>(ptr);
 
@@ -645,11 +516,6 @@ static unsigned short read_pixel(
 {
     const unsigned char* ptr = base + offset;
 
-    if (precision_mode == PRECISION_LOW)
-    {
-        return *ptr;
-    }
-
     switch (input_mode)
     {
     case LOW_BIT_DEPTH:
@@ -676,16 +542,11 @@ static void __forceinline transfer_reference_pixels(
     __m128i& dst_0,
     __m128i& dst_1)
 {
-    if (precision_mode == PRECISION_LOW)
-    {
-        dst_0 = _mm_packus_epi16(_mm_load_si128((const __m128i*)src), _mm_load_si128((const __m128i*)(src + 8)));
-    } else {
-        dst_0 = _mm_load_si128((const __m128i*)src);
-        dst_1 = _mm_load_si128((const __m128i*)(src + 8));
+    dst_0 = _mm_load_si128((const __m128i*)src);
+    dst_1 = _mm_load_si128((const __m128i*)(src + 8));
         
-        dst_0 = _mm_sll_epi16(dst_0, shift);
-        dst_1 = _mm_sll_epi16(dst_1, shift);
-    }
+    dst_0 = _mm_sll_epi16(dst_0, shift);
+    dst_1 = _mm_sll_epi16(dst_1, shift);
 }
 
 
@@ -781,12 +642,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
            
     __m128i threshold_vector;
     
-    if (precision_mode == PRECISION_LOW || sample_mode == 0)
-    {
-        threshold_vector = _mm_set1_epi8((unsigned char)params.threshold);
-    } else {
-        threshold_vector = _mm_set1_epi16(params.threshold);
-    }
+    threshold_vector = _mm_set1_epi16(params.threshold);
 
     __m128i sign_convert_vector = _mm_set1_epi8(0x80u);
 
@@ -808,7 +664,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
     __m128i width_subsample_vector = _mm_set_epi32(0, 0, 0, params.width_subsampling);
     __m128i height_subsample_vector = _mm_set_epi32(0, 0, 0, params.height_subsampling);
 
-    bool need_clamping = (INTERNAL_BIT_DEPTH < 16 && precision_mode != PRECISION_LOW) || 
+    bool need_clamping =  INTERNAL_BIT_DEPTH < 16 || 
                           params.pixel_min > 0 || 
                           params.pixel_max < 0xffff;
     __m128i clamp_high_add = _mm_setzero_si128();
@@ -943,12 +799,6 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
                 PROCESS_INFO_BLOCK(3);
 
     #undef PROCESS_INFO_BLOCK
-
-
-                if (precision_mode == PRECISION_LOW)
-                {
-                    change_1 = _mm_packs_epi16(change_1, change_2);
-                }
                 
                 if (info_data_stream) {
                     info_data_stream += info_cache_block_size;
@@ -1026,7 +876,6 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
             
             switch (precision_mode)
             {
-            case PRECISION_LOW:
             case PRECISION_HIGH_NO_DITHERING:
             case PRECISION_HIGH_ORDERED_DITHERING:
             case PRECISION_HIGH_FLOYD_STEINBERG_DITHERING:
