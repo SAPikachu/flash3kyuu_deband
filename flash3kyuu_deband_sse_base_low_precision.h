@@ -14,13 +14,12 @@ namespace sse_low_precision_mode
 
     #ifdef ENABLE_DEBUG_DUMP
 
-    template<int precision_mode>
     static void __forceinline _dump_value_group(const TCHAR* name, __m128i part1, bool is_signed=false)
     {
         DUMP_VALUE_S(name, part1, 1, is_signed);
     }
 
-    #define DUMP_VALUE_GROUP(name, ...) _dump_value_group<precision_mode>(TEXT(name), __VA_ARGS__)
+    #define DUMP_VALUE_GROUP(name, ...) _dump_value_group(TEXT(name), __VA_ARGS__)
 
     #else
 
