@@ -34,18 +34,6 @@ static void destroy_cache(void* data)
 
 #include "flash3kyuu_deband_sse_base_low_precision.h"
 
-#define UPDOWNSAMPLING_BIT_SHIFT (INTERNAL_BIT_DEPTH - 8)
-
-static __inline __m128i clamped_absolute_difference(__m128i a, __m128i b, __m128i difference_limit)
-{
-    // we need to clamp the result for 2 reasons:
-    // 1. there is no integer >= operator in SSE
-    // 2. comparison instructions accept only signed integers,
-    //    so if difference is bigger than 0x7f, the compare result will be invalid
-    __m128i diff = _mm_sub_epi8(_mm_max_epu8(a, b), _mm_min_epu8(a, b));
-    return _mm_min_epu8(diff, difference_limit);
-}
-
 #ifdef ENABLE_DEBUG_DUMP
 
 static void __forceinline _dump_value_group(const TCHAR* name, __m128i part1, bool is_signed=false)
@@ -246,12 +234,6 @@ static __m128i __forceinline process_pixels_mode12_high_part(__m128i src_pixels,
     // convert back to unsigned
     dst_pixels = _mm_add_epi16(dst_pixels, sign_convert_vector);
     return dst_pixels;
-}
-
-
-static __m128i __forceinline high_bit_depth_pixels_shift_to_8bit(__m128i pixels)
-{
-    return _mm_srli_epi16(pixels, UPDOWNSAMPLING_BIT_SHIFT);
 }
 
 template<int sample_mode, bool blur_first, int precision_mode>
@@ -585,7 +567,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
         cache->pitch = params.src_pitch;
     }
 
-    int info_cache_block_size = (sample_mode == 2 ? 64 : 32);
+    const int info_cache_block_size = (sample_mode == 2 ? 64 : 32);
 
     int input_mode = params.input_mode;
 
