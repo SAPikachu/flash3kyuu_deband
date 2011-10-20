@@ -681,7 +681,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 
             __m128i src_pixels;
             // abuse the guard bytes on the end of frame, as long as they are present there won't be segfault
-            // garbage data is not an problem
+            // garbage data is not a problem
             src_pixels = read_pixels<precision_mode, aligned>(params, src_px, upsample_to_16_shift_bits);
             DUMP_VALUE_GROUP("src_px_up", src_pixels);
 
