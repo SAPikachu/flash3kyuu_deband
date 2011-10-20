@@ -254,7 +254,7 @@ static __m128i __forceinline high_bit_depth_pixels_shift_to_8bit(__m128i pixels)
     return _mm_srli_epi16(pixels, UPDOWNSAMPLING_BIT_SHIFT);
 }
 
-template<int sample_mode, bool blur_first>
+template<int sample_mode, bool blur_first, int precision_mode>
 static __m128i __forceinline process_pixels(
     __m128i src_pixels_0, 
     __m128i threshold_vector, 
@@ -266,7 +266,10 @@ static __m128i __forceinline process_pixels(
     const __m128i& clamp_high_add,
     const __m128i& clamp_high_sub,
     const __m128i& clamp_low,
-    bool need_clamping)
+    bool need_clamping,
+    int row,
+    int column,
+    void* dither_context)
 {
     __m128i ret = process_pixels_mode12_high_part<sample_mode, blur_first>
         (src_pixels_0, 
@@ -275,10 +278,21 @@ static __m128i __forceinline process_pixels(
          ref_pixels_1_0, 
          ref_pixels_2_0, 
          ref_pixels_3_0, 
-         ref_pixels_4_0 );
+         ref_pixels_4_0);
     
     DUMP_VALUE_GROUP("new_pixel_before_downsample", ret);
 
+    
+    switch (precision_mode)
+    {
+    case PRECISION_HIGH_NO_DITHERING:
+    case PRECISION_HIGH_ORDERED_DITHERING:
+    case PRECISION_HIGH_FLOYD_STEINBERG_DITHERING:
+        ret = dither_high::dither<precision_mode>(dither_context, ret, row, column);
+        break;
+    default:
+        break;
+    }
     if (need_clamping)
     {
         ret = high_bit_depth_pixels_clamp(ret, clamp_high_add, clamp_high_sub, clamp_low);
@@ -291,12 +305,9 @@ static __m128i __forceinline process_pixels(
 template <int precision_mode>
 static int __forceinline store_pixels(
     __m128i pixels,
-    int row,
-    int column,
     unsigned char* dst,
     int dst_pitch,
-    int height_in_pixels, 
-    void* dither_context)
+    int height_in_pixels)
 {
     switch (precision_mode)
     {
@@ -304,7 +315,6 @@ static int __forceinline store_pixels(
     case PRECISION_HIGH_ORDERED_DITHERING:
     case PRECISION_HIGH_FLOYD_STEINBERG_DITHERING:
         {
-            pixels = dither_high::dither<precision_mode>(dither_context, pixels, row, column);
             pixels = _mm_srli_epi16(pixels, 8);
             pixels = _mm_packus_epi16(pixels, pixels);
             _mm_storel_epi64((__m128i*)dst, pixels);
@@ -355,7 +365,7 @@ static __m128i __forceinline read_pixels(
 {
     __m128i ret;
 
-    switch (params.input_mode)
+    switch (EXPECT(params.input_mode, LOW_BIT_DEPTH))
     {
     case LOW_BIT_DEPTH:
         {
@@ -650,19 +660,18 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
                 }
             }
 
-            switch (input_mode)
+            if (LIKELY(input_mode == LOW_BIT_DEPTH))
             {
-            case LOW_BIT_DEPTH:
                 READ_REFS(data_stream_block_start, LOW_BIT_DEPTH);
-                break;
-            case HIGH_BIT_DEPTH_INTERLEAVED:
+            } else if (input_mode == HIGH_BIT_DEPTH_INTERLEAVED)
+            {
                 READ_REFS(data_stream_block_start, HIGH_BIT_DEPTH_INTERLEAVED);
-                break;
-            case HIGH_BIT_DEPTH_STACKED:
+            } else if (input_mode == HIGH_BIT_DEPTH_STACKED)
+            {
                 READ_REFS(data_stream_block_start, HIGH_BIT_DEPTH_STACKED);
-                break;
+            } else {
+                abort();
             }
-            
             
             DUMP_VALUE_GROUP("change", change_1, true);
             DUMP_VALUE_GROUP("ref_1_up", ref_pixels_1_0);
@@ -676,7 +685,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
             src_pixels = read_pixels<precision_mode, aligned>(params, src_px, upsample_to_16_shift_bits);
             DUMP_VALUE_GROUP("src_px_up", src_pixels);
 
-            __m128i dst_pixels = process_pixels<sample_mode, blur_first>(
+            __m128i dst_pixels = process_pixels<sample_mode, blur_first, precision_mode>(
                                      src_pixels, 
                                      threshold_vector,
                                      change_1, 
@@ -687,9 +696,12 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
                                      clamp_high_add, 
                                      clamp_high_sub, 
                                      clamp_low, 
-                                     need_clamping);
+                                     need_clamping, 
+                                     row, 
+                                     processed_pixels, 
+                                     context_buffer);
 
-            dst_px += store_pixels<precision_mode>(dst_pixels, row, processed_pixels, dst_px, params.dst_pitch, params.plane_height_in_pixels, context_buffer);
+            dst_px += store_pixels<precision_mode>(dst_pixels, dst_px, params.dst_pitch, params.plane_height_in_pixels);
             processed_pixels += 8;
             src_px += params.input_mode != HIGH_BIT_DEPTH_INTERLEAVED ? 8 : 16;
         }
