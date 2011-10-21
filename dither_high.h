@@ -96,6 +96,7 @@ namespace dither_high
             __declspec (align(16))
             unsigned short buffer[8];
             _mm_store_si128((__m128i*)buffer, pixels);
+            __PRAGMA_NOUNROLL__
             for (int i = 0; i < 8; i++)
             {
                 buffer[i] = (unsigned short)pixel_proc_high_f_s_dithering::dither(context, buffer[i], row, column + i);

@@ -39,6 +39,12 @@
 #define EXPECT(x, val)  (x)
 #endif
 
+#ifdef __INTEL_COMPILER
+#define __PRAGMA_NOUNROLL__ __pragma(nounroll)
+#else
+#define __PRAGMA_NOUNROLL__
+#endif
+
 AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScriptEnvironment* env);
 
 FLASH3KYUU_DEBAND_API const char* __stdcall AvisynthPluginInit2(IScriptEnvironment* env);
