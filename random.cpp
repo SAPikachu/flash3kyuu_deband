@@ -30,7 +30,7 @@ short random(RANDOM_ALGORITHM algo, int& seed, short range)
 
     float num = rand_algorithms[algo](seed);
     assert(num >= -1.0 && num <= 1.0);
-    return (short)round(num);
+    return (short)round(num * range);
 }
 
 // most algorithms below are stolen from AddGrainC
