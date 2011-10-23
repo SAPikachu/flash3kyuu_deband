@@ -20,6 +20,8 @@ def generate_output():
         p("i", "input_mode"),
         p("i", "input_depth"),
         p("b", "enable_fast_skip_plane"),
+        p("i", "random_algo_ref"),
+        p("i", "random_algo_dither"),
     ))
 
 PARAM_TYPES = {

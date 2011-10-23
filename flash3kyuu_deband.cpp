@@ -15,6 +15,8 @@
 
 #include "check.h"
 
+#include "random.h"
+
 AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScriptEnvironment* env){
     PClip child = ARG(child).AsClip();
     const VideoInfo& vi = child->GetVideoInfo();
@@ -37,6 +39,8 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     int input_mode = ARG(input_mode).AsInt(LOW_BIT_DEPTH);
     int input_depth = ARG(input_depth).AsInt(input_mode == LOW_BIT_DEPTH ? 8 : 16);
     bool enable_fast_skip_plane = ARG(enable_fast_skip_plane).AsBool(true);
+    int random_algo_ref = ARG(random_algo_ref).AsInt(RANDOM_ALGORITHM_UNIFORM);
+    int random_algo_dither = ARG(random_algo_dither).AsInt(RANDOM_ALGORITHM_UNIFORM);
 
     int default_val = (precision_mode == PRECISION_LOW || sample_mode == 0) ? 1 : 64;
     int Y = ARG(Y).AsInt(default_val);
@@ -113,6 +117,9 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     CHECK_PARAM(seed, 0, 127);
     CHECK_PARAM(opt, -1, (IMPL_COUNT - 1) );
     CHECK_PARAM(precision_mode, 0, (PRECISION_COUNT - 1) );
+    CHECK_PARAM(random_algo_ref, 0, (RANDOM_ALGORITHM_COUNT - 1) );
+    CHECK_PARAM(random_algo_dither, 0, (RANDOM_ALGORITHM_COUNT - 1) );
+
     if (input_mode != LOW_BIT_DEPTH)
     {
         CHECK_PARAM(input_depth, 9, INTERNAL_BIT_DEPTH);
@@ -155,13 +162,6 @@ void flash3kyuu_deband::destroy_frame_luts(void)
     destroy_context(&_y_context);
     destroy_context(&_cb_context);
     destroy_context(&_cr_context);
-}
-
-static int inline rand_next(int &seed)
-{
-    int seed_tmp = (((seed << 13) ^ (unsigned int)seed) >> 17) ^ (seed << 13) ^ seed;
-    seed = 32 * seed_tmp ^ seed_tmp;
-    return seed & 0x7fffffff;
 }
 
 static int inline min_multi( int first, ... )
@@ -231,9 +231,6 @@ void flash3kyuu_deband::init_frame_luts(int n)
 
     pixel_dither_info *y_info_ptr, *cb_info_ptr, *cr_info_ptr;
 
-    int ditherY_limit = _ditherY * 2 + 1;
-    int ditherC_limit = _ditherC * 2 + 1;
-
     int width_subsamp = 0;
     int height_subsamp = 0;
     if (!vi.IsY8())
@@ -253,7 +250,7 @@ void flash3kyuu_deband::init_frame_luts(int n)
         for (int x = 0; x < width_in_pixels; x++)
         {
             pixel_dither_info info_y = {0, 0, 0};
-            info_y.change = (signed short)(rand_next(seed) % ditherY_limit - _ditherY);
+            info_y.change = random((RANDOM_ALGORITHM)_random_algo_dither, seed, (short)_ditherY);
 
             int cur_range = min_multi(_range, y, height_in_pixels - y - 1, -1);
             if (_sample_mode == 2)
@@ -262,11 +259,10 @@ void flash3kyuu_deband::init_frame_luts(int n)
             }
 
             if (cur_range > 0) {
-                int range_limit = cur_range * 2 + 1;
-                info_y.ref1 = (signed char)(rand_next(seed) % range_limit - cur_range);
+                info_y.ref1 = (signed char)random((RANDOM_ALGORITHM)_random_algo_ref, seed, (short)cur_range);
                 if (_sample_mode == 2)
                 {
-                    info_y.ref2 = (signed char)(rand_next(seed) % range_limit - cur_range);
+                    info_y.ref2 = (signed char)random((RANDOM_ALGORITHM)_random_algo_ref, seed, (short)cur_range);
                 }
                 if (_sample_mode > 0)
                 {
@@ -293,8 +289,8 @@ void flash3kyuu_deband::init_frame_luts(int n)
                 // don't shift ref values here, since subsampling of width and height may be different
                 // shift them in actual processing
 
-                info_cb.change = (signed short)(rand_next(seed) % ditherC_limit - _ditherC);
-                info_cr.change = (signed short)(rand_next(seed) % ditherC_limit - _ditherC);
+                info_cb.change = random((RANDOM_ALGORITHM)_random_algo_dither, seed, (short)_ditherC);
+                info_cr.change = random((RANDOM_ALGORITHM)_random_algo_dither, seed, (short)_ditherC);
 
                 if (vi.IsPlanar())
                 {
