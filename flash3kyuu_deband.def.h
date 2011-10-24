@@ -8,6 +8,8 @@
 
 #include "avisynth.h"
 
+#include "constants.h"
+
 static const char* FLASH3KYUU_DEBAND_AVS_PARAMS = "c[range]i[Y]i[Cb]i[Cr]i[ditherY]i[ditherC]i[sample_mode]i[seed]i[blur_first]b[diff_seed]b[opt]i[mt]b[precision_mode]i[keep_tv_range]b[input_mode]i[input_depth]i[enable_fast_skip_plane]b[random_algo_ref]i[random_algo_dither]i";
 
 class flash3kyuu_deband_parameter_storage_t
@@ -26,13 +28,13 @@ protected:
     bool _diff_seed_for_each_frame; 
     int _opt; 
     bool _mt; 
-    int _precision_mode; 
+    PRECISION_MODE _precision_mode; 
     bool _keep_tv_range; 
-    int _input_mode; 
+    INPUT_MODE _input_mode; 
     int _input_depth; 
     bool _enable_fast_skip_plane; 
-    int _random_algo_ref; 
-    int _random_algo_dither; 
+    RANDOM_ALGORITHM _random_algo_ref; 
+    RANDOM_ALGORITHM _random_algo_dither; 
 
 public:
 
@@ -59,7 +61,7 @@ public:
         _random_algo_dither = o._random_algo_dither; 
     }
 
-    flash3kyuu_deband_parameter_storage_t( int range, unsigned short Y, unsigned short Cb, unsigned short Cr, int ditherY, int ditherC, int sample_mode, int seed, bool blur_first, bool diff_seed_for_each_frame, int opt, bool mt, int precision_mode, bool keep_tv_range, int input_mode, int input_depth, bool enable_fast_skip_plane, int random_algo_ref, int random_algo_dither )
+    flash3kyuu_deband_parameter_storage_t( int range, unsigned short Y, unsigned short Cb, unsigned short Cr, int ditherY, int ditherC, int sample_mode, int seed, bool blur_first, bool diff_seed_for_each_frame, int opt, bool mt, PRECISION_MODE precision_mode, bool keep_tv_range, INPUT_MODE input_mode, int input_depth, bool enable_fast_skip_plane, RANDOM_ALGORITHM random_algo_ref, RANDOM_ALGORITHM random_algo_dither )
     {
         _range = range; 
         _Y = Y; 
@@ -92,7 +94,7 @@ typedef struct _FLASH3KYUU_DEBAND_RAW_ARGS
 
 #define FLASH3KYUU_DEBAND_ARG(name) args[FLASH3KYUU_DEBAND_ARG_INDEX(name)]
 
-#define FLASH3KYUU_DEBAND_CREATE_CLASS(klass) new klass( child, flash3kyuu_deband_parameter_storage_t( range, (unsigned short)Y, (unsigned short)Cb, (unsigned short)Cr, ditherY, ditherC, sample_mode, seed, blur_first, diff_seed_for_each_frame, opt, mt, precision_mode, keep_tv_range, input_mode, input_depth, enable_fast_skip_plane, random_algo_ref, random_algo_dither ) )
+#define FLASH3KYUU_DEBAND_CREATE_CLASS(klass) new klass( child, flash3kyuu_deband_parameter_storage_t( range, (unsigned short)Y, (unsigned short)Cb, (unsigned short)Cr, ditherY, ditherC, sample_mode, seed, blur_first, diff_seed_for_each_frame, opt, mt, (PRECISION_MODE)precision_mode, keep_tv_range, (INPUT_MODE)input_mode, input_depth, enable_fast_skip_plane, (RANDOM_ALGORITHM)random_algo_ref, (RANDOM_ALGORITHM)random_algo_dither ) )
 
 #ifdef FLASH3KYUU_DEBAND_SIMPLE_MACRO_NAME
 

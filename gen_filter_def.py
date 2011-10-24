@@ -15,13 +15,13 @@ def generate_output():
         p("b", "diff_seed", field_name="diff_seed_for_each_frame"),
         p("i", "opt"),
         p("b", "mt"),
-        p("i", "precision_mode"),
+        p("i", "precision_mode", c_type="PRECISION_MODE"),
         p("b", "keep_tv_range"),
-        p("i", "input_mode"),
+        p("i", "input_mode", c_type="INPUT_MODE"),
         p("i", "input_depth"),
         p("b", "enable_fast_skip_plane"),
-        p("i", "random_algo_ref"),
-        p("i", "random_algo_dither"),
+        p("i", "random_algo_ref", c_type="RANDOM_ALGORITHM"),
+        p("i", "random_algo_dither", c_type="RANDOM_ALGORITHM"),
     ))
 
 PARAM_TYPES = {
@@ -60,6 +60,8 @@ OUTPUT_TEMPLATE = """
  *************************/
 
 #include "avisynth.h"
+
+#include "constants.h"
 
 static const char* {filter_name_u}_AVS_PARAMS = "{avs_params}";
 
