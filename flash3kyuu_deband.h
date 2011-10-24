@@ -55,13 +55,6 @@ typedef __declspec(align(4)) struct _pixel_dither_info {
     signed short change;
 } pixel_dither_info;
 
-typedef enum _INPUT_MODE
-{
-    LOW_BIT_DEPTH = 0,
-    HIGH_BIT_DEPTH_STACKED,
-    HIGH_BIT_DEPTH_INTERLEAVED
-} INPUT_MODE;
-
 typedef struct _process_plane_params
 {
     const unsigned char *src_plane_ptr;
