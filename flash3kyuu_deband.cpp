@@ -114,7 +114,6 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     CHECK_PARAM(ditherY, 0, dither_upper_limit);
     CHECK_PARAM(ditherC, 0, dither_upper_limit);
     CHECK_PARAM(sample_mode, 0, 2);
-    CHECK_PARAM(seed, 0, 127);
     CHECK_PARAM(opt, -1, (IMPL_COUNT - 1) );
     CHECK_PARAM(precision_mode, 0, (PRECISION_COUNT - 1) );
     CHECK_PARAM(random_algo_ref, 0, (RANDOM_ALGORITHM_COUNT - 1) );
@@ -142,6 +141,8 @@ flash3kyuu_deband::flash3kyuu_deband(PClip child, flash3kyuu_deband_parameter_st
             _y_info(NULL),
             _cb_info(NULL),
             _cr_info(NULL),
+            _dither_buffer_y(NULL),
+            _dither_buffer_c(NULL),
             _mt_info(NULL),
             _process_plane_impl(NULL)
 {
@@ -157,6 +158,12 @@ void flash3kyuu_deband::destroy_frame_luts(void)
     _y_info = NULL;
     _cb_info = NULL;
     _cr_info = NULL;
+    
+    _aligned_free(_dither_buffer_y);
+    _aligned_free(_dither_buffer_c);
+    
+    _dither_buffer_y = NULL;
+    _dither_buffer_c = NULL;
     
     // contexts are likely to be dependent on lut, so they must also be destroyed
     destroy_context(&_y_context);
@@ -191,6 +198,24 @@ static int get_frame_lut_stride(int width_in_pixels, VideoInfo& vi)
         width *= 2;
     }
     return (((width - 1) | (FRAME_LUT_ALIGNMENT - 1)) + 1);
+}
+
+static short* generate_dither_buffer(size_t item_count, RANDOM_ALGORITHM algo, int& seed, int range0, int range1)
+{
+    // range0 and range1 can be different, for YUY2
+    short* buffer = (short*)_aligned_malloc(item_count * sizeof(short), FRAME_LUT_ALIGNMENT);
+    for (size_t i = 0; i < item_count; i++)
+    {
+        *(buffer + i) = random(algo, seed, (i & 1) == 0 ? range0 : range1);
+    }
+    return buffer;
+}
+
+static size_t get_dither_buffer_item_count(VideoInfo& vi, int width_in_pixels, int height_in_pixels, int plane)
+{
+    int width = get_frame_lut_stride(width_in_pixels >> vi.GetPlaneWidthSubsampling(plane), vi);
+    int height = height_in_pixels >> vi.GetPlaneHeightSubsampling(plane);
+    return width * height;
 }
 
 void flash3kyuu_deband::init_frame_luts(int n)
@@ -311,6 +336,23 @@ void flash3kyuu_deband::init_frame_luts(int n)
             }
         }
     }
+
+    _dither_buffer_y = generate_dither_buffer(
+        get_dither_buffer_item_count(vi, width_in_pixels, height_in_pixels, PLANAR_Y),
+        _random_algo_dither,
+        seed,
+        _ditherY,
+        vi.IsYUY2() ? _ditherC : _ditherY);
+
+    if (vi.IsPlanar() && !vi.IsY8())
+    {
+        _dither_buffer_c = generate_dither_buffer(
+            get_dither_buffer_item_count(vi, width_in_pixels, height_in_pixels, PLANAR_U),
+            _random_algo_dither,
+            seed,
+            _ditherC,
+            _ditherC);
+    }
 }
 
 flash3kyuu_deband::~flash3kyuu_deband()
@@ -403,8 +445,9 @@ void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned
 
     params.vi = &_src_vi;
     params.dst_vi = &vi;
-
+    
     params.info_stride = get_frame_lut_stride(params.plane_width_in_pixels, vi);
+    params.dither_buffer_stride = get_frame_lut_stride(params.plane_width_in_pixels, vi);
 
     process_plane_context* context;
 
@@ -416,6 +459,7 @@ void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned
         params.threshold = _Y;
         params.pixel_max = _keep_tv_range ? TV_RANGE_Y_MAX : FULL_RANGE_Y_MAX;
         params.pixel_min = _keep_tv_range ? TV_RANGE_Y_MIN : FULL_RANGE_Y_MIN;
+        params.dither_buffer = _dither_buffer_y;
         context = &_y_context;
         break;
     case PLANAR_U:
@@ -423,6 +467,7 @@ void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned
         params.threshold = _Cb;
         params.pixel_max = _keep_tv_range ? TV_RANGE_C_MAX : FULL_RANGE_C_MAX;
         params.pixel_min = _keep_tv_range ? TV_RANGE_C_MIN : FULL_RANGE_C_MIN;
+        params.dither_buffer = _dither_buffer_c;
         context = &_cb_context;
         break;
     case PLANAR_V:
@@ -430,6 +475,7 @@ void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned
         params.threshold = _Cr;
         params.pixel_max = _keep_tv_range ? TV_RANGE_C_MAX : FULL_RANGE_C_MAX;
         params.pixel_min = _keep_tv_range ? TV_RANGE_C_MIN : FULL_RANGE_C_MIN;
+        params.dither_buffer = _dither_buffer_c;
         context = &_cr_context;
         break;
     default:

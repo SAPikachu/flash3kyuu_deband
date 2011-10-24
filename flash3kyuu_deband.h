@@ -71,6 +71,9 @@ typedef struct _process_plane_params
     unsigned short threshold;
     pixel_dither_info *info_ptr_base;
     int info_stride;
+    
+    short* dither_buffer;
+    int dither_buffer_stride;
 
     int plane;
 
@@ -105,6 +108,9 @@ private:
     process_plane_context _y_context;
     process_plane_context _cb_context;
     process_plane_context _cr_context;
+    
+    short* _dither_buffer_y;
+    short* _dither_buffer_c;
 
     volatile mt_info* _mt_info;
 
