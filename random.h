@@ -8,4 +8,4 @@ typedef enum {
 } RANDOM_ALGORITHM;
 
 // returns a random number in [-range, range]
-short random(RANDOM_ALGORITHM algo, int& seed, short range);
+int random(RANDOM_ALGORITHM algo, int& seed, int range);

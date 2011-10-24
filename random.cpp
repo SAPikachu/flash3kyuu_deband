@@ -6,13 +6,15 @@
 
 #include <assert.h>
 
-typedef float (*rand_impl_t)(int& seed);
+#include <stdint.h>
 
-float rand_old(int& seed);
+typedef double (*rand_impl_t)(int& seed);
 
-float rand_uniform(int& seed);
+double rand_old(int& seed);
 
-float rand_gaussian(int& seed);
+double rand_uniform(int& seed);
+
+double rand_gaussian(int& seed);
 
 static const rand_impl_t rand_algorithms[] = {
     rand_old,
@@ -20,43 +22,50 @@ static const rand_impl_t rand_algorithms[] = {
     rand_gaussian
 };
 
-float round(float r) {
-    return (r > 0.0f) ? floor(r + 0.5f) : ceil(r - 0.5f);
+double round(double r) {
+    return (r > 0.0) ? floor(r + 0.5) : ceil(r - 0.5);
 }
 
-short random(RANDOM_ALGORITHM algo, int& seed, short range)
+int random(RANDOM_ALGORITHM algo, int& seed, int range)
 {
     assert(algo >= 0 && algo < RANDOM_ALGORITHM_COUNT);
 
-    float num = rand_algorithms[algo](seed);
+    double num = rand_algorithms[algo](seed);
     assert(num >= -1.0 && num <= 1.0);
-    return (short)round(num * range);
+    return (int)round(num * range);
 }
 
 // most algorithms below are stolen from AddGrainC
 
-// maps lower 23 bits of an int32 to [-1.0, 1.0)
-float rand_to_float(int rand_num)
+double rand_to_double(int rand_num)
 {
-    unsigned long itemp = 0x3f800000 | (0x007fffff & rand_num);
-    return ((*(float*)&itemp) - 1.0f) * 2 - 1.0f;
+    // convert the number to 52 bit, use high 12 bits to fill lower space 
+    // (otherwise the upper bound will be significantly less than 1.0)
+    uint64_t itemp = ((uint64_t)rand_num) & 0xffffffffULL;
+    itemp = itemp << 20 | itemp >> 12;
+
+    // fill exponent with 1
+    itemp |= 0x3ff0000000000000ULL;
+
+    // itemp is now in [1.0, 2.0), convert to [-1.0, 1.0)
+    return ((*(double*)&itemp) - 1.0) * 2 - 1.0;
 }
 
-float rand_old(int& seed)
+double rand_old(int& seed)
 {
     int seed_tmp = (((seed << 13) ^ (unsigned int)seed) >> 17) ^ (seed << 13) ^ seed;
     seed = 32 * seed_tmp ^ seed_tmp;
-    return rand_to_float(seed);
+    return rand_to_double(seed);
 }
 
-float rand_uniform(int& seed)
+double rand_uniform(int& seed)
 {
     seed = 1664525 * seed + 1013904223;
-    return rand_to_float(seed);
+    return rand_to_double(seed);
 }
 
 // http://www.bearcave.com/misl/misl_tech/wavelets/hurst/random.html
-float rand_gaussian(int& seed)
+double rand_gaussian(int& seed)
 {
     double ret;
     double x, y, r2;
@@ -81,5 +90,5 @@ float rand_gaussian(int& seed)
     } while (ret <= -1.0 || ret >= 1.0);
     // we need to clip the result because the wrapper accepts [-1.0, 1.0] only
 
-    return (float)ret;
+    return ret;
 }

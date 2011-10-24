@@ -250,7 +250,7 @@ void flash3kyuu_deband::init_frame_luts(int n)
         for (int x = 0; x < width_in_pixels; x++)
         {
             pixel_dither_info info_y = {0, 0, 0};
-            info_y.change = random((RANDOM_ALGORITHM)_random_algo_dither, seed, (short)_ditherY);
+            info_y.change = random((RANDOM_ALGORITHM)_random_algo_dither, seed, _ditherY);
 
             int cur_range = min_multi(_range, y, height_in_pixels - y - 1, -1);
             if (_sample_mode == 2)
@@ -259,10 +259,10 @@ void flash3kyuu_deband::init_frame_luts(int n)
             }
 
             if (cur_range > 0) {
-                info_y.ref1 = (signed char)random((RANDOM_ALGORITHM)_random_algo_ref, seed, (short)cur_range);
+                info_y.ref1 = (signed char)random((RANDOM_ALGORITHM)_random_algo_ref, seed, cur_range);
                 if (_sample_mode == 2)
                 {
-                    info_y.ref2 = (signed char)random((RANDOM_ALGORITHM)_random_algo_ref, seed, (short)cur_range);
+                    info_y.ref2 = (signed char)random((RANDOM_ALGORITHM)_random_algo_ref, seed, cur_range);
                 }
                 if (_sample_mode > 0)
                 {
@@ -289,8 +289,8 @@ void flash3kyuu_deband::init_frame_luts(int n)
                 // don't shift ref values here, since subsampling of width and height may be different
                 // shift them in actual processing
 
-                info_cb.change = random((RANDOM_ALGORITHM)_random_algo_dither, seed, (short)_ditherC);
-                info_cr.change = random((RANDOM_ALGORITHM)_random_algo_dither, seed, (short)_ditherC);
+                info_cb.change = random((RANDOM_ALGORITHM)_random_algo_dither, seed, _ditherC);
+                info_cr.change = random((RANDOM_ALGORITHM)_random_algo_dither, seed, _ditherC);
 
                 if (vi.IsPlanar())
                 {
