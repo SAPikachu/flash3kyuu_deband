@@ -1,4 +1,57 @@
 // freezed code, don't add new feature to it
+
+static __forceinline void __cdecl process_plane_plainc_mode0(const process_plane_params& params, process_plane_context*)
+{
+    pixel_dither_info* info_ptr;
+    unsigned short threshold = params.threshold;
+
+    for (int i = 0; i < params.src_height; i++)
+    {
+        const unsigned char* src_px = params.src_plane_ptr + params.src_pitch * i;
+        unsigned char* dst_px = params.dst_plane_ptr + params.dst_pitch * i;
+
+        info_ptr = params.info_ptr_base + params.info_stride * i;
+
+        for (int j = 0; j < params.src_width; j++)
+        {
+            pixel_dither_info info = *info_ptr;
+            assert((abs(info.ref1) >> params.height_subsampling) <= i && (abs(info.ref1) >> params.height_subsampling) + i < params.src_height);
+
+            if (params.vi->IsYUY2())
+            {
+                int index = j & 3;
+                switch (index)
+                {
+                case 0:
+                case 2:
+                    threshold = params.threshold_y;
+                    break;
+                case 1:
+                    threshold = params.threshold_cb;
+                    break;
+                case 3:
+                    threshold = params.threshold_cr;
+                    break;
+                default:
+                    abort();
+                }
+            }
+
+            int ref_pos = (abs(info.ref1) >> params.height_subsampling) * (info.ref1 >> 7) * params.src_pitch;
+            int diff = *src_px - src_px[ref_pos];
+            if (is_above_threshold(threshold, diff)) {
+                *dst_px = *src_px;
+            } else {
+                *dst_px = src_px[ref_pos];
+            }
+
+            src_px++;
+            dst_px++;
+            info_ptr++;
+        }
+    }
+}
+
 template <int sample_mode, bool blur_first, int mode>
 static __forceinline void __cdecl process_plane_plainc_mode12_low(const process_plane_params& params, process_plane_context*)
 {
