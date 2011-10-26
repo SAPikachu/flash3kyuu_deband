@@ -55,7 +55,6 @@ static __forceinline void process_plane_info_block(
     pixel_dither_info *&info_ptr, 
     const unsigned char* src_addr_start, 
     const __m128i &src_pitch_vector, 
-    __m128i &change_1, 
     const __m128i &minus_one, 
     const __m128i &width_subsample_vector,
     const __m128i &height_subsample_vector,
@@ -65,24 +64,6 @@ static __forceinline void process_plane_info_block(
     assert(ref_part_index <= 2);
 
     __m128i info_block = _mm_load_si128((__m128i*)info_ptr);
-
-    if (sample_mode > 0) {
-        // change: bit 16-31
-        __m128i change_temp;
-        change_temp = info_block;
-        change_temp = _mm_srai_epi32(change_temp, 16);
-
-        switch (ref_part_index)
-        {
-        case 0:
-            change_1 = change_temp;
-            break;
-        case 1:
-            change_1 = _mm_packs_epi32(change_1, change_temp);
-            break;
-        }
-    
-    }
 
     // ref1: bit 0-7
     // left-shift & right-shift 24bits to remove other elements and preserve sign
@@ -580,6 +561,8 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 
         info_ptr = params.info_ptr_base + params.info_stride * row;
 
+        const short* dither_buffer_ptr = params.dither_buffer + params.dither_buffer_stride * row;
+
         int processed_pixels = 0;
 
         while (processed_pixels < params.plane_width_in_pixels)
@@ -606,12 +589,8 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
             if (LIKELY(use_cached_info)) {
                 data_stream_block_start = info_data_stream;
                 info_data_stream += info_cache_block_size;
-
-                change_1 = _mm_load_si128((__m128i*)info_data_stream);
-                info_data_stream += 16;
             } else {
                 // we need to process the info block
-                change_1 = _mm_setzero_si128();
 
                 char * data_stream_ptr = info_data_stream;
                 if (!data_stream_ptr)
@@ -622,7 +601,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
                 data_stream_block_start = data_stream_ptr;
             
     #define PROCESS_INFO_BLOCK(n) \
-                process_plane_info_block<sample_mode, n>(info_ptr, src_px, src_pitch_vector, change_1, minus_one, width_subsample_vector, height_subsample_vector, pixel_step_shift_bits, data_stream_ptr);
+                process_plane_info_block<sample_mode, n>(info_ptr, src_px, src_pitch_vector, minus_one, width_subsample_vector, height_subsample_vector, pixel_step_shift_bits, data_stream_ptr);
             
                 PROCESS_INFO_BLOCK(0);
                 PROCESS_INFO_BLOCK(1);
@@ -634,14 +613,6 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
                     assert(info_data_stream == data_stream_ptr);
                 }
 
-                if (sample_mode > 0) {
-
-                    if (info_data_stream) {
-
-                        _mm_store_si128((__m128i*)info_data_stream, change_1);
-                        info_data_stream += 16;
-                    }
-                }
             }
 
             if (LIKELY(input_mode == LOW_BIT_DEPTH))
@@ -656,6 +627,8 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
             } else {
                 abort();
             }
+
+            change_1 = _mm_load_si128((__m128i*)dither_buffer_ptr);
             
             DUMP_VALUE_GROUP("change", change_1, true);
             DUMP_VALUE_GROUP("ref_1_up", ref_pixels_1_0);
@@ -688,6 +661,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
             dst_px += store_pixels<precision_mode>(dst_pixels, dst_px, params.dst_pitch, params.plane_height_in_pixels);
             processed_pixels += 8;
             src_px += params.input_mode != HIGH_BIT_DEPTH_INTERLEAVED ? 8 : 16;
+            dither_buffer_ptr += 8;
         }
         DUMP_NEXT_LINE();
         dither_high::next_row<precision_mode>(context_buffer);
