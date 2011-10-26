@@ -228,6 +228,8 @@ void flash3kyuu_deband::init_frame_luts(void)
 
     int seed = 0x92D68CA2 - _seed;
 
+    seed ^= (vi.width << 16) ^ vi.height;
+    seed ^= (vi.num_frames << 16) ^ vi.num_frames;
 
     int height_in_pixels = _precision_mode != PRECISION_16BIT_STACKED ? vi.height : vi.height / 2;
     int width_in_pixels =  _precision_mode != PRECISION_16BIT_INTERLEAVED ? vi.width : vi.width / 2;
