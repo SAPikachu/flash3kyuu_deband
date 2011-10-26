@@ -112,16 +112,18 @@ private:
     short* _dither_buffer_y;
     short* _dither_buffer_c;
 
+    int* _dither_buffer_offsets;
+
     volatile mt_info* _mt_info;
 
     VideoInfo _src_vi;
 
     void init(void);
-    void init_frame_luts(int n);
+    void init_frame_luts(void);
 
     void destroy_frame_luts(void);
     
-    void process_plane(PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane, IScriptEnvironment* env);
+    void process_plane(int n, PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane, IScriptEnvironment* env);
 
 
 public:

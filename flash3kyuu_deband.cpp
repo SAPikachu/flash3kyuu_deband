@@ -31,7 +31,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     int sample_mode = ARG(sample_mode).AsInt(2);
     int seed = ARG(seed).AsInt(0);
     bool blur_first = ARG(blur_first).AsBool(true);
-    bool diff_seed_for_each_frame = ARG(diff_seed_for_each_frame).AsBool(false);
+    bool dynamic_dither_noise = ARG(dynamic_dither_noise).AsBool(false);
     int opt = ARG(opt).AsInt(-1);
     bool mt = ARG(mt).AsBool(si.dwNumberOfProcessors > 1);
     int precision_mode = ARG(precision_mode).AsInt(sample_mode == 0 ? PRECISION_LOW : PRECISION_HIGH_FLOYD_STEINBERG_DITHERING);
@@ -143,6 +143,7 @@ flash3kyuu_deband::flash3kyuu_deband(PClip child, flash3kyuu_deband_parameter_st
             _cr_info(NULL),
             _dither_buffer_y(NULL),
             _dither_buffer_c(NULL),
+            _dither_buffer_offsets(NULL),
             _mt_info(NULL),
             _process_plane_impl(NULL)
 {
@@ -164,6 +165,9 @@ void flash3kyuu_deband::destroy_frame_luts(void)
     
     _dither_buffer_y = NULL;
     _dither_buffer_c = NULL;
+
+    free(_dither_buffer_offsets);
+    _dither_buffer_offsets = NULL;
     
     // contexts are likely to be dependent on lut, so they must also be destroyed
     destroy_context(&_y_context);
@@ -218,15 +222,11 @@ static size_t get_dither_buffer_item_count(VideoInfo& vi, int width_in_pixels, i
     return width * height;
 }
 
-void flash3kyuu_deband::init_frame_luts(int n)
+void flash3kyuu_deband::init_frame_luts(void)
 {
     destroy_frame_luts();
 
     int seed = 0x92D68CA2 - _seed;
-    if (_diff_seed_for_each_frame) 
-    {
-        seed -= n;
-    }
 
 
     int height_in_pixels = _precision_mode != PRECISION_16BIT_STACKED ? vi.height : vi.height / 2;
@@ -337,8 +337,11 @@ void flash3kyuu_deband::init_frame_luts(int n)
         }
     }
 
+    int multiplier = _dynamic_dither_noise ? 3 : 1;
+    int item_count = width_in_pixels * height_in_pixels;
+
     _dither_buffer_y = generate_dither_buffer(
-        get_dither_buffer_item_count(vi, width_in_pixels, height_in_pixels, PLANAR_Y),
+        item_count * multiplier,
         _random_algo_dither,
         seed,
         _ditherY,
@@ -346,12 +349,23 @@ void flash3kyuu_deband::init_frame_luts(int n)
 
     if (vi.IsPlanar() && !vi.IsY8())
     {
+        // we always generate a full-sized buffer to simplify offset calculation
         _dither_buffer_c = generate_dither_buffer(
-            get_dither_buffer_item_count(vi, width_in_pixels, height_in_pixels, PLANAR_U),
+            item_count * multiplier,
             _random_algo_dither,
             seed,
             _ditherC,
             _ditherC);
+    }
+    if (_dynamic_dither_noise)
+    {
+        _dither_buffer_offsets = (int*)malloc(sizeof(int) * vi.num_frames);
+        for (int i = 0; i < vi.num_frames; i++)
+        {
+            int offset = item_count + random(RANDOM_ALGORITHM_UNIFORM, seed, item_count);
+            offset &= 0xfffffff0; // align to 16-byte for SSE codes
+            _dither_buffer_offsets[i] = offset;
+        }
     }
 }
 
@@ -411,13 +425,13 @@ void flash3kyuu_deband::init(void)
 
     _src_vi = child->GetVideoInfo();
 
-    init_frame_luts(0);
+    init_frame_luts();
 
     _process_plane_impl = get_process_plane_impl(_sample_mode, _blur_first, _opt, _precision_mode);
 
 }
 
-void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane, IScriptEnvironment* env)
+void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane, IScriptEnvironment* env)
 {
     process_plane_params params;
 
@@ -482,6 +496,10 @@ void flash3kyuu_deband::process_plane(PVideoFrame src, PVideoFrame dst, unsigned
         abort();
     }
     
+    if (_dither_buffer_offsets)
+    {
+        params.dither_buffer += _dither_buffer_offsets[n];
+    }
 
     bool copy_plane = false;
     if (_enable_fast_skip_plane && vi.IsPlanar() && _precision_mode < PRECISION_16BIT_STACKED)
@@ -515,8 +533,8 @@ void flash3kyuu_deband::mt_proc(void)
 
     while (!info->exit)
     {
-        process_plane(info->src, info->dst, info->dstp_u, PLANAR_U, info->env);
-        process_plane(info->src, info->dst, info->dstp_v, PLANAR_V, info->env);
+        process_plane(info->n, info->src, info->dst, info->dstp_u, PLANAR_U, info->env);
+        process_plane(info->n, info->src, info->dst, info->dstp_v, PLANAR_V, info->env);
 
         mt_info_reset_pointers(info);
 
@@ -538,18 +556,13 @@ PVideoFrame __stdcall flash3kyuu_deband::GetFrame(int n, IScriptEnvironment* env
     // interleaved 16bit output needs extra alignment
     PVideoFrame dst = env->NewVideoFrame(vi, _precision_mode != PRECISION_16BIT_INTERLEAVED ? PLANE_ALIGNMENT : PLANE_ALIGNMENT * 2);
 
-    if (_diff_seed_for_each_frame)
-    {
-        init_frame_luts(n);
-    }
-
     if (vi.IsPlanar() && !vi.IsY8())
     {
         if (!_mt) 
         {
-            process_plane(src, dst, dst->GetWritePtr(PLANAR_Y), PLANAR_Y, env);
-            process_plane(src, dst, dst->GetWritePtr(PLANAR_U), PLANAR_U, env);
-            process_plane(src, dst, dst->GetWritePtr(PLANAR_V), PLANAR_V, env);
+            process_plane(n, src, dst, dst->GetWritePtr(PLANAR_Y), PLANAR_Y, env);
+            process_plane(n, src, dst, dst->GetWritePtr(PLANAR_U), PLANAR_U, env);
+            process_plane(n, src, dst, dst->GetWritePtr(PLANAR_V), PLANAR_V, env);
         } else {
             bool new_thread = _mt_info == NULL;
             if (UNLIKELY(new_thread)) 
@@ -563,6 +576,7 @@ PVideoFrame __stdcall flash3kyuu_deband::GetFrame(int n, IScriptEnvironment* env
             // we must get write pointer before copying the frame pointer
             // otherwise NULL will be returned
             unsigned char* dstp_y = dst->GetWritePtr(PLANAR_Y);
+            _mt_info->n = n;
             _mt_info->dstp_u = dst->GetWritePtr(PLANAR_U);
             _mt_info->dstp_v = dst->GetWritePtr(PLANAR_V);
             _mt_info->env = env;
@@ -583,12 +597,12 @@ PVideoFrame __stdcall flash3kyuu_deband::GetFrame(int n, IScriptEnvironment* env
                     return NULL;
                 }
             }
-            process_plane(src, dst, dstp_y, PLANAR_Y, env);
+            process_plane(n, src, dst, dstp_y, PLANAR_Y, env);
             WaitForSingleObject(_mt_info->work_complete_event, INFINITE);
         }
     } else {
         // YUY2 or Y8
-        process_plane(src, dst, dst->GetWritePtr(), PLANAR_Y, env);
+        process_plane(n, src, dst, dst->GetWritePtr(), PLANAR_Y, env);
     }
     return dst;
 }

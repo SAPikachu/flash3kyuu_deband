@@ -7,6 +7,7 @@
 
 typedef struct _mt_info
 {
+    int n;
 	PVideoFrame src;
 	PVideoFrame dst;
 	unsigned char *dstp_u;

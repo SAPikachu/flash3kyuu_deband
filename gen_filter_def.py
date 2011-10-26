@@ -12,7 +12,7 @@ def generate_output():
         p("i", "sample_mode"),
         p("i", "seed"),
         p("b", "blur_first"),
-        p("b", "diff_seed", field_name="diff_seed_for_each_frame"),
+        p("b", "dynamic_dither_noise"),
         p("i", "opt"),
         p("b", "mt"),
         p("i", "precision_mode", c_type="PRECISION_MODE"),
