@@ -19,6 +19,8 @@ def generate_output():
         p("b", "keep_tv_range"),
         p("i", "input_mode", c_type="PIXEL_MODE"),
         p("i", "input_depth"),
+        p("i", "output_mode", c_type="PIXEL_MODE"),
+        p("i", "output_depth"),
         p("b", "enable_fast_skip_plane"),
         p("i", "random_algo_ref", c_type="RANDOM_ALGORITHM"),
         p("i", "random_algo_dither", c_type="RANDOM_ALGORITHM"),

@@ -42,6 +42,26 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     int random_algo_ref = ARG(random_algo_ref).AsInt(RANDOM_ALGORITHM_UNIFORM);
     int random_algo_dither = ARG(random_algo_dither).AsInt(RANDOM_ALGORITHM_UNIFORM);
 
+    int output_mode = ARG(output_mode).AsInt(-1);
+    int output_depth = ARG(output_depth).AsInt((output_mode == LOW_BIT_DEPTH || output_mode == -1) ? 8 : 16);
+
+    if (output_mode == -1)
+    {
+        switch (precision_mode)
+        {
+        case PRECISION_16BIT_INTERLEAVED:
+            output_mode = HIGH_BIT_DEPTH_INTERLEAVED;
+            break;
+        case PRECISION_16BIT_STACKED:
+            output_mode = HIGH_BIT_DEPTH_STACKED;
+            break;
+        default:
+            output_mode = output_depth == 8 ? LOW_BIT_DEPTH : HIGH_BIT_DEPTH_STACKED;
+            break;
+        }
+    }
+
+
     int default_val = (precision_mode == PRECISION_LOW || sample_mode == 0) ? 1 : 64;
     int Y = ARG(Y).AsInt(default_val);
     int Cb = ARG(Cb).AsInt(default_val);
@@ -93,6 +113,48 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     } else if (input_mode == HIGH_BIT_DEPTH_INTERLEAVED && ( vi.width & ( ( 1 << ( vi.GetPlaneWidthSubsampling(PLANAR_U) + 1 ) ) - 1 ) ) != 0)
     {
         env->ThrowError("flash3kyuu_deband: It seems the source clip is not an interleaved high bit-depth clip. (Width MOD)");
+    }
+
+    if (output_depth == 8 && output_mode != LOW_BIT_DEPTH)
+    {
+        env->ThrowError("flash3kyuu_deband: output_mode > 0 is only valid when output_depth > 8.");
+    }
+
+    if (output_depth > 8 && output_mode == LOW_BIT_DEPTH)
+    {
+        env->ThrowError("flash3kyuu_deband: output_mode = 0 is only valid when output_depth = 8.");
+    }
+    
+    if (precision_mode == PRECISION_16BIT_STACKED)
+    {
+        if (output_mode != HIGH_BIT_DEPTH_STACKED)
+        {
+            env->ThrowError("flash3kyuu_deband: When precision_mode = 4, output_mode must be 1.");
+        }
+
+        if (output_depth != 16)
+        {
+            env->ThrowError("flash3kyuu_deband: When precision_mode = 4 or 5, output_depth must be 16.");
+        }
+    } 
+    else if (precision_mode == PRECISION_16BIT_INTERLEAVED) 
+    {
+        if (output_mode != HIGH_BIT_DEPTH_INTERLEAVED)
+        {
+            env->ThrowError("flash3kyuu_deband: When precision_mode = 5, output_mode must be 2.");
+        }
+
+        if (output_depth != 16)
+        {
+            env->ThrowError("flash3kyuu_deband: When precision_mode = 4 or 5, output_depth must be 16.");
+        }
+    }
+    else // need dithering
+    {
+        if (output_depth == 16)
+        {
+            env->ThrowError("flash3kyuu_deband: When precision_mode < 4, output_depth must be less than 16.");
+        }
     }
 
     if (vi.IsYUY2())
