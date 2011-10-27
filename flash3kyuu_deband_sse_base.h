@@ -353,7 +353,7 @@ static __m128i __forceinline read_pixels(
     return ret;
 }
 
-template<int precision_mode, INPUT_MODE input_mode>
+template<int precision_mode, PIXEL_MODE input_mode>
 static unsigned short __forceinline read_pixel(
     int plane_height_in_pixels,
     int src_pitch,
@@ -392,7 +392,7 @@ static __m128i __forceinline load_reference_pixels(
 }
 
 
-template<int sample_mode, int precision_mode, INPUT_MODE input_mode>
+template<int sample_mode, int precision_mode, PIXEL_MODE input_mode>
 static void __forceinline read_reference_pixels(
     const process_plane_params& params,
     __m128i shift,

@@ -82,7 +82,7 @@ typedef struct _process_plane_params
     unsigned char width_subsampling;
     unsigned char height_subsampling;
 
-    INPUT_MODE input_mode;
+    PIXEL_MODE input_mode;
     int input_depth;
     
     int pixel_max;

@@ -21,12 +21,12 @@
 
 #define VALUE_8BIT(x) ( x >> ( INTERNAL_BIT_DEPTH - 8 ) )
 
-typedef enum _INPUT_MODE
+typedef enum _PIXEL_MODE
 {
     LOW_BIT_DEPTH = 0,
     HIGH_BIT_DEPTH_STACKED,
     HIGH_BIT_DEPTH_INTERLEAVED
-} INPUT_MODE;
+} PIXEL_MODE;
 
 typedef enum _PRECISION_MODE
 {

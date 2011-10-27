@@ -17,7 +17,7 @@ def generate_output():
         p("b", "mt"),
         p("i", "precision_mode", c_type="PRECISION_MODE"),
         p("b", "keep_tv_range"),
-        p("i", "input_mode", c_type="INPUT_MODE"),
+        p("i", "input_mode", c_type="PIXEL_MODE"),
         p("i", "input_depth"),
         p("b", "enable_fast_skip_plane"),
         p("i", "random_algo_ref", c_type="RANDOM_ALGORITHM"),

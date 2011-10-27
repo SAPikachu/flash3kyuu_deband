@@ -30,7 +30,7 @@ protected:
     bool _mt; 
     PRECISION_MODE _precision_mode; 
     bool _keep_tv_range; 
-    INPUT_MODE _input_mode; 
+    PIXEL_MODE _input_mode; 
     int _input_depth; 
     bool _enable_fast_skip_plane; 
     RANDOM_ALGORITHM _random_algo_ref; 
@@ -61,7 +61,7 @@ public:
         _random_algo_dither = o._random_algo_dither; 
     }
 
-    flash3kyuu_deband_parameter_storage_t( int range, unsigned short Y, unsigned short Cb, unsigned short Cr, int ditherY, int ditherC, int sample_mode, int seed, bool blur_first, bool dynamic_dither_noise, int opt, bool mt, PRECISION_MODE precision_mode, bool keep_tv_range, INPUT_MODE input_mode, int input_depth, bool enable_fast_skip_plane, RANDOM_ALGORITHM random_algo_ref, RANDOM_ALGORITHM random_algo_dither )
+    flash3kyuu_deband_parameter_storage_t( int range, unsigned short Y, unsigned short Cb, unsigned short Cr, int ditherY, int ditherC, int sample_mode, int seed, bool blur_first, bool dynamic_dither_noise, int opt, bool mt, PRECISION_MODE precision_mode, bool keep_tv_range, PIXEL_MODE input_mode, int input_depth, bool enable_fast_skip_plane, RANDOM_ALGORITHM random_algo_ref, RANDOM_ALGORITHM random_algo_dither )
     {
         _range = range; 
         _Y = Y; 
@@ -94,7 +94,7 @@ typedef struct _FLASH3KYUU_DEBAND_RAW_ARGS
 
 #define FLASH3KYUU_DEBAND_ARG(name) args[FLASH3KYUU_DEBAND_ARG_INDEX(name)]
 
-#define FLASH3KYUU_DEBAND_CREATE_CLASS(klass) new klass( child, flash3kyuu_deband_parameter_storage_t( range, (unsigned short)Y, (unsigned short)Cb, (unsigned short)Cr, ditherY, ditherC, sample_mode, seed, blur_first, dynamic_dither_noise, opt, mt, (PRECISION_MODE)precision_mode, keep_tv_range, (INPUT_MODE)input_mode, input_depth, enable_fast_skip_plane, (RANDOM_ALGORITHM)random_algo_ref, (RANDOM_ALGORITHM)random_algo_dither ) )
+#define FLASH3KYUU_DEBAND_CREATE_CLASS(klass) new klass( child, flash3kyuu_deband_parameter_storage_t( range, (unsigned short)Y, (unsigned short)Cb, (unsigned short)Cr, ditherY, ditherC, sample_mode, seed, blur_first, dynamic_dither_noise, opt, mt, (PRECISION_MODE)precision_mode, keep_tv_range, (PIXEL_MODE)input_mode, input_depth, enable_fast_skip_plane, (RANDOM_ALGORITHM)random_algo_ref, (RANDOM_ALGORITHM)random_algo_dither ) )
 
 #ifdef FLASH3KYUU_DEBAND_SIMPLE_MACRO_NAME
 
