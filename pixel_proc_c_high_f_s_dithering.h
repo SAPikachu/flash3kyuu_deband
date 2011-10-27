@@ -10,6 +10,7 @@ namespace pixel_proc_high_f_s_dithering {
 
     typedef struct _context_t
     {
+        int output_depth;
         ERROR_TYPE* error_buffer;
         bool buffer_needs_dealloc;
         ERROR_TYPE* current_px_error;
@@ -21,7 +22,7 @@ namespace pixel_proc_high_f_s_dithering {
 #endif
     } context_t;
 
-    static inline void init_context(char context_buffer[CONTEXT_BUFFER_SIZE], int frame_width)
+    static inline void init_context(char context_buffer[CONTEXT_BUFFER_SIZE], int frame_width, int output_depth)
     {
         context_t* ctx = (context_t*)context_buffer;
         int ctx_size = sizeof(context_t);
@@ -49,6 +50,7 @@ namespace pixel_proc_high_f_s_dithering {
         ctx->current_px_error = ctx->error_buffer + 1;
         ctx->row_pitch = frame_width + 2;
         ctx->frame_width = frame_width;
+        ctx->output_depth = output_depth;
 
 #ifdef DUMP_DATA
         char file_name[256];
@@ -126,7 +128,7 @@ namespace pixel_proc_high_f_s_dithering {
 #ifdef DUMP_DATA
         fwrite(&pixel, 4, 1, ctx->debug_dump_fd[2]);
 #endif
-        int new_error = pixel & ( ( 1 << (INTERNAL_BIT_DEPTH - 8) ) - 1 );
+        int new_error = pixel & ( ( 1 << (INTERNAL_BIT_DEPTH - ctx->output_depth) ) - 1 );
         *(ctx->current_px_error + 1) += (new_error * 7) >> 4;
         *(ctx->current_px_error + ctx->row_pitch - 1) += (new_error * 3) >> 4;
         *(ctx->current_px_error + ctx->row_pitch) += (new_error * 5) >> 4;

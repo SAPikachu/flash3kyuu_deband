@@ -8,10 +8,10 @@
 #if defined(HAS_DOWNSAMPLE)
 #undef HAS_DOWNSAMPLE
 #else
-    static inline int downsample(void* context, int pixel, int row, int column, int pixel_min, int pixel_max)
+    static inline int downsample(void* context, int pixel, int row, int column, int pixel_min, int pixel_max, int output_depth)
     {
         pixel = dither(context, pixel, row, column);
-        return clamp_pixel(pixel, pixel_min, pixel_max) >> (INTERNAL_BIT_DEPTH - 8);
+        return clamp_pixel(pixel, pixel_min, pixel_max) >> (INTERNAL_BIT_DEPTH - output_depth);
     }
 #endif
     

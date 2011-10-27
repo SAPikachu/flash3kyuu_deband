@@ -3,9 +3,10 @@ namespace pixel_proc_8bit {
 
     #include "utils.h"
 
-    static inline void init_context(char context_buffer[CONTEXT_BUFFER_SIZE], int frame_width)
+    static inline void init_context(char context_buffer[CONTEXT_BUFFER_SIZE], int frame_width, int output_depth)
     {
-        // nothing to do
+        // sanity check only
+        assert(output_depth == 8);
     }
 
     static inline void destroy_context(void* context)
@@ -28,8 +29,10 @@ namespace pixel_proc_8bit {
         return pixel;
     }
 
-    static inline int downsample(void* context, int pixel, int row, int column, int pixel_min, int pixel_max)
+    static inline int downsample(void* context, int pixel, int row, int column, int pixel_min, int pixel_max, int output_depth)
     {
+        assert(output_depth == 8);
+
         // min and max are in internal depth, we need to scale them to 8bit
         pixel_min >>= (INTERNAL_BIT_DEPTH - 8);
         pixel_max >>= (INTERNAL_BIT_DEPTH - 8);

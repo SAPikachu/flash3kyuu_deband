@@ -57,11 +57,11 @@ namespace dither_high
     }
 
     template <int precision_mode>
-    static __inline void init(char context_buffer[CONTEXT_BUFFER_SIZE], int frame_width) 
+    static __inline void init(char context_buffer[CONTEXT_BUFFER_SIZE], int frame_width, int output_depth) 
     {
         if (precision_mode == PRECISION_HIGH_FLOYD_STEINBERG_DITHERING)
         {
-            pixel_proc_high_f_s_dithering::init_context(context_buffer, frame_width);
+            pixel_proc_high_f_s_dithering::init_context(context_buffer, frame_width, output_depth);
         } else if (precision_mode == PRECISION_HIGH_ORDERED_DITHERING) {
             init_ordered_dithering();
         }

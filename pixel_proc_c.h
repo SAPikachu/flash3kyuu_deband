@@ -22,10 +22,10 @@
 #include "pixel_proc_c_16bit.h"
 
 template <int mode>
-static inline void pixel_proc_init_context(char context_buffer[CONTEXT_BUFFER_SIZE], int frame_width)
+static inline void pixel_proc_init_context(char context_buffer[CONTEXT_BUFFER_SIZE], int frame_width, int output_depth)
 {
 	CHECK_MODE();
-	CALL_IMPL(init_context, context_buffer, frame_width);
+	CALL_IMPL(init_context, context_buffer, frame_width, output_depth);
 }
 
 template <int mode>
@@ -57,10 +57,10 @@ static inline int pixel_proc_upsample(void* context, unsigned char pixel)
 }
 
 template <int mode>
-static inline int pixel_proc_downsample(void* context, int pixel, int row, int column, int pixel_min, int pixel_max)
+static inline int pixel_proc_downsample(void* context, int pixel, int row, int column, int pixel_min, int pixel_max, int output_depth)
 {
 	CHECK_MODE();
-	return CALL_IMPL(downsample, context, pixel, row, column, pixel_min, pixel_max);
+	return CALL_IMPL(downsample, context, pixel, row, column, pixel_min, pixel_max, output_depth);
 }
 
 template <int mode>

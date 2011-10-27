@@ -27,9 +27,9 @@ namespace pixel_proc_high_ordered_dithering {
     static const int THRESHOLD_MAP_RIGHT_SHIFT_BITS = 16 - INTERNAL_BIT_DEPTH;
 
 
-    static inline void init_context(char context_buffer[CONTEXT_BUFFER_SIZE], int frame_width)
+    static inline void init_context(char context_buffer[CONTEXT_BUFFER_SIZE], int frame_width, int output_depth)
     {
-        // nothing to do
+        *((int*)context_buffer) = output_depth;
     }
 
     static inline void destroy_context(void* context)
@@ -49,7 +49,8 @@ namespace pixel_proc_high_ordered_dithering {
 
     static inline int dither(void* context, int pixel, int row, int column)
     {
-        pixel += (THRESHOLD_MAP[row & 15][column & 15] >> THRESHOLD_MAP_RIGHT_SHIFT_BITS);
+        int output_depth = *(int*)context;
+        pixel += (THRESHOLD_MAP[row & 15][column & 15] >> (THRESHOLD_MAP_RIGHT_SHIFT_BITS + output_depth - 8));
         return pixel;
     }
 

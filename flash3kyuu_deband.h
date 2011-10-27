@@ -68,6 +68,8 @@ typedef struct _process_plane_params
     int plane_width_in_pixels;
     int plane_height_in_pixels;
 
+    int output_depth;
+
     unsigned short threshold;
     pixel_dither_info *info_ptr_base;
     int info_stride;

@@ -447,6 +447,8 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
     params.dst_plane_ptr = dstp;
     params.dst_pitch = dst->GetPitch(plane);
 
+    params.output_depth = _precision_mode < PRECISION_16BIT_STACKED ? 8 : 16;
+
     params.plane = plane;
     
     params.width_subsampling = _src_vi.GetPlaneWidthSubsampling(plane);

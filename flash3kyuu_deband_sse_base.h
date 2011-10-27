@@ -498,7 +498,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 
     char context_buffer[DITHER_CONTEXT_BUFFER_SIZE];
 
-    dither_high::init<precision_mode>(context_buffer, params.plane_width_in_pixels);
+    dither_high::init<precision_mode>(context_buffer, params.plane_width_in_pixels, params.output_depth);
 
     info_cache *cache = NULL;
     

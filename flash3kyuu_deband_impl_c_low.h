@@ -71,11 +71,11 @@ static __forceinline void __cdecl process_plane_plainc_mode12_low(const process_
 
     if (!params.vi->IsYUY2())
     {
-        pixel_proc_init_context<mode>(context_y, params.plane_width_in_pixels);
+        pixel_proc_init_context<mode>(context_y, params.plane_width_in_pixels, params.output_depth);
     } else {
-        pixel_proc_init_context<mode>(context_y, params.plane_width_in_pixels / 2);
-        pixel_proc_init_context<mode>(context_cb, params.plane_width_in_pixels / 4);
-        pixel_proc_init_context<mode>(context_cr, params.plane_width_in_pixels / 4);
+        pixel_proc_init_context<mode>(context_y, params.plane_width_in_pixels / 2, params.output_depth);
+        pixel_proc_init_context<mode>(context_cb, params.plane_width_in_pixels / 4, params.output_depth);
+        pixel_proc_init_context<mode>(context_cr, params.plane_width_in_pixels / 4, params.output_depth);
     }
     char* context = context_y;
 
@@ -238,7 +238,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12_low(const process_
             
             DUMP_VALUE("new_pixel_before_downsample", new_pixel);
 
-            new_pixel = pixel_proc_downsample<mode>(context, new_pixel, i, real_col, pixel_min, pixel_max);
+            new_pixel = pixel_proc_downsample<mode>(context, new_pixel, i, real_col, pixel_min, pixel_max, params.output_depth);
             
             DUMP_VALUE("dst", new_pixel);
 

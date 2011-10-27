@@ -2,7 +2,7 @@
 
 namespace pixel_proc_high_no_dithering {
 	
-	static inline void init_context(char context_buffer[CONTEXT_BUFFER_SIZE], int frame_width)
+	static inline void init_context(char context_buffer[CONTEXT_BUFFER_SIZE], int frame_width, int output_depth)
 	{
 		// nothing to do
 	}

@@ -173,7 +173,7 @@ template<int mode>
 static void process_plane_impl(const unsigned char* src_ptr, const int src_pitch, unsigned char* dst_ptr, const int dst_pitch, const int target_width, const int target_height, const bool stacked, const int input_depth, const unsigned char pixel_min, const unsigned char pixel_max)
 {
     char context_buffer[CONTEXT_BUFFER_SIZE];
-    dither_high::init<mode+2>(context_buffer, target_width);
+    dither_high::init<mode+2>(context_buffer, target_width, 8);
 
     __m128i pixel_shift_vector = _mm_setzero_si128();
     bool need_shifting = input_depth < INTERNAL_BIT_DEPTH;
@@ -223,9 +223,9 @@ template<int mode>
 static void process_plane_impl_yuy2(const unsigned char* src_ptr, const int src_pitch, unsigned char* dst_ptr, const int dst_pitch, const int target_width, const int target_height, const bool stacked, const int input_depth, const bool need_clamping)
 {
     char context_buffer[3][CONTEXT_BUFFER_SIZE];
-    dither_high::init<mode+2>(context_buffer[0], target_width);
-    dither_high::init<mode+2>(context_buffer[1], target_width >> 1);
-    dither_high::init<mode+2>(context_buffer[2], target_width >> 1);
+    dither_high::init<mode+2>(context_buffer[0], target_width, 8);
+    dither_high::init<mode+2>(context_buffer[1], target_width >> 1, 8);
+    dither_high::init<mode+2>(context_buffer[2], target_width >> 1, 8);
 
     __m128i pixel_shift_vector = _mm_setzero_si128();
     bool need_shifting = input_depth < INTERNAL_BIT_DEPTH;
