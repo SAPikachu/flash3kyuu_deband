@@ -68,6 +68,9 @@ typedef struct _process_plane_params
     int plane_width_in_pixels;
     int plane_height_in_pixels;
 
+    PIXEL_MODE input_mode;
+    int input_depth;
+    PIXEL_MODE output_mode;
     int output_depth;
 
     unsigned short threshold;
@@ -82,8 +85,6 @@ typedef struct _process_plane_params
     unsigned char width_subsampling;
     unsigned char height_subsampling;
 
-    PIXEL_MODE input_mode;
-    int input_depth;
     
     int pixel_max;
     int pixel_min;

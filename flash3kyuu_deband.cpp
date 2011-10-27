@@ -43,7 +43,23 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     int random_algo_dither = ARG(random_algo_dither).AsInt(RANDOM_ALGORITHM_UNIFORM);
 
     int output_mode = ARG(output_mode).AsInt(-1);
-    int output_depth = ARG(output_depth).AsInt((output_mode == LOW_BIT_DEPTH || output_mode == -1) ? 8 : 16);
+    int output_depth = ARG(output_depth).AsInt(-1);
+
+    if (output_depth == -1)
+    {
+        if (output_mode == LOW_BIT_DEPTH)
+        {
+            output_depth = 8;
+        }
+        else if (output_mode > LOW_BIT_DEPTH)
+        {
+            env->ThrowError("flash3kyuu_deband: When output_mode is > 0, output_depth must also be set.");
+        }
+        else
+        {
+            output_depth = precision_mode < PRECISION_16BIT_STACKED ? 8 : 16;
+        }
+    }
 
     if (output_mode == -1)
     {
@@ -180,10 +196,17 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     CHECK_PARAM(precision_mode, 0, (PRECISION_COUNT - 1) );
     CHECK_PARAM(random_algo_ref, 0, (RANDOM_ALGORITHM_COUNT - 1) );
     CHECK_PARAM(random_algo_dither, 0, (RANDOM_ALGORITHM_COUNT - 1) );
-
+    CHECK_PARAM(input_mode, 0, PIXEL_MODE_COUNT - 1);
+    CHECK_PARAM(output_mode, 0, PIXEL_MODE_COUNT - 1);
+    
     if (input_mode != LOW_BIT_DEPTH)
     {
         CHECK_PARAM(input_depth, 9, INTERNAL_BIT_DEPTH);
+    }
+
+    if (output_mode != LOW_BIT_DEPTH)
+    {
+        CHECK_PARAM(output_depth, 9, INTERNAL_BIT_DEPTH);
     }
 
     // now the internal bit depth is 16, 
@@ -509,7 +532,10 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
     params.dst_plane_ptr = dstp;
     params.dst_pitch = dst->GetPitch(plane);
 
-    params.output_depth = _precision_mode < PRECISION_16BIT_STACKED ? 8 : 16;
+    params.input_mode = _input_mode;
+    params.input_depth = _input_depth;
+    params.output_mode = _output_mode;
+    params.output_depth = _output_depth;
 
     params.plane = plane;
     
@@ -585,8 +611,6 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
     params.threshold_cb = _Cb;
     params.threshold_cr = _Cr;
 
-    params.input_mode = (PIXEL_MODE)_input_mode;
-    params.input_depth = _input_depth;
 
 
     _process_plane_impl(params, context);
