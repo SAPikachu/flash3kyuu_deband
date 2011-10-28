@@ -125,7 +125,7 @@ namespace dither_high
             // row: use lowest 4 bits as index, mask = 0b00001111 = 15
             // column: always multiples of 8, yuy2 threshold map has 8 items, mask = 0b00111000
             assert((column & 7) == 0);
-            return _mm_adds_epu16(pixels, _ordered_dithering_threshold_map[row & 15][(column >> 3) & 7]);
+            return _mm_adds_epu16(pixels, _ordered_dithering_threshold_map_yuy2[row & 15][(column >> 3) & 7]);
         case PRECISION_HIGH_FLOYD_STEINBERG_DITHERING:
             // due to an ICC bug, accessing pixels using union will give us incorrect results
             // so we have to use a buffer here
