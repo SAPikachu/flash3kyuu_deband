@@ -56,6 +56,23 @@ namespace dither_high
         }
     }
 
+    static void init_ordered_dithering_with_output_depth(char context_buffer[CONTEXT_BUFFER_SIZE], int output_depth)
+    {
+        assert(_threshold_map_initialized);
+
+        __m128i shift = _mm_set_epi32(0, 0, 0, output_depth - 8);
+
+        for (int i = 0; i < 16; i++)
+        {
+            for (int j = 0; j < 2; j++)
+            {
+                __m128i item = _ordered_dithering_threshold_map[i][j];
+                item = _mm_srl_epi16(item, shift);
+                _mm_store_si128((__m128i*)(context_buffer + (i * 2 + j) * 16), item);
+            }
+        }
+    }
+
     template <int precision_mode>
     static __inline void init(char context_buffer[CONTEXT_BUFFER_SIZE], int frame_width, int output_depth) 
     {
@@ -64,6 +81,7 @@ namespace dither_high
             pixel_proc_high_f_s_dithering::init_context(context_buffer, frame_width, output_depth);
         } else if (precision_mode == PRECISION_HIGH_ORDERED_DITHERING) {
             init_ordered_dithering();
+            init_ordered_dithering_with_output_depth(context_buffer, output_depth);
         }
     }
 
@@ -85,10 +103,13 @@ namespace dither_high
         case PRECISION_HIGH_NO_DITHERING:
             return pixels;
         case PRECISION_HIGH_ORDERED_DITHERING:
+            {
             // row: use lowest 4 bits as index, mask = 0b00001111 = 15
             // column: always multiples of 8, so use 8 (bit 4) as selector, mask = 0b00001000
             assert((column & 7) == 0);
-            return _mm_adds_epu16(pixels, _ordered_dithering_threshold_map[row & 15][(column & 8) >> 3]);
+            __m128i threshold = _mm_load_si128((__m128i*)((char*)context + ( ( (row & 15) * 2 ) + ( (column & 8) >> 3 ) ) * 16 ) );
+            return _mm_adds_epu16(pixels, threshold);
+            }
         case PRECISION_HIGH_FLOYD_STEINBERG_DITHERING:
             // due to an ICC bug, accessing pixels using union will give us incorrect results
             // so we have to use a buffer here
