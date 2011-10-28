@@ -62,7 +62,7 @@ static __inline int read_pixel(const process_plane_params& params, void* context
 
 #include "flash3kyuu_deband_impl_c_low.h"
 
-template <int sample_mode, bool blur_first, int mode>
+template <int sample_mode, bool blur_first, int mode, int output_mode>
 static __forceinline void __cdecl process_plane_plainc_mode12_high(const process_plane_params& params, process_plane_context*)
 {
     assert(mode != PRECISION_LOW);
@@ -255,22 +255,21 @@ static __forceinline void __cdecl process_plane_plainc_mode12_high(const process
             new_pixel = pixel_proc_downsample<mode>(context, new_pixel, i, real_col, pixel_min, pixel_max, params.output_depth);
             
             DUMP_VALUE("dst", new_pixel);
-            switch (mode)
+            switch (output_mode)
             {
-            case PRECISION_LOW:
-            case PRECISION_HIGH_NO_DITHERING:
-            case PRECISION_HIGH_ORDERED_DITHERING:
-            case PRECISION_HIGH_FLOYD_STEINBERG_DITHERING:
+            case LOW_BIT_DEPTH:
                 *dst_px = (unsigned char)new_pixel;
                 break;
-            case PRECISION_16BIT_STACKED:
+            case HIGH_BIT_DEPTH_STACKED:
                 *dst_px = (unsigned char)((new_pixel >> 8) & 0xFF);
                 *(dst_px + params.plane_height_in_pixels * params.dst_pitch) = (unsigned char)(new_pixel & 0xFF);
                 break;
-            case PRECISION_16BIT_INTERLEAVED:
+            case HIGH_BIT_DEPTH_INTERLEAVED:
                 *((unsigned short*)dst_px) = (unsigned short)(new_pixel & 0xFFFF);
                 dst_px++;
                 break;
+            default:
+                abort();
             }
 
             src_px += pixel_step;
@@ -309,7 +308,24 @@ void __cdecl process_plane_plainc(const process_plane_params& params, process_pl
         {
             process_plane_plainc_mode12_low<sample_mode, blur_first, mode>(params, context);
         } else {
-            process_plane_plainc_mode12_high<sample_mode, blur_first, mode>(params, context);
+            switch (params.output_mode)
+            {
+            case LOW_BIT_DEPTH:
+                process_plane_plainc_mode12_high<sample_mode, blur_first, mode, LOW_BIT_DEPTH>(params, context);
+                break;
+
+            case HIGH_BIT_DEPTH_STACKED:
+                process_plane_plainc_mode12_high<sample_mode, blur_first, mode, HIGH_BIT_DEPTH_STACKED>(params, context);
+                break;
+
+            case HIGH_BIT_DEPTH_INTERLEAVED:
+                process_plane_plainc_mode12_high<sample_mode, blur_first, mode, HIGH_BIT_DEPTH_INTERLEAVED>(params, context);
+                break;
+
+            default:
+                abort();
+
+            }
         }
     }
 

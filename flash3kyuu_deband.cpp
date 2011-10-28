@@ -499,10 +499,10 @@ void flash3kyuu_deband::init(void)
         vi.width /= 2;
     }
 
-    if (_precision_mode == PRECISION_16BIT_STACKED)
+    if (_output_mode == HIGH_BIT_DEPTH_STACKED)
     {
         vi.height *= 2;
-    } else if (_precision_mode == PRECISION_16BIT_INTERLEAVED) {
+    } else if (_output_mode == HIGH_BIT_DEPTH_INTERLEAVED) {
         vi.width *= 2;
     }
 
@@ -542,8 +542,8 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
     params.width_subsampling = _src_vi.GetPlaneWidthSubsampling(plane);
     params.height_subsampling = _src_vi.GetPlaneHeightSubsampling(plane);
 
-    params.plane_width_in_pixels = _precision_mode != PRECISION_16BIT_INTERLEAVED ? vi.width : vi.width / 2;
-    params.plane_height_in_pixels = _precision_mode != PRECISION_16BIT_STACKED ? vi.height : vi.height / 2;
+    params.plane_width_in_pixels = _output_mode != HIGH_BIT_DEPTH_INTERLEAVED ? vi.width : vi.width / 2;
+    params.plane_height_in_pixels = _output_mode != HIGH_BIT_DEPTH_STACKED ? vi.height : vi.height / 2;
 
     params.plane_width_in_pixels >>= params.width_subsampling;
     params.plane_height_in_pixels >>= params.height_subsampling;
