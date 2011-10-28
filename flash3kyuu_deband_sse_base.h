@@ -320,7 +320,7 @@ static __m128i load_m128(const unsigned char *ptr)
     }
 }
 
-template<int precision_mode, bool aligned>
+template<PIXEL_MODE input_mode, bool aligned>
 static __m128i __forceinline read_pixels(
     const process_plane_params& params,
     const unsigned char *ptr, 
@@ -328,7 +328,7 @@ static __m128i __forceinline read_pixels(
 {
     __m128i ret;
 
-    switch (EXPECT(params.input_mode, LOW_BIT_DEPTH))
+    switch (input_mode)
     {
     case LOW_BIT_DEPTH:
         {
@@ -353,7 +353,7 @@ static __m128i __forceinline read_pixels(
     return ret;
 }
 
-template<int precision_mode, PIXEL_MODE input_mode>
+template<PIXEL_MODE input_mode>
 static unsigned short __forceinline read_pixel(
     int plane_height_in_pixels,
     int src_pitch,
@@ -434,17 +434,17 @@ static void __forceinline read_reference_pixels(
         switch (sample_mode)
         {
         case 0:
-            tmp_1[i] = read_pixel<precision_mode, input_mode>(plane_height_in_pixels, src_pitch, src_px_start, i_fix + *(int*)(info_data_start + 4 * i));
+            tmp_1[i] = read_pixel<input_mode>(plane_height_in_pixels, src_pitch, src_px_start, i_fix + *(int*)(info_data_start + 4 * i));
             break;
         case 1:
-            tmp_1[i] = read_pixel<precision_mode, input_mode>(plane_height_in_pixels, src_pitch, src_px_start, i_fix + *(int*)(info_data_start + 4 * i));
-            tmp_2[i] = read_pixel<precision_mode, input_mode>(plane_height_in_pixels, src_pitch, src_px_start, i_fix + -*(int*)(info_data_start + 4 * i));
+            tmp_1[i] = read_pixel<input_mode>(plane_height_in_pixels, src_pitch, src_px_start, i_fix + *(int*)(info_data_start + 4 * i));
+            tmp_2[i] = read_pixel<input_mode>(plane_height_in_pixels, src_pitch, src_px_start, i_fix + -*(int*)(info_data_start + 4 * i));
             break;
         case 2:
-            tmp_1[i] = read_pixel<precision_mode, input_mode>(plane_height_in_pixels, src_pitch, src_px_start, i_fix + *(int*)(info_data_start + 4 * (i + i / 4 * 4)));
-            tmp_2[i] = read_pixel<precision_mode, input_mode>(plane_height_in_pixels, src_pitch, src_px_start, i_fix + *(int*)(info_data_start + 4 * (i + i / 4 * 4 + 4)));
-            tmp_3[i] = read_pixel<precision_mode, input_mode>(plane_height_in_pixels, src_pitch, src_px_start, i_fix + -*(int*)(info_data_start + 4 * (i + i / 4 * 4)));
-            tmp_4[i] = read_pixel<precision_mode, input_mode>(plane_height_in_pixels, src_pitch, src_px_start, i_fix + -*(int*)(info_data_start + 4 * (i + i / 4 * 4 + 4)));
+            tmp_1[i] = read_pixel<input_mode>(plane_height_in_pixels, src_pitch, src_px_start, i_fix + *(int*)(info_data_start + 4 * (i + i / 4 * 4)));
+            tmp_2[i] = read_pixel<input_mode>(plane_height_in_pixels, src_pitch, src_px_start, i_fix + *(int*)(info_data_start + 4 * (i + i / 4 * 4 + 4)));
+            tmp_3[i] = read_pixel<input_mode>(plane_height_in_pixels, src_pitch, src_px_start, i_fix + -*(int*)(info_data_start + 4 * (i + i / 4 * 4)));
+            tmp_4[i] = read_pixel<input_mode>(plane_height_in_pixels, src_pitch, src_px_start, i_fix + -*(int*)(info_data_start + 4 * (i + i / 4 * 4 + 4)));
             break;
         }
         i_fix += i_fix_step;
@@ -618,17 +618,24 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 
             }
 
+            __m128i src_pixels;
+            // abuse the guard bytes on the end of frame, as long as they are present there won't be segfault
+            // garbage data is not a problem
             if (LIKELY(input_mode == LOW_BIT_DEPTH))
             {
                 READ_REFS(data_stream_block_start, LOW_BIT_DEPTH);
+                src_pixels = read_pixels<LOW_BIT_DEPTH, aligned>(params, src_px, upsample_to_16_shift_bits);
             } else if (input_mode == HIGH_BIT_DEPTH_INTERLEAVED)
             {
                 READ_REFS(data_stream_block_start, HIGH_BIT_DEPTH_INTERLEAVED);
+                src_pixels = read_pixels<HIGH_BIT_DEPTH_INTERLEAVED, aligned>(params, src_px, upsample_to_16_shift_bits);
             } else if (input_mode == HIGH_BIT_DEPTH_STACKED)
             {
                 READ_REFS(data_stream_block_start, HIGH_BIT_DEPTH_STACKED);
+                src_pixels = read_pixels<HIGH_BIT_DEPTH_STACKED, aligned>(params, src_px, upsample_to_16_shift_bits);
             } else {
                 abort();
+                return;
             }
 
             change_1 = _mm_load_si128((__m128i*)dither_buffer_ptr);
@@ -639,10 +646,6 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
             DUMP_VALUE_GROUP("ref_3_up", ref_pixels_3_0);
             DUMP_VALUE_GROUP("ref_4_up", ref_pixels_4_0);
 
-            __m128i src_pixels;
-            // abuse the guard bytes on the end of frame, as long as they are present there won't be segfault
-            // garbage data is not a problem
-            src_pixels = read_pixels<precision_mode, aligned>(params, src_px, upsample_to_16_shift_bits);
             DUMP_VALUE_GROUP("src_px_up", src_pixels);
 
             __m128i dst_pixels = process_pixels<sample_mode, blur_first, precision_mode>(
