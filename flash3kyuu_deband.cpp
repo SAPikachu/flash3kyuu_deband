@@ -316,8 +316,8 @@ void flash3kyuu_deband::init_frame_luts(void)
     seed ^= (vi.width << 16) ^ vi.height;
     seed ^= (vi.num_frames << 16) ^ vi.num_frames;
 
-    int height_in_pixels = _precision_mode != PRECISION_16BIT_STACKED ? vi.height : vi.height / 2;
-    int width_in_pixels =  _precision_mode != PRECISION_16BIT_INTERLEAVED ? vi.width : vi.width / 2;
+    int height_in_pixels = _output_mode != HIGH_BIT_DEPTH_STACKED ? vi.height : vi.height / 2;
+    int width_in_pixels =  _output_mode != HIGH_BIT_DEPTH_INTERLEAVED ? vi.width : vi.width / 2;
 
     int y_stride;
     y_stride = get_frame_lut_stride(width_in_pixels, vi);
