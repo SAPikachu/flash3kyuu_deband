@@ -265,18 +265,17 @@ static __m128i __forceinline process_pixels(
     return ret;
 }
 
-template <int precision_mode>
+template <PIXEL_MODE output_mode>
 static int __forceinline store_pixels(
     __m128i pixels,
+    __m128i downshift_bits,
     unsigned char* dst,
     int dst_pitch,
     int height_in_pixels)
 {
-    switch (precision_mode)
+    switch (output_mode)
     {
-    case PRECISION_HIGH_NO_DITHERING:
-    case PRECISION_HIGH_ORDERED_DITHERING:
-    case PRECISION_HIGH_FLOYD_STEINBERG_DITHERING:
+    case LOW_BIT_DEPTH:
         {
             pixels = _mm_srli_epi16(pixels, 8);
             pixels = _mm_packus_epi16(pixels, pixels);
@@ -284,9 +283,9 @@ static int __forceinline store_pixels(
             return 8;
             break;
         }
-    case PRECISION_16BIT_STACKED:
+    case HIGH_BIT_DEPTH_STACKED:
         {
-
+            pixels = _mm_srl_epi16(pixels, downshift_bits);
             __m128i msb = _mm_srli_epi16(pixels, 8);
             msb = _mm_packus_epi16(msb, msb);
             _mm_storel_epi64((__m128i*)dst, msb);
@@ -298,7 +297,8 @@ static int __forceinline store_pixels(
             return 8;
         }
         break;
-    case PRECISION_16BIT_INTERLEAVED:
+    case HIGH_BIT_DEPTH_INTERLEAVED:
+        pixels = _mm_srl_epi16(pixels, downshift_bits);
         _mm_store_si128((__m128i*)dst, pixels);
         return 16;
         break;
@@ -469,7 +469,7 @@ static void __forceinline read_reference_pixels(
 }
 
 
-template<int sample_mode, bool blur_first, int precision_mode, bool aligned>
+template<int sample_mode, bool blur_first, int precision_mode, bool aligned, PIXEL_MODE output_mode>
 static void __cdecl _process_plane_sse_impl(const process_plane_params& params, process_plane_context* context)
 {
     assert(precision_mode != PRECISION_LOW);
@@ -495,7 +495,8 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
     bool use_cached_info = false;
 
     char* info_data_stream = NULL;
-
+    
+    __declspec(align(16))
     char context_buffer[DITHER_CONTEXT_BUFFER_SIZE];
 
     dither_high::init<precision_mode>(context_buffer, params.plane_width_in_pixels, params.output_depth);
@@ -528,6 +529,8 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
         pixel_step_shift_bits = _mm_setzero_si128();
     }
     upsample_to_16_shift_bits = _mm_set_epi32(0, 0, 0, 16 - params.input_depth);
+
+    __m128i downshift_bits = _mm_set_epi32(0, 0, 0, 16 - params.output_depth);
 
     __declspec(align(16))
     char dummy_info_buffer[128];
@@ -658,7 +661,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
                                      processed_pixels, 
                                      context_buffer);
 
-            dst_px += store_pixels<precision_mode>(dst_pixels, dst_px, params.dst_pitch, params.plane_height_in_pixels);
+            dst_px += store_pixels<output_mode>(dst_pixels, downshift_bits, dst_px, params.dst_pitch, params.plane_height_in_pixels);
             processed_pixels += 8;
             src_px += params.input_mode != HIGH_BIT_DEPTH_INTERLEAVED ? 8 : 16;
             dither_buffer_ptr += 8;
@@ -684,6 +687,25 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 }
 
 
+template<int sample_mode, bool blur_first, int precision_mode, bool aligned>
+static void process_plane_sse_impl_stub1(const process_plane_params& params, process_plane_context* context)
+{
+    switch (params.output_mode)
+    {
+    case LOW_BIT_DEPTH:
+        _process_plane_sse_impl<sample_mode, blur_first, precision_mode, aligned, LOW_BIT_DEPTH>(params, context);
+        break;
+    case HIGH_BIT_DEPTH_STACKED:
+        _process_plane_sse_impl<sample_mode, blur_first, precision_mode, aligned, HIGH_BIT_DEPTH_STACKED>(params, context);
+        break;
+    case HIGH_BIT_DEPTH_INTERLEAVED:
+        _process_plane_sse_impl<sample_mode, blur_first, precision_mode, aligned, HIGH_BIT_DEPTH_INTERLEAVED>(params, context);
+        break;
+    default:
+        abort();
+    }
+}
+
 template<int sample_mode, bool blur_first, int precision_mode>
 static void __cdecl process_plane_sse_impl(const process_plane_params& params, process_plane_context* context)
 {
@@ -694,8 +716,8 @@ static void __cdecl process_plane_sse_impl(const process_plane_params& params, p
     }
     if ( ( (POINTER_INT)params.src_plane_ptr & (PLANE_ALIGNMENT - 1) ) == 0 && (params.src_pitch & (PLANE_ALIGNMENT - 1) ) == 0 )
     {
-        _process_plane_sse_impl<sample_mode, blur_first, precision_mode, true>(params, context);
+        process_plane_sse_impl_stub1<sample_mode, blur_first, precision_mode, true>(params, context);
     } else {
-        _process_plane_sse_impl<sample_mode, blur_first, precision_mode, false>(params, context);
+        process_plane_sse_impl_stub1<sample_mode, blur_first, precision_mode, false>(params, context);
     }
 }
