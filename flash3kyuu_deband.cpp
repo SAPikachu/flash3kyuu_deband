@@ -427,6 +427,10 @@ void flash3kyuu_deband::init_frame_luts(void)
     int multiplier = _dynamic_dither_noise ? 3 : 1;
     int item_count = width_in_pixels * height_in_pixels;
 
+    // add some safety margin and align it
+    item_count += 255;
+    item_count &= 0xffffff80;
+
     _dither_buffer_y = generate_dither_buffer(
         item_count * multiplier,
         _random_algo_dither,
@@ -451,6 +455,9 @@ void flash3kyuu_deband::init_frame_luts(void)
         {
             int offset = item_count + random(RANDOM_ALGORITHM_UNIFORM, seed, item_count);
             offset &= 0xfffffff0; // align to 16-byte for SSE codes
+
+            assert(offset >= 0);
+
             _dither_buffer_offsets[i] = offset;
         }
     }
