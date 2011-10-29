@@ -601,7 +601,7 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
     }
 
     bool copy_plane = false;
-    if (_enable_fast_skip_plane && vi.IsPlanar() && _precision_mode < PRECISION_16BIT_STACKED)
+    if (_enable_fast_skip_plane && vi.IsPlanar() && _input_mode == _output_mode && _input_depth == _output_depth)
     {
         copy_plane = params.threshold == 0;
     }
