@@ -6,7 +6,7 @@ f3kdb(clip c, int "range", int "Y", int "Cb", int "Cr",
 		bool "enable_fast_skip_plane", int "random_algo_ref",
 		int "random_algo_dither")
 		
-由 http://www.geocities.jp/flash3kyuu/auf/banding17.zip 移植，此处仅提供简单参数解释，参数详细意义请参考原始aviutl滤镜的文档。
+由 http://www.geocities.jp/flash3kyuu/auf/banding17.zip 移植。
 滤镜支持逐行YUY2、YV12、YV16、YV24及YV411。
 		
 range
@@ -168,3 +168,19 @@ keep_tv_range
 	请参考flash3kyuu_deband的同名参数
 	
 	默认值：false
+	
+--------------------------------------------------------------------------------
+
+flash3kyuu_deband 1.4.0
+
+Web:
+http://forum.doom9.org/showthread.php?t=161411
+http://www.nmm-hd.org/newbbs/viewtopic.php?f=7&t=239
+
+Acknowledgment:
+flash3kyuu (http://www.geocities.jp/flash3kyuu/)
+
+Source code:
+https://github.com/SAPikachu/flash3kyuu_deband
+
+Copyleft 2011 SAPikachu (sapikachu@gmail.com, http://www.sapikachu.net)

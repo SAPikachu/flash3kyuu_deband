@@ -224,7 +224,10 @@ Web:
 http://forum.doom9.org/showthread.php?t=161411
 http://www.nmm-hd.org/newbbs/viewtopic.php?f=7&t=239
 
+Acknowledgment:
+flash3kyuu (http://www.geocities.jp/flash3kyuu/)
+
 Source code:
 https://github.com/SAPikachu/flash3kyuu_deband
 
-Copyleft 2011 SAPikachu (sapikachu@gmail.com)
+Copyleft 2011 SAPikachu (sapikachu@gmail.com, http://www.sapikachu.net)
