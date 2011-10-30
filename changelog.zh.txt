@@ -1,3 +1,14 @@
+1.4.0 (2011-10-30)
+	9 ~ 16位深输入/输出
+		相关参数：input_mode/input_depth/output_mode/output_depth
+	新的随机数生成器，参考像素位置及噪声可以为均匀分布或高斯分布
+		相关参数：random_algo_ref / random_algo_dither
+	diff_seed已被dynamic_dither_noise取代，启用时每帧的噪声模式会变化
+	另一个新参数：enable_fast_skip_plane
+	新增滤镜短名：f3kdb
+	新的ICC编译版理论上可在SSE2前的CPU上运行（未测试）
+	少量Bug修复
+
 1.3.0 (2011-09-07)
 	新增x64版本
 	新增降色深滤镜：f3kdb_dither

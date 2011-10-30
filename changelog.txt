@@ -1,3 +1,16 @@
+1.4.0 (2011-10-30)
+ * 9 ~ 16 bit-depth input/output
+    * Related parameters: input_mode/input_depth/output_mode/output_depth
+ * New random number generator, reference position and dither noise can be 
+   generated in uniform or gaussian distribution
+    * Related parameters: random_algo_ref / random_algo_dither
+ * diff_seed is replaced with dynamic_dither_noise, when enabled, noise pattern
+   will be different for each frame
+ * Another new parameter: enable_fast_skip_plane
+ * Short filter alias: f3kdb
+ * Now the ICC-compiled DLL should be runnable on pre-SSE2 systems (untested)
+ * Several bug fixes
+
 1.3.0 (2011-09-07)
  * Added x64 version
  * Added a downsample filter: f3kdb_dither

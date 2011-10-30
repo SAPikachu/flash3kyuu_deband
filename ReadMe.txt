@@ -1,7 +1,10 @@
-flash3kyuu_deband(clip c, int "range", int "Y", int "Cb", int "Cr", 
+f3kdb(clip c, int "range", int "Y", int "Cb", int "Cr", 
 		int "ditherY", int "ditherC", int "sample_mode", int "seed", 
-		bool "blur_first", bool "diff_seed", int "opt", bool "mt", 
-		int "precision_mode", bool "keep_tv_range")
+		bool "blur_first", bool "dynamic_dither_noise", int "opt", bool "mt", 
+		int "precision_mode", bool "keep_tv_range", int "input_mode",
+		int "input_depth", int "output_mode", int "output_depth", 
+		bool "enable_fast_skip_plane", int "random_algo_ref",
+		int "random_algo_dither")
 		
 Ported from http://www.geocities.jp/flash3kyuu/auf/banding17.zip . 
 (I'm not the author of the original aviutl plugin, just ported the algorithm to
@@ -58,15 +61,8 @@ blur_first
 	       	
 	Default: true
 	
-diff_seed
-	Use different seed for each frame.
-	
-	Caveats: 
-	1. Speed may be significantly slower if enabled.
-	2. The filter will become non-thread-safe if enabled. Avisynth MT mode 1 
-	   will work incorrectly or even crash. 
-	   Mode 2 should work though, of course appropriate overlap need to be set. 
-	   (not tested)
+dynamic_dither_noise
+	Use different noise pattern for each frame.
 	
 	Default: false
 	
@@ -132,6 +128,55 @@ keep_tv_range
 	
 	Default: false
 	
+input_mode
+	Specify source video type.
+	0: Regular 8 bit video
+	1: 9 ~ 16 bit high bit-depth video, stacked format
+	2: 9 ~ 16 bit high bit-depth video, interleaved format
+	
+	Default: 0
+	
+input_depth
+	Specify bit-depth of source video.
+	
+	Range: 8 ~ 16
+	Default: 8 (input_mode = 0) / 16 (input_mode = 1 or 2)
+	
+output_mode
+	Specify output video type. Value meanings are the same as input_mode.
+	
+	Only valid when precision_mode = 1 / 2 / 3 . 
+	
+	When precision_mode = 0 / 4 / 5, output_mode are set to respective value and
+	can't be changed.
+	
+	Default: 0 when precision_mode = 0 ~ 3 and output_depth is not set, 
+	         otherwise the most appropriate value will be used.
+	
+output_depth
+	Specify output bit-depth.
+	
+	Only valid when precision_mode = 1 / 2 / 3 . 
+	
+	Range: 8 ~ 16
+	Default: The most appropriate value, depends on other parameters
+	
+enable_fast_skip_plane
+	If enabled and Y/Cb/Cr is 0, the respective plane will be directly
+	copied to destination when possible, regardless of ditherY/ditherC.
+	
+	Default: true
+
+random_algo_ref / random_algo_dither
+	Choose random number algorithm for reference positions / dither values.
+	
+	0: Algorithm in old versions
+	1: Uniform distribution
+	2: Gaussian distribution 
+	   (StdDev = 1.0, only use values in [-1.0, 1.0] for multiplication)
+	
+	Default: 1 / 1
+		
 --------------------------------------------------------------------------------
 
 f3kdb_dither(clip c, int "mode", bool "stacked", int "input_depth", 
@@ -170,3 +215,16 @@ keep_tv_range
 	See description of keep_tv_range in flash3kyuu_deband
 	
 	Default: false
+	
+--------------------------------------------------------------------------------
+
+flash3kyuu_deband 1.4.0
+
+Web:
+http://forum.doom9.org/showthread.php?t=161411
+http://www.nmm-hd.org/newbbs/viewtopic.php?f=7&t=239
+
+Source code:
+https://github.com/SAPikachu/flash3kyuu_deband
+
+Copyleft 2011 SAPikachu (sapikachu@gmail.com)
