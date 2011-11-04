@@ -60,8 +60,8 @@ precision_mode
 	1：高精度模式, 无dither处理
 	2：高精度模式, Ordered dithering
 	3：高精度模式, Floyd-Steinberg dithering
-	4：高精度模式, 16bit层叠输出，供dither工具集后续处理（http://forum.doom9.org/showthread.php?p=1386559#post1386559）
-	5：高精度模式, 16bit交织输出，供10bit x264编码 （此模式下帧宽度会变成原始的2倍，并且预览时会花屏。正确压制后就会恢复正常。）
+	4：高精度模式, 16bit层叠输出（已过时，请使用output_mode = 1）
+	5：高精度模式, 16bit交织输出（已过时，请使用output_mode = 2）
 	
 	说明：
 	#1 该参数仅在sample_mode > 0时有效，sample_mode = 0时设置该参数会出错。
@@ -93,13 +93,13 @@ input_mode
 	1：9 ~ 16 bit 高位深视频, 层叠格式
 	2：9 ~ 16 bit 高位深视频, 交织格式
 	
-	默认值：0
+	默认值：0 (input_depth = 8或未指定) / 1 (input_depth > 8)
 	
 input_depth
 	指定源视频位深。
 	
 	范围：8 ~ 16
-	默认值：8 (input_mode = 0) / 16 (input_mode = 1 / 2)
+	默认值：8 (input_mode = 0或未指定) / 16 (input_mode = 1 / 2)
 	
 output_mode
 	指定输出视频模式。参数值意义同input_mode。
@@ -115,6 +115,8 @@ output_depth
 	指定输出视频位深。
 	
 	仅当 precision_mode = 1 / 2 / 3 时可用。 
+	
+	如为16，则不会应用precision_mode指定的dither算法。
 	
 	范围：8 ~ 16
 	默认值：自动选择最合适的值。

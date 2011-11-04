@@ -90,11 +90,12 @@ precision_mode
 	1: High precision, No dithering
 	2: High precision, Ordered dithering
 	3: High precision, Floyd-Steinberg dithering
-	4: High precision, 16bit stacked output, for use with dither toolset
-	   (http://forum.doom9.org/showthread.php?p=1386559#post1386559)
-	5: High precision, 16bit interleaved output, for 10bit x264 encoding
+	4: High precision, 16bit stacked output
+	   * Deprecated, please use output_mode = 1
+	5: High precision, 16bit interleaved output
 	   (Frames will be 2x wider and look garbled when previewing, they will 
 	    return to normal when correctly encoded)
+	   * Deprecated, please use output_mode = 2
 	
 	Note: 
 	1. In sample mode 0, only mode 0 is available (it doesn't make sense to use
@@ -134,13 +135,13 @@ input_mode
 	1: 9 ~ 16 bit high bit-depth video, stacked format
 	2: 9 ~ 16 bit high bit-depth video, interleaved format
 	
-	Default: 0
+	Default: 0 (input_depth = 8 or not specified) / 1 (input_depth > 8)
 	
 input_depth
 	Specify bit-depth of source video.
 	
 	Range: 8 ~ 16
-	Default: 8 (input_mode = 0) / 16 (input_mode = 1 or 2)
+	Default: 8 (input_mode = 0 or not specified) / 16 (input_mode = 1 or 2)
 	
 output_mode
 	Specify output video type. Value meanings are the same as input_mode.
@@ -158,8 +159,11 @@ output_depth
 	
 	Only valid when precision_mode = 1 / 2 / 3 . 
 	
+	If output_depth = 16, dither algorithm specified by precision_mode won't be
+	applied.
+	
 	Range: 8 ~ 16
-	Default: The most appropriate value, depends on other parameters
+	Default: The most appropriate value, depending on other parameters
 	
 enable_fast_skip_plane
 	If enabled and Y/Cb/Cr is 0, the respective plane will be directly

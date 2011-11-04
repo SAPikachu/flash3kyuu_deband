@@ -1,3 +1,9 @@
+1.4.1 (2011-11-04)
+ * Fixed broken YUY2 support (still slow)
+ * Improved default value handling of bitdepth-related parameters
+ * precision_mode 4 / 5 are now deprecated and may be removed in future versions, 
+   you can use output_mode 1 / 2 to achieve the same result
+ 
 1.4.0 (2011-10-30)
  * 9 ~ 16 bit-depth input/output
     * Related parameters: input_mode/input_depth/output_mode/output_depth

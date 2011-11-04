@@ -1,3 +1,8 @@
+1.4.1 (2011-11-04)
+	修复YUY2支持
+	改进位深相关参数的默认值处理
+	precision_mode 4 / 5已过时，并可能会在新的版本中移除，请改用output_mode 1 / 2以得到同样效果
+	
 1.4.0 (2011-10-30)
 	9 ~ 16位深输入/输出
 		相关参数：input_mode/input_depth/output_mode/output_depth
@@ -24,6 +29,7 @@
 	新增支持AviSynth 2.6中新的平面YUV格式
 	滤镜现在同时支持AviSynth 2.5及2.6
 	16bit输出（precision_mode = 4/5）
+
 	（目前内部处理精度仍然为14bit，未来的版本会改进）
 
 1.1.0 (2011-06-18)
@@ -50,4 +56,5 @@
 	修正：当blur_first=false时，处理结果会出错
 
 0.9 (2011-05-04)
+
 	原始发布版
