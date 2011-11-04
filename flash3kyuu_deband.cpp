@@ -36,11 +36,17 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     bool mt = ARG(mt).AsBool(si.dwNumberOfProcessors > 1);
     int precision_mode = ARG(precision_mode).AsInt(sample_mode == 0 ? PRECISION_LOW : PRECISION_HIGH_FLOYD_STEINBERG_DITHERING);
     bool keep_tv_range = ARG(keep_tv_range).AsBool(false);
-    int input_mode = ARG(input_mode).AsInt(LOW_BIT_DEPTH);
-    int input_depth = ARG(input_depth).AsInt(input_mode == LOW_BIT_DEPTH ? 8 : 16);
     bool enable_fast_skip_plane = ARG(enable_fast_skip_plane).AsBool(true);
     int random_algo_ref = ARG(random_algo_ref).AsInt(RANDOM_ALGORITHM_UNIFORM);
     int random_algo_dither = ARG(random_algo_dither).AsInt(RANDOM_ALGORITHM_UNIFORM);
+
+    int input_mode = ARG(input_mode).AsInt(-1);
+    int input_depth = ARG(input_depth).AsInt(input_mode <= LOW_BIT_DEPTH ? 8 : 16);
+
+    if (input_mode == -1)
+    {
+        input_mode = input_depth == 8 ? LOW_BIT_DEPTH : HIGH_BIT_DEPTH_STACKED;
+    }
 
     int output_mode = ARG(output_mode).AsInt(-1);
     int output_depth = ARG(output_depth).AsInt(-1);
@@ -53,7 +59,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
         }
         else if (output_mode > LOW_BIT_DEPTH)
         {
-            env->ThrowError("flash3kyuu_deband: When output_mode is > 0, output_depth must also be set.");
+            output_depth = 16;
         }
         else
         {
@@ -169,7 +175,19 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     {
         if (output_depth == 16)
         {
-            env->ThrowError("flash3kyuu_deband: When precision_mode < 4, output_depth must be less than 16.");
+            // set to appropriate precision mode
+            switch (output_mode)
+            {
+            case HIGH_BIT_DEPTH_INTERLEAVED:
+                precision_mode = PRECISION_16BIT_INTERLEAVED;
+                break;
+            case HIGH_BIT_DEPTH_STACKED:
+                precision_mode = PRECISION_16BIT_STACKED;
+                break;
+            default:
+                // something is wrong here!
+                env->ThrowError("flash3kyuu_deband: output_mode = 0 is only valid when output_depth = 8. (Invalid initializer state)");
+            }
         }
     }
 
