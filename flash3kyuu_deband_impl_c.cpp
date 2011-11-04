@@ -91,7 +91,16 @@ static __forceinline void __cdecl process_plane_plainc_mode12_high(const process
 
     int pixel_step = params.input_mode == HIGH_BIT_DEPTH_INTERLEAVED ? 2 : 1;
 
-    DUMP_INIT("c", params.plane, params.plane_width_in_pixels);
+    int process_width = params.plane_width_in_pixels;
+
+    if (params.vi->IsYUY2())
+    {
+        process_width *= 2;
+    }
+
+    DUMP_INIT("c", params.plane, process_width);
+
+
 
     for (int i = 0; i < params.plane_height_in_pixels; i++)
     {
@@ -103,7 +112,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12_high(const process
         info_ptr = params.info_ptr_base + params.info_stride * i;
 
 
-        for (int j = 0; j < params.plane_width_in_pixels; j++)
+        for (int j = 0; j < process_width; j++)
         {
             int real_col = j;
             if (params.vi->IsYUY2())
@@ -196,9 +205,9 @@ static __forceinline void __cdecl process_plane_plainc_mode12_high(const process
                 assert((info.ref2 >> params.height_subsampling) <= i && 
                        (info.ref2 >> params.height_subsampling) + i < params.plane_height_in_pixels);
                 assert(((info.ref1 >> width_subsamp) * x_multiplier) <= j && 
-                       ((info.ref1 >> width_subsamp) * x_multiplier) + j < params.plane_width_in_pixels);
+                       ((info.ref1 >> width_subsamp) * x_multiplier) + j < process_width);
                 assert(((info.ref2 >> width_subsamp) * x_multiplier) <= j && 
-                       ((info.ref2 >> width_subsamp) * x_multiplier) + j < params.plane_width_in_pixels);
+                       ((info.ref2 >> width_subsamp) * x_multiplier) + j < process_width);
 
                 
                 DUMP_VALUE("ref2", info.ref2);
