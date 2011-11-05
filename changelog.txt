@@ -1,4 +1,4 @@
-1.4.1 (2011-11-04)
+1.4.1 (2011-11-05)
  * Fixed broken YUY2 support (still slow)
  * Improved default value handling of bitdepth-related parameters
  * precision_mode 4 / 5 are now deprecated and may be removed in future versions, 
