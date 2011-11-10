@@ -1,3 +1,6 @@
+1.4.2 (2011-11-10)
+ * Fixed crash on some non-mod16 videos
+
 1.4.1 (2011-11-05)
  * Fixed broken YUY2 support (still slow)
  * Improved default value handling of bitdepth-related parameters
