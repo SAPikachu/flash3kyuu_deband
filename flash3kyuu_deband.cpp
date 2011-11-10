@@ -443,16 +443,19 @@ void flash3kyuu_deband::init_frame_luts(void)
     }
 
     int multiplier = _dynamic_dither_noise ? 3 : 1;
-    int item_count = width_in_pixels * height_in_pixels;
+    int item_count = width_in_pixels;
+
+    // add some safety margin and align it
+    item_count += 255;
+    item_count &= 0xffffff80;
+
+    item_count *= height_in_pixels;
 
     if (vi.IsYUY2())
     {
         item_count *= 2;
     }
 
-    // add some safety margin and align it
-    item_count += 255;
-    item_count &= 0xffffff80;
 
     _dither_buffer_y = generate_dither_buffer(
         item_count * multiplier,
