@@ -284,7 +284,7 @@ Change log
 1.0.1 (2011-05-27)
  * Multi-threaded processing
  * Skip planes which threshold is 0
- * 
+
 1.0.0 (2011-05-21)
  * Lots of bug fix
  * SSE optimization, massive speed up
