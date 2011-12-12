@@ -26,8 +26,12 @@ Y Cb Cr
 	Banding detection threshold. If difference between current pixel and 
 	reference pixel is less than threshold, it will be considered as banded.
 	
-	If set to 0, the corresponding plane will be untouched regardless of dither
-	settings.
+	If set to 0 and all of the following conditions are met, the corresponding 
+	plane will be untouched regardless of dither settings:
+	
+	* enable_fast_skip_plane = true
+	* input_mode = output_mode
+	* input_depth = output_depth
 	
 	Default: 1 (precision_mode = 0) /
 			 64 (precision_mode > 0)
