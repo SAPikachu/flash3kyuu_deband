@@ -122,7 +122,7 @@ output_depth
 	默认值：自动选择最合适的值。
 	
 enable_fast_skip_plane
-	启用后，当Y/Cb/Cr为0时，对应的平面会直接被复制到输出，忽略ditherY/ditherC的值。
+	启用后，在输入输出的数据格式完全一样的情况下，当Y/Cb/Cr为0时，对应的平面会直接被复制到输出，忽略ditherY/ditherC的值。
 	
 	默认值：true
 
