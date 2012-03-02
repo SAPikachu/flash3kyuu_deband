@@ -10,10 +10,16 @@ f3kdb(clip c, int "range", int "Y", int "Cb", int "Cr",
 滤镜支持逐行YUY2、YV12、YV16、YV24及YV411。
 		
 range
-	banding检测范围，默认为15
+	banding检测范围.
+	
+	默认；15
 
 Y Cb Cr
-	banding检测阈值，如设为0，则对应的平面完全不作任何处理。
+	banding检测阈值，如设为0，并且以下条件都满足时，对应的平面完全不作任何处理，并忽略ditherY / ditherC的设置：
+	
+	* enable_fast_skip_plane = true
+	* input_mode = output_mode
+	* input_depth = output_depth
 	
 	默认：1 (precision_mode = 0) /
 	      64 (precision_mode > 0)
@@ -21,24 +27,31 @@ Y Cb Cr
 ditherY ditherC
 	当sample_mode为1~2时有效，模糊后进行dither的强度。
 	
+	* 当
+	
 	默认：1 (precision_mode = 0) /
 	      64 (precision_mode > 0)
 	      
 sample_mode
-	0：不进行模糊，处理时保持原像素值
-	1：使用2个样本进行模糊处理
-	2：使用4个样本进行模糊处理
+	0：使用1个采样像素，忽略ditherY及ditherC
+	1：使用2个采样像素
+	2：使用4个采样像素
 	
-	默认为2
+	默认：2
 	
 seed
 	随机数种子，一般不需要设置
 	
 blur_first
-	当sample_mode为1~2时有效，是否在检测前进行模糊，默认为启用
+	仅当sample_mode为1~2时有效。
+	
+	true： 当前像素会与所有取样像素的平均值比较，若差值低于阈值则视为banded
+	false：当前像素会与各个采样像素各自比较，若所有差值皆低于阈值则视为banded
 	
 dynamic_dither_noise
-	动态噪声模式，默认为不使用
+	动态噪声模式。
+	
+	默认：false
 	
 opt
 	优化模式
@@ -57,7 +70,7 @@ mt
 	
 precision_mode
 	0：低精度模式
-	1：高精度模式, 无dither处理
+	1：高精度模式, 无dither处理，截断LSB数据
 	2：高精度模式, Ordered dithering
 	3：高精度模式, Floyd-Steinberg dithering
 	4：高精度模式, 16bit层叠输出（已过时，请使用output_mode = 1）
@@ -108,6 +121,8 @@ output_mode
 	
 	当 precision_mode = 0 / 4 / 5 ，output_mode会自动设定为对应值且不能被更改。
 	
+	* 当output_mode = 2时，脚本预览时会显示为花屏且宽度会变为原来的两倍，此为正常现象，使用高位深x264正确压制后即会恢复正常。
+	
 	默认值：当precision_mode = 0 ~ 3 且 output_depth 未设置时为0， 
 	        否则自动选择为最合适的值。
 	
@@ -123,6 +138,8 @@ output_depth
 	
 enable_fast_skip_plane
 	启用后，在输入输出的数据格式完全一样的情况下，当Y/Cb/Cr为0时，对应的平面会直接被复制到输出，忽略ditherY/ditherC的值。
+	
+	* 此参数实际生效条件请参考Y Cb Cr的说明
 	
 	默认值：true
 

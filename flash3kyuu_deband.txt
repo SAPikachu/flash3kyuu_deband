@@ -27,7 +27,7 @@ Y Cb Cr
 	reference pixel is less than threshold, it will be considered as banded.
 	
 	If set to 0 and all of the following conditions are met, the corresponding 
-	plane will be untouched regardless of dither settings:
+	plane will be untouched regardless of ditherY/C settings:
 	
 	* enable_fast_skip_plane = true
 	* input_mode = output_mode
@@ -45,7 +45,7 @@ ditherY ditherC
 sample_mode
 	Valid modes are:
 	
-	0: Take 1 pixel as refernce pixel. Don't dither.
+	0: Take 1 pixel as refernce pixel. ditherY and ditherC are ignored.
 	1: Take 2 pixels as reference pixel. Reference pixels are in the same 
 	   column of current pixel. Dither after processing.
 	2: Take 4 pixels as reference pixel. Reference pixels are in the square 
@@ -84,21 +84,17 @@ opt
 mt
 	Multi-threaded processing. If set to true, U and V plane will be proccessed 
 	in parallel with Y plane to speed up processing.
-	
-	Like diff_seed, not compatible with Avisynth MT mode 1.
-	
+		
 	Default: true if host has more than 1 CPU/cores, false otherwise.
 	
 precision_mode
 	0: Low precision
-	1: High precision, No dithering
+	1: High precision, No dithering, LSB is truncated
 	2: High precision, Ordered dithering
 	3: High precision, Floyd-Steinberg dithering
 	4: High precision, 16bit stacked output
 	   * Deprecated, please use output_mode = 1
 	5: High precision, 16bit interleaved output
-	   (Frames will be 2x wider and look garbled when previewing, they will 
-	    return to normal when correctly encoded)
 	   * Deprecated, please use output_mode = 2
 	
 	Note: 
@@ -154,6 +150,9 @@ output_mode
 	
 	When precision_mode = 0 / 4 / 5, output_mode are set to respective value and
 	can't be changed.
+	
+	When output_mode = 2, frames will be 2x wider and look garbled on preview, 
+	it will return to normal after correctly encoded by high bit-depth x264)
 	
 	Default: 0 when precision_mode = 0 ~ 3 and output_depth is not set, 
 	         otherwise the most appropriate value will be used.
