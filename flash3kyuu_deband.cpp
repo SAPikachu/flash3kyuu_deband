@@ -26,6 +26,9 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     memset(&si, 0, sizeof(si));
     GetSystemInfo(&si);
 
+#define CHECK_PARAM(value, lower_bound, upper_bound) \
+    check_parameter_range("flash3kyuu_deband", value, lower_bound, upper_bound, #value, env);
+
     int range = ARG(range).AsInt(15);
 
     int sample_mode = ARG(sample_mode).AsInt(2);
@@ -35,6 +38,10 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     int opt = ARG(opt).AsInt(-1);
     bool mt = ARG(mt).AsBool(si.dwNumberOfProcessors > 1);
     int dither_algo = ARG(dither_algo).AsInt(sample_mode == 0 ? DA_LOW : DA_HIGH_FLOYD_STEINBERG_DITHERING);
+
+    // check it here, user can't set it to 16bit-related values, but we may set it later
+    CHECK_PARAM(dither_algo, 0, DA_USER_PARAM_MAX);
+
     bool keep_tv_range = ARG(keep_tv_range).AsBool(false);
     int random_algo_ref = ARG(random_algo_ref).AsInt(RANDOM_ALGORITHM_UNIFORM);
     int random_algo_dither = ARG(random_algo_dither).AsInt(RANDOM_ALGORITHM_UNIFORM);
@@ -48,40 +55,12 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     }
 
     int output_mode = ARG(output_mode).AsInt(-1);
-    int output_depth = ARG(output_depth).AsInt(-1);
-
-    if (output_depth == -1)
-    {
-        if (output_mode == LOW_BIT_DEPTH)
-        {
-            output_depth = 8;
-        }
-        else if (output_mode > LOW_BIT_DEPTH)
-        {
-            output_depth = 16;
-        }
-        else
-        {
-            output_depth = dither_algo < DA_16BIT_STACKED ? 8 : 16;
-        }
-    }
+    int output_depth = ARG(output_depth).AsInt(output_mode <= LOW_BIT_DEPTH ? 8 : 16);
 
     if (output_mode == -1)
     {
-        switch (dither_algo)
-        {
-        case DA_16BIT_INTERLEAVED:
-            output_mode = HIGH_BIT_DEPTH_INTERLEAVED;
-            break;
-        case DA_16BIT_STACKED:
-            output_mode = HIGH_BIT_DEPTH_STACKED;
-            break;
-        default:
-            output_mode = output_depth == 8 ? LOW_BIT_DEPTH : HIGH_BIT_DEPTH_STACKED;
-            break;
-        }
+        output_mode = output_depth == 8 ? LOW_BIT_DEPTH : HIGH_BIT_DEPTH_STACKED;
     }
-
 
     int default_val = (dither_algo == DA_LOW || sample_mode == 0) ? 1 : 64;
     int Y = ARG(Y).AsInt(default_val);
@@ -146,47 +125,20 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
         env->ThrowError("flash3kyuu_deband: output_mode = 0 is only valid when output_depth = 8.");
     }
     
-    if (dither_algo == DA_16BIT_STACKED)
+    if (output_depth == 16)
     {
-        if (output_mode != HIGH_BIT_DEPTH_STACKED)
+        // set to appropriate precision mode
+        switch (output_mode)
         {
-            env->ThrowError("flash3kyuu_deband: When dither_algo = 4, output_mode must be 1.");
-        }
-
-        if (output_depth != 16)
-        {
-            env->ThrowError("flash3kyuu_deband: When dither_algo = 4 or 5, output_depth must be 16.");
-        }
-    } 
-    else if (dither_algo == DA_16BIT_INTERLEAVED) 
-    {
-        if (output_mode != HIGH_BIT_DEPTH_INTERLEAVED)
-        {
-            env->ThrowError("flash3kyuu_deband: When dither_algo = 5, output_mode must be 2.");
-        }
-
-        if (output_depth != 16)
-        {
-            env->ThrowError("flash3kyuu_deband: When dither_algo = 4 or 5, output_depth must be 16.");
-        }
-    }
-    else // need dithering
-    {
-        if (output_depth == 16)
-        {
-            // set to appropriate precision mode
-            switch (output_mode)
-            {
-            case HIGH_BIT_DEPTH_INTERLEAVED:
-                dither_algo = DA_16BIT_INTERLEAVED;
-                break;
-            case HIGH_BIT_DEPTH_STACKED:
-                dither_algo = DA_16BIT_STACKED;
-                break;
-            default:
-                // something is wrong here!
-                env->ThrowError("flash3kyuu_deband: output_mode = 0 is only valid when output_depth = 8. (Invalid initializer state)");
-            }
+        case HIGH_BIT_DEPTH_INTERLEAVED:
+            dither_algo = DA_16BIT_INTERLEAVED;
+            break;
+        case HIGH_BIT_DEPTH_STACKED:
+            dither_algo = DA_16BIT_STACKED;
+            break;
+        default:
+            // something is wrong here!
+            env->ThrowError("flash3kyuu_deband: output_mode = 0 is only valid when output_depth = 8. (Invalid initializer state)");
         }
     }
 
@@ -195,9 +147,6 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
         // currently only C code is available
         opt = 0;
     }
-
-#define CHECK_PARAM(value, lower_bound, upper_bound) \
-    check_parameter_range("flash3kyuu_deband", value, lower_bound, upper_bound, #value, env);
     
     int threshold_upper_limit = default_val * 8 - 1;
     int dither_upper_limit = (dither_algo == DA_LOW || sample_mode == 0) ? 3 : 4096;
