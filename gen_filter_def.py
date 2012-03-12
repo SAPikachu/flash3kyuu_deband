@@ -22,7 +22,7 @@ def generate_output():
         p("i", "output_mode", c_type="PIXEL_MODE"),
         p("i", "output_depth"),
         p("i", "random_algo_ref", c_type="RANDOM_ALGORITHM"),
-        p("i", "random_algo_dither", c_type="RANDOM_ALGORITHM"),
+        p("i", "random_algo_grain", c_type="RANDOM_ALGORITHM"),
     ))
 
 PARAM_TYPES = {

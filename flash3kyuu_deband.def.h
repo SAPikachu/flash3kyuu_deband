@@ -10,7 +10,7 @@
 
 #include "constants.h"
 
-static const char* FLASH3KYUU_DEBAND_AVS_PARAMS = "c[range]i[Y]i[Cb]i[Cr]i[grainY]i[grainC]i[sample_mode]i[seed]i[blur_first]b[dynamic_grain]b[opt]i[mt]b[dither_algo]i[keep_tv_range]b[input_mode]i[input_depth]i[output_mode]i[output_depth]i[random_algo_ref]i[random_algo_dither]i";
+static const char* FLASH3KYUU_DEBAND_AVS_PARAMS = "c[range]i[Y]i[Cb]i[Cr]i[grainY]i[grainC]i[sample_mode]i[seed]i[blur_first]b[dynamic_grain]b[opt]i[mt]b[dither_algo]i[keep_tv_range]b[input_mode]i[input_depth]i[output_mode]i[output_depth]i[random_algo_ref]i[random_algo_grain]i";
 
 class flash3kyuu_deband_parameter_storage_t
 {
@@ -35,7 +35,7 @@ protected:
     PIXEL_MODE _output_mode; 
     int _output_depth; 
     RANDOM_ALGORITHM _random_algo_ref; 
-    RANDOM_ALGORITHM _random_algo_dither; 
+    RANDOM_ALGORITHM _random_algo_grain; 
 
 public:
 
@@ -60,10 +60,10 @@ public:
         _output_mode = o._output_mode; 
         _output_depth = o._output_depth; 
         _random_algo_ref = o._random_algo_ref; 
-        _random_algo_dither = o._random_algo_dither; 
+        _random_algo_grain = o._random_algo_grain; 
     }
 
-    flash3kyuu_deband_parameter_storage_t( int range, unsigned short Y, unsigned short Cb, unsigned short Cr, int grainY, int grainC, int sample_mode, int seed, bool blur_first, bool dynamic_grain, int opt, bool mt, DITHER_ALGORITHM dither_algo, bool keep_tv_range, PIXEL_MODE input_mode, int input_depth, PIXEL_MODE output_mode, int output_depth, RANDOM_ALGORITHM random_algo_ref, RANDOM_ALGORITHM random_algo_dither )
+    flash3kyuu_deband_parameter_storage_t( int range, unsigned short Y, unsigned short Cb, unsigned short Cr, int grainY, int grainC, int sample_mode, int seed, bool blur_first, bool dynamic_grain, int opt, bool mt, DITHER_ALGORITHM dither_algo, bool keep_tv_range, PIXEL_MODE input_mode, int input_depth, PIXEL_MODE output_mode, int output_depth, RANDOM_ALGORITHM random_algo_ref, RANDOM_ALGORITHM random_algo_grain )
     {
         _range = range; 
         _Y = Y; 
@@ -84,20 +84,20 @@ public:
         _output_mode = output_mode; 
         _output_depth = output_depth; 
         _random_algo_ref = random_algo_ref; 
-        _random_algo_dither = random_algo_dither; 
+        _random_algo_grain = random_algo_grain; 
     }
 };
 
 typedef struct _FLASH3KYUU_DEBAND_RAW_ARGS
 {
-    AVSValue child, range, Y, Cb, Cr, grainY, grainC, sample_mode, seed, blur_first, dynamic_grain, opt, mt, dither_algo, keep_tv_range, input_mode, input_depth, output_mode, output_depth, random_algo_ref, random_algo_dither;
+    AVSValue child, range, Y, Cb, Cr, grainY, grainC, sample_mode, seed, blur_first, dynamic_grain, opt, mt, dither_algo, keep_tv_range, input_mode, input_depth, output_mode, output_depth, random_algo_ref, random_algo_grain;
 } FLASH3KYUU_DEBAND_RAW_ARGS;
 
 #define FLASH3KYUU_DEBAND_ARG_INDEX(name) (offsetof(FLASH3KYUU_DEBAND_RAW_ARGS, name) / sizeof(AVSValue))
 
 #define FLASH3KYUU_DEBAND_ARG(name) args[FLASH3KYUU_DEBAND_ARG_INDEX(name)]
 
-#define FLASH3KYUU_DEBAND_CREATE_CLASS(klass) new klass( child, flash3kyuu_deband_parameter_storage_t( range, (unsigned short)Y, (unsigned short)Cb, (unsigned short)Cr, grainY, grainC, sample_mode, seed, blur_first, dynamic_grain, opt, mt, (DITHER_ALGORITHM)dither_algo, keep_tv_range, (PIXEL_MODE)input_mode, input_depth, (PIXEL_MODE)output_mode, output_depth, (RANDOM_ALGORITHM)random_algo_ref, (RANDOM_ALGORITHM)random_algo_dither ) )
+#define FLASH3KYUU_DEBAND_CREATE_CLASS(klass) new klass( child, flash3kyuu_deband_parameter_storage_t( range, (unsigned short)Y, (unsigned short)Cb, (unsigned short)Cr, grainY, grainC, sample_mode, seed, blur_first, dynamic_grain, opt, mt, (DITHER_ALGORITHM)dither_algo, keep_tv_range, (PIXEL_MODE)input_mode, input_depth, (PIXEL_MODE)output_mode, output_depth, (RANDOM_ALGORITHM)random_algo_ref, (RANDOM_ALGORITHM)random_algo_grain ) )
 
 #ifdef FLASH3KYUU_DEBAND_SIMPLE_MACRO_NAME
 

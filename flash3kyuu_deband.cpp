@@ -44,7 +44,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 
     bool keep_tv_range = ARG(keep_tv_range).AsBool(false);
     int random_algo_ref = ARG(random_algo_ref).AsInt(RANDOM_ALGORITHM_UNIFORM);
-    int random_algo_dither = ARG(random_algo_dither).AsInt(RANDOM_ALGORITHM_UNIFORM);
+    int random_algo_grain = ARG(random_algo_grain).AsInt(RANDOM_ALGORITHM_UNIFORM);
 
     int input_mode = ARG(input_mode).AsInt(-1);
     int input_depth = ARG(input_depth).AsInt(input_mode <= LOW_BIT_DEPTH ? 8 : 16);
@@ -161,7 +161,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     CHECK_PARAM(opt, -1, (IMPL_COUNT - 1) );
     CHECK_PARAM(dither_algo, 0, (DA_COUNT - 1) );
     CHECK_PARAM(random_algo_ref, 0, (RANDOM_ALGORITHM_COUNT - 1) );
-    CHECK_PARAM(random_algo_dither, 0, (RANDOM_ALGORITHM_COUNT - 1) );
+    CHECK_PARAM(random_algo_grain, 0, (RANDOM_ALGORITHM_COUNT - 1) );
     CHECK_PARAM(input_mode, 0, PIXEL_MODE_COUNT - 1);
     CHECK_PARAM(output_mode, 0, PIXEL_MODE_COUNT - 1);
     
@@ -328,7 +328,7 @@ void flash3kyuu_deband::init_frame_luts(void)
         for (int x = 0; x < width_in_pixels; x++)
         {
             pixel_dither_info info_y = {0, 0, 0};
-            info_y.change = random(_random_algo_dither, seed, _grainY);
+            info_y.change = random(_random_algo_grain, seed, _grainY);
 
             int cur_range = min_multi(_range, y, height_in_pixels - y - 1, -1);
             if (_sample_mode == 2)
@@ -367,8 +367,8 @@ void flash3kyuu_deband::init_frame_luts(void)
                 // don't shift ref values here, since subsampling of width and height may be different
                 // shift them in actual processing
 
-                info_cb.change = random(_random_algo_dither, seed, _grainC);
-                info_cr.change = random(_random_algo_dither, seed, _grainC);
+                info_cb.change = random(_random_algo_grain, seed, _grainC);
+                info_cr.change = random(_random_algo_grain, seed, _grainC);
 
                 if (vi.IsPlanar())
                 {
@@ -407,7 +407,7 @@ void flash3kyuu_deband::init_frame_luts(void)
 
     _grain_buffer_y = generate_grain_buffer(
         item_count * multiplier,
-        _random_algo_dither,
+        _random_algo_grain,
         seed,
         _grainY,
         vi.IsYUY2() ? _grainC : _grainY);
@@ -417,7 +417,7 @@ void flash3kyuu_deband::init_frame_luts(void)
         // we always generate a full-sized buffer to simplify offset calculation
         _grain_buffer_c = generate_grain_buffer(
             item_count * multiplier,
-            _random_algo_dither,
+            _random_algo_grain,
             seed,
             _grainC,
             _grainC);
