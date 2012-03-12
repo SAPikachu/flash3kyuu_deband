@@ -36,7 +36,6 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     bool mt = ARG(mt).AsBool(si.dwNumberOfProcessors > 1);
     int dither_algo = ARG(dither_algo).AsInt(sample_mode == 0 ? DA_LOW : DA_HIGH_FLOYD_STEINBERG_DITHERING);
     bool keep_tv_range = ARG(keep_tv_range).AsBool(false);
-    bool enable_fast_skip_plane = ARG(enable_fast_skip_plane).AsBool(true);
     int random_algo_ref = ARG(random_algo_ref).AsInt(RANDOM_ALGORITHM_UNIFORM);
     int random_algo_dither = ARG(random_algo_dither).AsInt(RANDOM_ALGORITHM_UNIFORM);
 
@@ -590,6 +589,8 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
 
     process_plane_context* context;
 
+    int grain_setting = 0;
+
     switch (plane & 7)
     {
     case 0:
@@ -599,6 +600,7 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
         params.pixel_max = _keep_tv_range ? TV_RANGE_Y_MAX : FULL_RANGE_Y_MAX;
         params.pixel_min = _keep_tv_range ? TV_RANGE_Y_MIN : FULL_RANGE_Y_MIN;
         params.grain_buffer = _grain_buffer_y;
+        grain_setting = _grainY;
         context = &_y_context;
         break;
     case PLANAR_U:
@@ -607,6 +609,7 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
         params.pixel_max = _keep_tv_range ? TV_RANGE_C_MAX : FULL_RANGE_C_MAX;
         params.pixel_min = _keep_tv_range ? TV_RANGE_C_MIN : FULL_RANGE_C_MIN;
         params.grain_buffer = _grain_buffer_c;
+        grain_setting = _grainC;
         context = &_cb_context;
         break;
     case PLANAR_V:
@@ -615,6 +618,7 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
         params.pixel_max = _keep_tv_range ? TV_RANGE_C_MAX : FULL_RANGE_C_MAX;
         params.pixel_min = _keep_tv_range ? TV_RANGE_C_MIN : FULL_RANGE_C_MIN;
         params.grain_buffer = _grain_buffer_c;
+        grain_setting = _grainC;
         context = &_cr_context;
         break;
     default:
@@ -627,9 +631,13 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
     }
 
     bool copy_plane = false;
-    if (_enable_fast_skip_plane && vi.IsPlanar() && _input_mode == _output_mode && _input_depth == _output_depth)
+    if (vi.IsPlanar() && 
+        _input_mode == _output_mode && 
+        _input_depth == _output_depth &&
+        grain_setting == 0 &&
+        params.threshold == 0)
     {
-        copy_plane = params.threshold == 0;
+        copy_plane = true;
     }
 
     if (copy_plane) {
