@@ -244,9 +244,9 @@ flash3kyuu_deband::flash3kyuu_deband(PClip child, flash3kyuu_deband_parameter_st
             _y_info(NULL),
             _cb_info(NULL),
             _cr_info(NULL),
-            _dither_buffer_y(NULL),
-            _dither_buffer_c(NULL),
-            _dither_buffer_offsets(NULL),
+            _grain_buffer_y(NULL),
+            _grain_buffer_c(NULL),
+            _grain_buffer_offsets(NULL),
             _mt_info(NULL),
             _process_plane_impl(NULL)
 {
@@ -263,14 +263,14 @@ void flash3kyuu_deband::destroy_frame_luts(void)
     _cb_info = NULL;
     _cr_info = NULL;
     
-    _aligned_free(_dither_buffer_y);
-    _aligned_free(_dither_buffer_c);
+    _aligned_free(_grain_buffer_y);
+    _aligned_free(_grain_buffer_c);
     
-    _dither_buffer_y = NULL;
-    _dither_buffer_c = NULL;
+    _grain_buffer_y = NULL;
+    _grain_buffer_c = NULL;
 
-    free(_dither_buffer_offsets);
-    _dither_buffer_offsets = NULL;
+    free(_grain_buffer_offsets);
+    _grain_buffer_offsets = NULL;
     
     // contexts are likely to be dependent on lut, so they must also be destroyed
     destroy_context(&_y_context);
@@ -307,7 +307,7 @@ static int get_frame_lut_stride(int width_in_pixels, VideoInfo& vi)
     return (((width - 1) | (FRAME_LUT_ALIGNMENT - 1)) + 1);
 }
 
-static short* generate_dither_buffer(size_t item_count, RANDOM_ALGORITHM algo, int& seed, int range0, int range1)
+static short* generate_grain_buffer(size_t item_count, RANDOM_ALGORITHM algo, int& seed, int range0, int range1)
 {
     // range0 and range1 can be different, for YUY2
     short* buffer = (short*)_aligned_malloc(item_count * sizeof(short), FRAME_LUT_ALIGNMENT);
@@ -318,7 +318,7 @@ static short* generate_dither_buffer(size_t item_count, RANDOM_ALGORITHM algo, i
     return buffer;
 }
 
-static size_t get_dither_buffer_item_count(VideoInfo& vi, int width_in_pixels, int height_in_pixels, int plane)
+static size_t get_grain_buffer_item_count(VideoInfo& vi, int width_in_pixels, int height_in_pixels, int plane)
 {
     int width = get_frame_lut_stride(width_in_pixels >> vi.GetPlaneWidthSubsampling(plane), vi);
     int height = height_in_pixels >> vi.GetPlaneHeightSubsampling(plane);
@@ -457,7 +457,7 @@ void flash3kyuu_deband::init_frame_luts(void)
     }
 
 
-    _dither_buffer_y = generate_dither_buffer(
+    _grain_buffer_y = generate_grain_buffer(
         item_count * multiplier,
         _random_algo_dither,
         seed,
@@ -467,7 +467,7 @@ void flash3kyuu_deband::init_frame_luts(void)
     if (vi.IsPlanar() && !vi.IsY8())
     {
         // we always generate a full-sized buffer to simplify offset calculation
-        _dither_buffer_c = generate_dither_buffer(
+        _grain_buffer_c = generate_grain_buffer(
             item_count * multiplier,
             _random_algo_dither,
             seed,
@@ -476,7 +476,7 @@ void flash3kyuu_deband::init_frame_luts(void)
     }
     if (_dynamic_grain)
     {
-        _dither_buffer_offsets = (int*)malloc(sizeof(int) * vi.num_frames);
+        _grain_buffer_offsets = (int*)malloc(sizeof(int) * vi.num_frames);
         for (int i = 0; i < vi.num_frames; i++)
         {
             int offset = item_count + random(RANDOM_ALGORITHM_UNIFORM, seed, item_count);
@@ -484,7 +484,7 @@ void flash3kyuu_deband::init_frame_luts(void)
 
             assert(offset >= 0);
 
-            _dither_buffer_offsets[i] = offset;
+            _grain_buffer_offsets[i] = offset;
         }
     }
 }
@@ -586,7 +586,7 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
     params.dst_vi = &vi;
     
     params.info_stride = get_frame_lut_stride(params.plane_width_in_pixels, vi);
-    params.dither_buffer_stride = get_frame_lut_stride(params.plane_width_in_pixels, vi);
+    params.grain_buffer_stride = get_frame_lut_stride(params.plane_width_in_pixels, vi);
 
     process_plane_context* context;
 
@@ -598,7 +598,7 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
         params.threshold = _Y;
         params.pixel_max = _keep_tv_range ? TV_RANGE_Y_MAX : FULL_RANGE_Y_MAX;
         params.pixel_min = _keep_tv_range ? TV_RANGE_Y_MIN : FULL_RANGE_Y_MIN;
-        params.dither_buffer = _dither_buffer_y;
+        params.grain_buffer = _grain_buffer_y;
         context = &_y_context;
         break;
     case PLANAR_U:
@@ -606,7 +606,7 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
         params.threshold = _Cb;
         params.pixel_max = _keep_tv_range ? TV_RANGE_C_MAX : FULL_RANGE_C_MAX;
         params.pixel_min = _keep_tv_range ? TV_RANGE_C_MIN : FULL_RANGE_C_MIN;
-        params.dither_buffer = _dither_buffer_c;
+        params.grain_buffer = _grain_buffer_c;
         context = &_cb_context;
         break;
     case PLANAR_V:
@@ -614,16 +614,16 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
         params.threshold = _Cr;
         params.pixel_max = _keep_tv_range ? TV_RANGE_C_MAX : FULL_RANGE_C_MAX;
         params.pixel_min = _keep_tv_range ? TV_RANGE_C_MIN : FULL_RANGE_C_MIN;
-        params.dither_buffer = _dither_buffer_c;
+        params.grain_buffer = _grain_buffer_c;
         context = &_cr_context;
         break;
     default:
         abort();
     }
     
-    if (_dither_buffer_offsets)
+    if (_grain_buffer_offsets)
     {
-        params.dither_buffer += _dither_buffer_offsets[n];
+        params.grain_buffer += _grain_buffer_offsets[n];
     }
 
     bool copy_plane = false;

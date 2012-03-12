@@ -77,8 +77,8 @@ typedef struct _process_plane_params
     pixel_dither_info *info_ptr_base;
     int info_stride;
     
-    short* dither_buffer;
-    int dither_buffer_stride;
+    short* grain_buffer;
+    int grain_buffer_stride;
 
     int plane;
 
@@ -112,10 +112,10 @@ private:
     process_plane_context _cb_context;
     process_plane_context _cr_context;
     
-    short* _dither_buffer_y;
-    short* _dither_buffer_c;
+    short* _grain_buffer_y;
+    short* _grain_buffer_c;
 
-    int* _dither_buffer_offsets;
+    int* _grain_buffer_offsets;
 
     volatile mt_info* _mt_info;
 

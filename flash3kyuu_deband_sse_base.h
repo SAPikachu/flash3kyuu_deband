@@ -564,7 +564,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 
         info_ptr = params.info_ptr_base + params.info_stride * row;
 
-        const short* dither_buffer_ptr = params.dither_buffer + params.dither_buffer_stride * row;
+        const short* grain_buffer_ptr = params.grain_buffer + params.grain_buffer_stride * row;
 
         int processed_pixels = 0;
 
@@ -638,7 +638,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
                 return;
             }
 
-            change_1 = _mm_load_si128((__m128i*)dither_buffer_ptr);
+            change_1 = _mm_load_si128((__m128i*)grain_buffer_ptr);
             
             DUMP_VALUE_GROUP("change", change_1, true);
             DUMP_VALUE_GROUP("ref_1_up", ref_pixels_1_0);
@@ -667,7 +667,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
             dst_px += store_pixels<output_mode>(dst_pixels, downshift_bits, dst_px, params.dst_pitch, params.plane_height_in_pixels);
             processed_pixels += 8;
             src_px += params.input_mode != HIGH_BIT_DEPTH_INTERLEAVED ? 8 : 16;
-            dither_buffer_ptr += 8;
+            grain_buffer_ptr += 8;
         }
         DUMP_NEXT_LINE();
         dither_high::next_row<dither_algo>(context_buffer);

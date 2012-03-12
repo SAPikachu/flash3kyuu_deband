@@ -107,7 +107,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12_high(const process
         const unsigned char* src_px = params.src_plane_ptr + params.src_pitch * i;
         unsigned char* dst_px = params.dst_plane_ptr + params.dst_pitch * i;
 
-        const short* dither_buffer_ptr = params.dither_buffer + params.dither_buffer_stride * i;
+        const short* grain_buffer_ptr = params.grain_buffer + params.grain_buffer_stride * i;
 
         info_ptr = params.info_ptr_base + params.info_stride * i;
 
@@ -249,14 +249,14 @@ static __forceinline void __cdecl process_plane_plainc_mode12_high(const process
             }
             
             DUMP_VALUE("avg", avg);
-            DUMP_VALUE("change", *dither_buffer_ptr);
+            DUMP_VALUE("change", *grain_buffer_ptr);
 
             int new_pixel;
 
             if (use_org_px_as_base) {
-                new_pixel = src_px_up + *dither_buffer_ptr;
+                new_pixel = src_px_up + *grain_buffer_ptr;
             } else {
-                new_pixel = avg + *dither_buffer_ptr;
+                new_pixel = avg + *grain_buffer_ptr;
             }
             
             DUMP_VALUE("new_pixel_before_downsample", new_pixel);
@@ -284,7 +284,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12_high(const process
             src_px += pixel_step;
             dst_px++;
             info_ptr++;
-            dither_buffer_ptr++;
+            grain_buffer_ptr++;
             pixel_proc_next_pixel<mode>(context);
         }
         pixel_proc_next_row<mode>(context_y);
