@@ -1,17 +1,16 @@
 f3kdb(clip c, int "range", int "Y", int "Cb", int "Cr", 
-		int "ditherY", int "ditherC", int "sample_mode", int "seed", 
-		bool "blur_first", bool "dynamic_dither_noise", int "opt", bool "mt", 
-		int "precision_mode", bool "keep_tv_range", int "input_mode",
+		int "grainY", int "grainC", int "sample_mode", int "seed", 
+		bool "blur_first", bool "dynamic_grain", int "opt", bool "mt", 
+		int "dither_algo", bool "keep_tv_range", int "input_mode",
 		int "input_depth", int "output_mode", int "output_depth", 
-		bool "enable_fast_skip_plane", int "random_algo_ref",
-		int "random_algo_dither")
+		int "random_algo_ref", int "random_algo_grain")
 		
 Ported from http://www.geocities.jp/flash3kyuu/auf/banding17.zip . 
 (I'm not the author of the original aviutl plugin, just ported the algorithm to
 avisynth.)
 
 This avisynth plugin debands the video by replacing banded pixels with average 
-value of referenced pixels, and optionally dithers them.
+value of referenced pixels, and optionally add grain (random dithering) to them.
 
 Supported colorspaces: YUY2, YV12, YV16, YV24, YV411 (Progressive only)
 
@@ -26,30 +25,25 @@ Y Cb Cr
 	Banding detection threshold. If difference between current pixel and 
 	reference pixel is less than threshold, it will be considered as banded.
 	
-	If set to 0 and all of the following conditions are met, the corresponding 
-	plane will be untouched regardless of ditherY/C settings:
+	Default: 1 (dither_algo = 0) /
+	         64 (dither_algo > 0)
 	
-	* enable_fast_skip_plane = true
-	* input_mode = output_mode
-	* input_depth = output_depth
+grainY grainC
+	Valid only when sample_mode is 1 or 2. Specifies amount of grains added in 
+	the last debanding stage.
 	
-	Default: 1 (precision_mode = 0) /
-			 64 (precision_mode > 0)
-	
-ditherY ditherC
-	Valid only when sample_mode is 1 or 2. Specifies dither strength.
-	
-	Default: 1 (precision_mode = 0) /
-	         64 (precision_mode > 0)
+	Default: 1 (dither_algo = 0) /
+	         64 (dither_algo > 0)
 	
 sample_mode
 	Valid modes are:
 	
-	0: Take 1 pixel as refernce pixel. ditherY and ditherC are ignored.
+	0: Take 1 pixel as refernce pixel. grainY and grainC are ignored.
+	   (Deprecated, will be removed in future)
 	1: Take 2 pixels as reference pixel. Reference pixels are in the same 
-	   column of current pixel. Dither after processing.
+	   column of current pixel. Add grain after processing.
 	2: Take 4 pixels as reference pixel. Reference pixels are in the square 
-	   around current pixel. Dither after processing.
+	   around current pixel. Add grain after processing.
 
 	Default: 2
 	
@@ -65,8 +59,8 @@ blur_first
 	       	
 	Default: true
 	
-dynamic_dither_noise
-	Use different noise pattern for each frame.
+dynamic_grain
+	Use different grain pattern for each frame.
 	
 	Default: false
 	
@@ -87,15 +81,11 @@ mt
 		
 	Default: true if host has more than 1 CPU/cores, false otherwise.
 	
-precision_mode
-	0: Low precision
-	1: High precision, No dithering, LSB is truncated
-	2: High precision, Ordered dithering
-	3: High precision, Floyd-Steinberg dithering
-	4: High precision, 16bit stacked output
-	   * Deprecated, please use output_mode = 1
-	5: High precision, 16bit interleaved output
-	   * Deprecated, please use output_mode = 2
+dither_algo
+	0: 8-bit processing (Deprecated, will be removed in future)
+	1: No dithering, LSB is truncated
+	2: Ordered dithering
+	3: Floyd-Steinberg dithering
 	
 	Note: 
 	1. In sample mode 0, only mode 0 is available (it doesn't make sense to use
@@ -106,8 +96,10 @@ precision_mode
 	   
 	3. In high precision mode, threshold and dither parameters are 64 times
 	   bigger than equivalent in low precision mode.
+	   
+	4. This parameter is ignored if output_depth = 16.
 	   	      
-	4. 10bit x264 command-line example:
+	5. 10bit x264 command-line example:
 	   avs2yuv -raw "script.avs" -o - | x264-10bit --demuxer raw --input-depth 16 --input-res 1280x720 --fps 24 --output "out.mp4" -
 	   
 	   Or compile x264 with the patch on https://gist.github.com/1117711, and 
@@ -144,38 +136,30 @@ input_depth
 	Default: 8 (input_mode = 0 or not specified) / 16 (input_mode = 1 or 2)
 	
 output_mode
-	Specify output video type. Value meanings are the same as input_mode.
+	Specify output video type. Meaning of values are the same as input_mode.
 	
-	Only valid when precision_mode = 1 / 2 / 3 . 
+	Only valid when dither_algo = 1 / 2 / 3 . 
 	
-	When precision_mode = 0 / 4 / 5, output_mode are set to respective value and
-	can't be changed.
+	If dither_algo = 0, output_mode is set to 0 and can't be changed.
 	
 	When output_mode = 2, frames will be 2x wider and look garbled on preview, 
 	it will return to normal after correctly encoded by high bit-depth x264)
 	
-	Default: 0 when precision_mode = 0 ~ 3 and output_depth is not set, 
-	         otherwise the most appropriate value will be used.
+	Default: 0 (output_depth = 8 or not specified) / 1 (output_depth > 8)
 	
 output_depth
 	Specify output bit-depth.
 	
-	Only valid when precision_mode = 1 / 2 / 3 . 
+	Only valid when dither_algo = 1 / 2 / 3 . 
 	
-	If output_depth = 16, dither algorithm specified by precision_mode won't be
+	If output_depth = 16, dither algorithm specified by dither_algo won't be
 	applied.
 	
 	Range: 8 ~ 16
-	Default: The most appropriate value, depending on other parameters
-	
-enable_fast_skip_plane
-	If enabled and Y/Cb/Cr is 0, the respective plane will be directly
-	copied to destination when possible, regardless of ditherY/ditherC.
-	
-	Default: true
+	Default: 8 (output_mode = 0 or not specified) / 16 (output_mode = 1 or 2)
 
-random_algo_ref / random_algo_dither
-	Choose random number algorithm for reference positions / dither values.
+random_algo_ref / random_algo_grain
+	Choose random number algorithm for reference positions / grains.
 	
 	0: Algorithm in old versions
 	1: Uniform distribution
@@ -206,9 +190,9 @@ mode
 	
 stacked
 	true: Input data is stacked 
-		  (like output of flash3kyuu_deband precision_mode = 4)
+		  (like output of flash3kyuu_deband output_mode = 1)
 	false: Input data is interleaved 
-		  (like output of flash3kyuu_deband precision_mode = 5)
+		  (like output of flash3kyuu_deband output_mode = 2)
 		  
 	Default: true
 	
@@ -226,6 +210,17 @@ keep_tv_range
 --------------------------------------------------------------------------------
 
 Change log
+
+1.5.0 (2012-03-12)
+ * (There isn't any new feature in this version, only some parameters are 
+   modified to reduce user confusion)
+ * ditherY/ditherC are renamed to grainY/grainC
+ * dynamic_dither_noise is renamed to dynamic_grain
+ * precision_mode is renamed to dither_algo, mode 4 and 5 are removed
+ * random_algo_dither is renamed to random_algo_grain
+ * enable_fast_skip_plane is removed, this optimization will be enabled 
+   implicitly whenever possible (Filter result won't be changed by this 
+   optimization)
 
 1.4.2 (2011-11-10)
  * Fixed crash on some non-mod16 videos
