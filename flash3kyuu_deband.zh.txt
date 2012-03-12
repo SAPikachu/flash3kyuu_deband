@@ -1,10 +1,9 @@
 f3kdb(clip c, int "range", int "Y", int "Cb", int "Cr", 
-		int "ditherY", int "ditherC", int "sample_mode", int "seed", 
-		bool "blur_first", bool "dynamic_dither_noise", int "opt", bool "mt", 
+		int "grainY", int "grainC", int "sample_mode", int "seed", 
+		bool "blur_first", bool "dynamic_grain", int "opt", bool "mt", 
 		int "precision_mode", bool "keep_tv_range", int "input_mode",
 		int "input_depth", int "output_mode", int "output_depth", 
-		bool "enable_fast_skip_plane", int "random_algo_ref",
-		int "random_algo_dither")
+		int "random_algo_ref", int "random_algo_grain")
 		
 由 http://www.geocities.jp/flash3kyuu/auf/banding17.zip 移植。
 滤镜支持逐行YUY2、YV12、YV16、YV24及YV411。
@@ -15,25 +14,20 @@ range
 	默认；15
 
 Y Cb Cr
-	banding检测阈值，如设为0，并且以下条件都满足时，对应的平面完全不作任何处理，并忽略ditherY / ditherC的设置：
-	
-	* enable_fast_skip_plane = true
-	* input_mode = output_mode
-	* input_depth = output_depth
+	banding检测阈值。
 	
 	默认：1 (precision_mode = 0) /
 	      64 (precision_mode > 0)
 	
-ditherY ditherC
+grainY grainC
 	当sample_mode为1~2时有效，模糊后进行dither的强度。
-	
-	* 当
-	
+		
 	默认：1 (precision_mode = 0) /
 	      64 (precision_mode > 0)
 	      
 sample_mode
-	0：使用1个采样像素，忽略ditherY及ditherC
+	0：使用1个采样像素，忽略grainY及grainC
+	   （已过时，未来的版本将会移除）
 	1：使用2个采样像素
 	2：使用4个采样像素
 	
@@ -48,7 +42,7 @@ blur_first
 	true： 当前像素会与所有取样像素的平均值比较，若差值低于阈值则视为banded
 	false：当前像素会与各个采样像素各自比较，若所有差值皆低于阈值则视为banded
 	
-dynamic_dither_noise
+dynamic_grain
 	动态噪声模式。
 	
 	默认：false
@@ -68,19 +62,18 @@ mt
 	
 	如用户机器有多个CPU/核心则默认启用，否则默认为禁用
 	
-precision_mode
-	0：低精度模式
-	1：高精度模式, 无dither处理，截断LSB数据
-	2：高精度模式, Ordered dithering
-	3：高精度模式, Floyd-Steinberg dithering
-	4：高精度模式, 16bit层叠输出（已过时，请使用output_mode = 1）
-	5：高精度模式, 16bit交织输出（已过时，请使用output_mode = 2）
+dither_algo
+	0：低精度模式（已过时，未来的版本将会删除）
+	1：无dither处理，截断LSB数据
+	2：Ordered dithering
+	3：Floyd-Steinberg dithering
 	
 	说明：
 	#1 该参数仅在sample_mode > 0时有效，sample_mode = 0时设置该参数会出错。
 	#2 不推荐模式0（除非sample_mode为0），需要高速处理的话建议使用模式1或2，否则建议质量较好的模式3。
 	#3 要达到同等强度，高精度模式的阈值及dither设置值为低精度模式下的64倍。
-	#4 10bit x264命令行范例：
+	#4 当output_depth = 16时，此参数会被忽略
+	#5 10bit x264命令行范例：
 	   avs2yuv -raw "script.avs" -o - | x264-10bit --demuxer raw --input-depth 16 --input-res 1280x720 --fps 24 --output "out.mp4" -
 	   
 	   或使用添加过hack（ https://gist.github.com/1117711 ）的x264编译版：
@@ -89,15 +82,14 @@ precision_mode
 	默认值：0 (sample_mode = 0) / 3 (sample_mode > 0)
 	
 keep_tv_range
-	如设置为true，所有处理后的像素会被裁剪到TV range (luma：16 ~ 235, 
-	chroma：16 ~ 240)。
+	如设置为true，所有处理后的像素会被裁剪到TV range 
+	(luma：16 ~ 235, chroma：16 ~ 240)。
 	
 	如果视频源是TV range，推荐设置为true，因为dither后的像素有可能会超出范围。
 	
 	如果视频源是full-range，*不要*设置此参数为true，否则所有超出TV range的像素会被裁剪。
 	
 	默认值：false
-	
 	
 input_mode
 	指定输入视频模式。
@@ -117,14 +109,13 @@ input_depth
 output_mode
 	指定输出视频模式。参数值意义同input_mode。
 	
-	仅当 precision_mode = 1 / 2 / 3 时可用。
+	仅当 dither_algo = 1 / 2 / 3 时可用。
 	
-	当 precision_mode = 0 / 4 / 5 ，output_mode会自动设定为对应值且不能被更改。
+	当 dither_algo = 0，output_mode会自动设定为0且不能被更改。
 	
 	* 当output_mode = 2时，脚本预览时会显示为花屏且宽度会变为原来的两倍，此为正常现象，使用高位深x264正确压制后即会恢复正常。
 	
-	默认值：当precision_mode = 0 ~ 3 且 output_depth 未设置时为0， 
-	        否则自动选择为最合适的值。
+	默认值：0 (output_depth = 8或未指定) / 1 (output_depth > 8)
 	
 output_depth
 	指定输出视频位深。
@@ -134,16 +125,9 @@ output_depth
 	如为16，则不会应用precision_mode指定的dither算法。
 	
 	范围：8 ~ 16
-	默认值：自动选择最合适的值。
+	默认值：8 (output_mode = 0或未指定) / 16 (output_mode = 1 / 2)
 	
-enable_fast_skip_plane
-	启用后，在输入输出的数据格式完全一样的情况下，当Y/Cb/Cr为0时，对应的平面会直接被复制到输出，忽略ditherY/ditherC的值。
-	
-	* 此参数实际生效条件请参考Y Cb Cr的说明
-	
-	默认值：true
-
-random_algo_ref / random_algo_dither
+random_algo_ref / random_algo_grain
 	选择参考像素位置/dither噪声的随机数生成算法。
 	
 	0：旧版滤镜算法
@@ -171,9 +155,9 @@ mode
 	
 stacked
 	true：源数据为层叠格式 
-		  (即 flash3kyuu_deband precision_mode = 4 的输出格式)
+		  (即 flash3kyuu_deband output_mode = 1 的输出格式)
 	false：源数据为交织格式 
-		  (即 flash3kyuu_deband precision_mode = 5 的输出格式)
+		  (即 flash3kyuu_deband output_mode = 2 的输出格式)
 		  
 	默认值：true
 	
@@ -192,6 +176,14 @@ keep_tv_range
 
 更新日志
 
+1.5.0 (2012-03-12)
+	（此版本无新功能，只修改了部分参数以减少混淆）
+	ditherY/ditherC改名为grainY/grainC
+	dynamic_dither_noise改名为dynamic_grain
+	precision_mode改名为dither_algo，并移除模式4及5
+	random_algo_dither改名为random_algo_grain
+	移除enable_fast_skip_plane，此优化会在符合条件时自动启用（滤镜处理结果不会受此影响）
+	
 1.4.2 (2011-11-10)
 	修复某些非mod16视频的崩溃问题
 
