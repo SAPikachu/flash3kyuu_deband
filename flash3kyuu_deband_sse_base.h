@@ -217,7 +217,7 @@ static __m128i __forceinline process_pixels_mode12_high_part(__m128i src_pixels,
     return dst_pixels;
 }
 
-template<int sample_mode, bool blur_first, int precision_mode>
+template<int sample_mode, bool blur_first, int dither_algo>
 static __m128i __forceinline process_pixels(
     __m128i src_pixels_0, 
     __m128i threshold_vector, 
@@ -246,12 +246,12 @@ static __m128i __forceinline process_pixels(
     DUMP_VALUE_GROUP("new_pixel_before_downsample", ret);
 
     
-    switch (precision_mode)
+    switch (dither_algo)
     {
-    case PRECISION_HIGH_NO_DITHERING:
-    case PRECISION_HIGH_ORDERED_DITHERING:
-    case PRECISION_HIGH_FLOYD_STEINBERG_DITHERING:
-        ret = dither_high::dither<precision_mode>(dither_context, ret, row, column);
+    case DA_HIGH_NO_DITHERING:
+    case DA_HIGH_ORDERED_DITHERING:
+    case DA_HIGH_FLOYD_STEINBERG_DITHERING:
+        ret = dither_high::dither<dither_algo>(dither_context, ret, row, column);
         break;
     default:
         break;
@@ -381,7 +381,7 @@ static unsigned short __forceinline read_pixel(
 
 }
 
-template <int precision_mode>
+template <int dither_algo>
 static __m128i __forceinline load_reference_pixels(
     __m128i shift,
     const unsigned short src[8])
@@ -392,7 +392,7 @@ static __m128i __forceinline load_reference_pixels(
 }
 
 
-template<int sample_mode, int precision_mode, PIXEL_MODE input_mode>
+template<int sample_mode, int dither_algo, PIXEL_MODE input_mode>
 static void __forceinline read_reference_pixels(
     const process_plane_params& params,
     __m128i shift,
@@ -453,26 +453,26 @@ static void __forceinline read_reference_pixels(
     switch (sample_mode)
     {
     case 0:
-        ref_pixels_1_0 = load_reference_pixels<precision_mode>(shift, tmp_1);
+        ref_pixels_1_0 = load_reference_pixels<dither_algo>(shift, tmp_1);
         break;
     case 1:
-        ref_pixels_1_0 = load_reference_pixels<precision_mode>(shift, tmp_1);
-        ref_pixels_2_0 = load_reference_pixels<precision_mode>(shift, tmp_2);
+        ref_pixels_1_0 = load_reference_pixels<dither_algo>(shift, tmp_1);
+        ref_pixels_2_0 = load_reference_pixels<dither_algo>(shift, tmp_2);
         break;
     case 2:
-        ref_pixels_1_0 = load_reference_pixels<precision_mode>(shift, tmp_1);
-        ref_pixels_2_0 = load_reference_pixels<precision_mode>(shift, tmp_2);
-        ref_pixels_3_0 = load_reference_pixels<precision_mode>(shift, tmp_3);
-        ref_pixels_4_0 = load_reference_pixels<precision_mode>(shift, tmp_4);
+        ref_pixels_1_0 = load_reference_pixels<dither_algo>(shift, tmp_1);
+        ref_pixels_2_0 = load_reference_pixels<dither_algo>(shift, tmp_2);
+        ref_pixels_3_0 = load_reference_pixels<dither_algo>(shift, tmp_3);
+        ref_pixels_4_0 = load_reference_pixels<dither_algo>(shift, tmp_4);
         break;
     }
 }
 
 
-template<int sample_mode, bool blur_first, int precision_mode, bool aligned, PIXEL_MODE output_mode>
+template<int sample_mode, bool blur_first, int dither_algo, bool aligned, PIXEL_MODE output_mode>
 static void __cdecl _process_plane_sse_impl(const process_plane_params& params, process_plane_context* context)
 {
-    assert(precision_mode != PRECISION_LOW);
+    assert(dither_algo != DA_LOW);
     assert(sample_mode > 0);
 
     DUMP_INIT("sse", params.plane, params.plane_width_in_pixels);
@@ -499,7 +499,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
     __declspec(align(16))
     char context_buffer[DITHER_CONTEXT_BUFFER_SIZE];
 
-    dither_high::init<precision_mode>(context_buffer, params.plane_width_in_pixels, params.output_depth);
+    dither_high::init<dither_algo>(context_buffer, params.plane_width_in_pixels, params.output_depth);
 
     info_cache *cache = NULL;
     
@@ -577,7 +577,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
             __m128i ref_pixels_3_0;
             __m128i ref_pixels_4_0;
 
-#define READ_REFS(data_stream, inp_mode) read_reference_pixels<sample_mode, precision_mode, inp_mode>( \
+#define READ_REFS(data_stream, inp_mode) read_reference_pixels<sample_mode, dither_algo, inp_mode>( \
                     params, \
                     upsample_to_16_shift_bits, \
                     src_px, \
@@ -648,7 +648,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 
             DUMP_VALUE_GROUP("src_px_up", src_pixels);
 
-            __m128i dst_pixels = process_pixels<sample_mode, blur_first, precision_mode>(
+            __m128i dst_pixels = process_pixels<sample_mode, blur_first, dither_algo>(
                                      src_pixels, 
                                      threshold_vector,
                                      change_1, 
@@ -670,10 +670,10 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
             dither_buffer_ptr += 8;
         }
         DUMP_NEXT_LINE();
-        dither_high::next_row<precision_mode>(context_buffer);
+        dither_high::next_row<dither_algo>(context_buffer);
     }
     
-    dither_high::complete<precision_mode>(context_buffer);
+    dither_high::complete<dither_algo>(context_buffer);
 
     // for thread-safety, save context after all data is processed
     if (!use_cached_info && !context->data && cache)
@@ -690,37 +690,37 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 }
 
 
-template<int sample_mode, bool blur_first, int precision_mode, bool aligned>
+template<int sample_mode, bool blur_first, int dither_algo, bool aligned>
 static void process_plane_sse_impl_stub1(const process_plane_params& params, process_plane_context* context)
 {
     switch (params.output_mode)
     {
     case LOW_BIT_DEPTH:
-        _process_plane_sse_impl<sample_mode, blur_first, precision_mode, aligned, LOW_BIT_DEPTH>(params, context);
+        _process_plane_sse_impl<sample_mode, blur_first, dither_algo, aligned, LOW_BIT_DEPTH>(params, context);
         break;
     case HIGH_BIT_DEPTH_STACKED:
-        _process_plane_sse_impl<sample_mode, blur_first, precision_mode, aligned, HIGH_BIT_DEPTH_STACKED>(params, context);
+        _process_plane_sse_impl<sample_mode, blur_first, dither_algo, aligned, HIGH_BIT_DEPTH_STACKED>(params, context);
         break;
     case HIGH_BIT_DEPTH_INTERLEAVED:
-        _process_plane_sse_impl<sample_mode, blur_first, precision_mode, aligned, HIGH_BIT_DEPTH_INTERLEAVED>(params, context);
+        _process_plane_sse_impl<sample_mode, blur_first, dither_algo, aligned, HIGH_BIT_DEPTH_INTERLEAVED>(params, context);
         break;
     default:
         abort();
     }
 }
 
-template<int sample_mode, bool blur_first, int precision_mode>
+template<int sample_mode, bool blur_first, int dither_algo>
 static void __cdecl process_plane_sse_impl(const process_plane_params& params, process_plane_context* context)
 {
-    if (precision_mode == PRECISION_LOW)
+    if (dither_algo == DA_LOW)
     {
-        sse_low_precision_mode::process_plane_sse_impl<sample_mode, blur_first>(params, context);
+        sse_low_dither_algo::process_plane_sse_impl<sample_mode, blur_first>(params, context);
         return;
     }
     if ( ( (POINTER_INT)params.src_plane_ptr & (PLANE_ALIGNMENT - 1) ) == 0 && (params.src_pitch & (PLANE_ALIGNMENT - 1) ) == 0 )
     {
-        process_plane_sse_impl_stub1<sample_mode, blur_first, precision_mode, true>(params, context);
+        process_plane_sse_impl_stub1<sample_mode, blur_first, dither_algo, true>(params, context);
     } else {
-        process_plane_sse_impl_stub1<sample_mode, blur_first, precision_mode, false>(params, context);
+        process_plane_sse_impl_stub1<sample_mode, blur_first, dither_algo, false>(params, context);
     }
 }

@@ -3,14 +3,14 @@
 #include "test.h"
 
 
-template<int sample_mode, bool blur_first, int precision_mode, int target_impl>
+template<int sample_mode, bool blur_first, int dither_algo, int target_impl>
 void __cdecl process_plane_correctness_test(const process_plane_params& params, process_plane_context* context)
 {
     printf("\r" __FUNCTION__ ", s_mode=%d, blur=%d, precision=%d, target_impl=%d \n", 
-        sample_mode, blur_first, precision_mode, target_impl);
+        sample_mode, blur_first, dither_algo, target_impl);
 
-    process_plane_impl_t reference_impl = process_plane_impls[precision_mode][IMPL_C][select_impl_index(sample_mode, blur_first)];
-    process_plane_impl_t test_impl = process_plane_impls[precision_mode][target_impl][select_impl_index(sample_mode, blur_first)];
+    process_plane_impl_t reference_impl = process_plane_impls[dither_algo][IMPL_C][select_impl_index(sample_mode, blur_first)];
+    process_plane_impl_t test_impl = process_plane_impls[dither_algo][target_impl][select_impl_index(sample_mode, blur_first)];
 
     process_plane_context ref_context;
     process_plane_context test_context;
@@ -38,7 +38,7 @@ void __cdecl process_plane_correctness_test(const process_plane_params& params, 
     char test_file_name[256];
 
     sprintf_s(ref_file_name, "correctness_test_reference_%d_%d_%d_%d_%d_%d_%d_%d.bin",
-        width, height, params.dst_pitch, params.plane, sample_mode, blur_first, precision_mode, target_impl);
+        width, height, params.dst_pitch, params.plane, sample_mode, blur_first, dither_algo, target_impl);
     FILE* ref_file = NULL;
     fopen_s(&ref_file, ref_file_name, "wb");
     if (!ref_file)
@@ -47,7 +47,7 @@ void __cdecl process_plane_correctness_test(const process_plane_params& params, 
     }
 
     sprintf_s(test_file_name, "correctness_test_test_%d_%d_%d_%d_%d_%d_%d_%d.bin",
-        width, height, params.dst_pitch, params.plane, sample_mode, blur_first, precision_mode, target_impl);
+        width, height, params.dst_pitch, params.plane, sample_mode, blur_first, dither_algo, target_impl);
     FILE* test_file = NULL;
     fopen_s(&test_file, test_file_name, "wb");
     if (!test_file)
@@ -72,7 +72,7 @@ void __cdecl process_plane_correctness_test(const process_plane_params& params, 
         }
 
         if (memcmp(ref_start, test_start, width) != 0) {
-            printf("ERROR(%d, %d, %d, %d): Row %d is different from reference result.\n", sample_mode, blur_first, precision_mode, target_impl, i);
+            printf("ERROR(%d, %d, %d, %d): Row %d is different from reference result.\n", sample_mode, blur_first, dither_algo, target_impl, i);
             is_correct = false;
         }
     }
@@ -97,7 +97,7 @@ void __cdecl process_plane_correctness_test(const process_plane_params& params, 
         }
 
         if (memcmp(ref_start, test_start, width) != 0) {
-            printf("ERROR(%d, %d, %d, %d): Row %d is different from reference result.\n", sample_mode, blur_first, precision_mode, target_impl, i);
+            printf("ERROR(%d, %d, %d, %d): Row %d is different from reference result.\n", sample_mode, blur_first, dither_algo, target_impl, i);
             is_correct = false;
         }
     }

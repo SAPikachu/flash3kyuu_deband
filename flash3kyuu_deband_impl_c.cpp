@@ -65,7 +65,7 @@ static __inline int read_pixel(const process_plane_params& params, void* context
 template <int sample_mode, bool blur_first, int mode, int output_mode>
 static __forceinline void __cdecl process_plane_plainc_mode12_high(const process_plane_params& params, process_plane_context*)
 {
-    assert(mode != PRECISION_LOW);
+    assert(mode != DA_LOW);
 
     pixel_dither_info* info_ptr;
     char context_y[CONTEXT_BUFFER_SIZE];
@@ -313,7 +313,7 @@ void __cdecl process_plane_plainc(const process_plane_params& params, process_pl
     {
         process_plane_plainc_mode0(params, context);
     } else {
-        if (mode == PRECISION_LOW)
+        if (mode == DA_LOW)
         {
             process_plane_plainc_mode12_low<sample_mode, blur_first, mode>(params, context);
         } else {

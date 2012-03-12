@@ -73,36 +73,36 @@ namespace dither_high
         }
     }
 
-    template <int precision_mode>
+    template <int dither_algo>
     static __inline void init(char context_buffer[CONTEXT_BUFFER_SIZE], int frame_width, int output_depth) 
     {
-        if (precision_mode == PRECISION_HIGH_FLOYD_STEINBERG_DITHERING)
+        if (dither_algo == DA_HIGH_FLOYD_STEINBERG_DITHERING)
         {
             pixel_proc_high_f_s_dithering::init_context(context_buffer, frame_width, output_depth);
-        } else if (precision_mode == PRECISION_HIGH_ORDERED_DITHERING) {
+        } else if (dither_algo == DA_HIGH_ORDERED_DITHERING) {
             init_ordered_dithering();
             init_ordered_dithering_with_output_depth(context_buffer, output_depth);
         }
     }
 
-    template <int precision_mode>
+    template <int dither_algo>
     static __inline void complete(void* context) 
     {
-        if (precision_mode == PRECISION_HIGH_FLOYD_STEINBERG_DITHERING)
+        if (dither_algo == DA_HIGH_FLOYD_STEINBERG_DITHERING)
         {
             pixel_proc_high_f_s_dithering::destroy_context(context);
         }
     }
     
-    template <int precision_mode>
+    template <int dither_algo>
     static __forceinline __m128i dither(void* context, __m128i pixels, int row, int column)
     {
-        switch (precision_mode)
+        switch (dither_algo)
         {
-        case PRECISION_LOW:
-        case PRECISION_HIGH_NO_DITHERING:
+        case DA_LOW:
+        case DA_HIGH_NO_DITHERING:
             return pixels;
-        case PRECISION_HIGH_ORDERED_DITHERING:
+        case DA_HIGH_ORDERED_DITHERING:
             {
             // row: use lowest 4 bits as index, mask = 0b00001111 = 15
             // column: always multiples of 8, so use 8 (bit 4) as selector, mask = 0b00001000
@@ -110,7 +110,7 @@ namespace dither_high
             __m128i threshold = _mm_load_si128((__m128i*)((char*)context + ( ( (row & 15) * 2 ) + ( (column & 8) >> 3 ) ) * 16 ) );
             return _mm_adds_epu16(pixels, threshold);
             }
-        case PRECISION_HIGH_FLOYD_STEINBERG_DITHERING:
+        case DA_HIGH_FLOYD_STEINBERG_DITHERING:
             // due to an ICC bug, accessing pixels using union will give us incorrect results
             // so we have to use a buffer here
             // tested on ICC 12.0.1024.2010
@@ -124,8 +124,8 @@ namespace dither_high
                 pixel_proc_high_f_s_dithering::next_pixel(context);
             }
             return _mm_load_si128((__m128i*)buffer);
-        case PRECISION_16BIT_STACKED:
-        case PRECISION_16BIT_INTERLEAVED:
+        case DA_16BIT_STACKED:
+        case DA_16BIT_INTERLEAVED:
             return _mm_setzero_si128();
             break;
         default:
@@ -134,20 +134,20 @@ namespace dither_high
         }
     }
 
-    template <int precision_mode>
+    template <int dither_algo>
     static __forceinline __m128i dither_yuy2(char contexts[3][CONTEXT_BUFFER_SIZE], __m128i pixels, int row, int column)
     {
-        switch (precision_mode)
+        switch (dither_algo)
         {
-        case PRECISION_LOW:
-        case PRECISION_HIGH_NO_DITHERING:
+        case DA_LOW:
+        case DA_HIGH_NO_DITHERING:
             return pixels;
-        case PRECISION_HIGH_ORDERED_DITHERING:
+        case DA_HIGH_ORDERED_DITHERING:
             // row: use lowest 4 bits as index, mask = 0b00001111 = 15
             // column: always multiples of 8, yuy2 threshold map has 8 items, mask = 0b00111000
             assert((column & 7) == 0);
             return _mm_adds_epu16(pixels, _ordered_dithering_threshold_map_yuy2[row & 15][(column >> 3) & 7]);
-        case PRECISION_HIGH_FLOYD_STEINBERG_DITHERING:
+        case DA_HIGH_FLOYD_STEINBERG_DITHERING:
             // due to an ICC bug, accessing pixels using union will give us incorrect results
             // so we have to use a buffer here
             // tested on ICC 12.0.1024.2010
@@ -178,8 +178,8 @@ namespace dither_high
                 pixel_proc_high_f_s_dithering::next_pixel(cur_context);
             }
             return _mm_load_si128((__m128i*)buffer);
-        case PRECISION_16BIT_STACKED:
-        case PRECISION_16BIT_INTERLEAVED:
+        case DA_16BIT_STACKED:
+        case DA_16BIT_INTERLEAVED:
             return _mm_setzero_si128();
             break;
         default:
@@ -188,10 +188,10 @@ namespace dither_high
         }
     }
     
-    template <int precision_mode>
+    template <int dither_algo>
     static __inline void next_row(void* context)
     {
-        if (precision_mode == PRECISION_HIGH_FLOYD_STEINBERG_DITHERING)
+        if (dither_algo == DA_HIGH_FLOYD_STEINBERG_DITHERING)
         {
             pixel_proc_high_f_s_dithering::next_row(context);
         }

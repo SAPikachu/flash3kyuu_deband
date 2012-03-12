@@ -3,15 +3,15 @@
 #include "impl_dispatch.h"
 
 #define CALL_IMPL(func, ...) \
-	( mode == PRECISION_LOW ? pixel_proc_8bit::##func(__VA_ARGS__) : \
-	  mode == PRECISION_HIGH_NO_DITHERING ? pixel_proc_high_no_dithering::##func(__VA_ARGS__) : \
-	  mode == PRECISION_HIGH_ORDERED_DITHERING ? pixel_proc_high_ordered_dithering::##func(__VA_ARGS__) : \
-	  mode == PRECISION_HIGH_FLOYD_STEINBERG_DITHERING ? pixel_proc_high_f_s_dithering::##func(__VA_ARGS__) : \
-	  mode == PRECISION_16BIT_STACKED ? pixel_proc_16bit::##func(__VA_ARGS__) : \
-	  mode == PRECISION_16BIT_INTERLEAVED ? pixel_proc_16bit::##func(__VA_ARGS__) : \
+	( mode == DA_LOW ? pixel_proc_8bit::##func(__VA_ARGS__) : \
+	  mode == DA_HIGH_NO_DITHERING ? pixel_proc_high_no_dithering::##func(__VA_ARGS__) : \
+	  mode == DA_HIGH_ORDERED_DITHERING ? pixel_proc_high_ordered_dithering::##func(__VA_ARGS__) : \
+	  mode == DA_HIGH_FLOYD_STEINBERG_DITHERING ? pixel_proc_high_f_s_dithering::##func(__VA_ARGS__) : \
+	  mode == DA_16BIT_STACKED ? pixel_proc_16bit::##func(__VA_ARGS__) : \
+	  mode == DA_16BIT_INTERLEAVED ? pixel_proc_16bit::##func(__VA_ARGS__) : \
 	  pixel_proc_8bit::##func(__VA_ARGS__) )
 
-#define CHECK_MODE() if (mode < 0 || mode >= PRECISION_COUNT) abort()
+#define CHECK_MODE() if (mode < 0 || mode >= DA_COUNT) abort()
 
 #include "pixel_proc_c_8bit.h"
 

@@ -55,7 +55,7 @@ static __forceinline void __cdecl process_plane_plainc_mode0(const process_plane
 template <int sample_mode, bool blur_first, int mode>
 static __forceinline void __cdecl process_plane_plainc_mode12_low(const process_plane_params& params, process_plane_context*)
 {
-    assert(mode == PRECISION_LOW);
+    assert(mode == DA_LOW);
 
     pixel_dither_info* info_ptr;
     char context_y[CONTEXT_BUFFER_SIZE];

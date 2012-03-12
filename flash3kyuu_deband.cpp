@@ -31,10 +31,10 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     int sample_mode = ARG(sample_mode).AsInt(2);
     int seed = ARG(seed).AsInt(0);
     bool blur_first = ARG(blur_first).AsBool(true);
-    bool dynamic_dither_noise = ARG(dynamic_dither_noise).AsBool(false);
+    bool dynamic_grain = ARG(dynamic_grain).AsBool(false);
     int opt = ARG(opt).AsInt(-1);
     bool mt = ARG(mt).AsBool(si.dwNumberOfProcessors > 1);
-    int precision_mode = ARG(precision_mode).AsInt(sample_mode == 0 ? PRECISION_LOW : PRECISION_HIGH_FLOYD_STEINBERG_DITHERING);
+    int dither_algo = ARG(dither_algo).AsInt(sample_mode == 0 ? DA_LOW : DA_HIGH_FLOYD_STEINBERG_DITHERING);
     bool keep_tv_range = ARG(keep_tv_range).AsBool(false);
     bool enable_fast_skip_plane = ARG(enable_fast_skip_plane).AsBool(true);
     int random_algo_ref = ARG(random_algo_ref).AsInt(RANDOM_ALGORITHM_UNIFORM);
@@ -63,18 +63,18 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
         }
         else
         {
-            output_depth = precision_mode < PRECISION_16BIT_STACKED ? 8 : 16;
+            output_depth = dither_algo < DA_16BIT_STACKED ? 8 : 16;
         }
     }
 
     if (output_mode == -1)
     {
-        switch (precision_mode)
+        switch (dither_algo)
         {
-        case PRECISION_16BIT_INTERLEAVED:
+        case DA_16BIT_INTERLEAVED:
             output_mode = HIGH_BIT_DEPTH_INTERLEAVED;
             break;
-        case PRECISION_16BIT_STACKED:
+        case DA_16BIT_STACKED:
             output_mode = HIGH_BIT_DEPTH_STACKED;
             break;
         default:
@@ -84,18 +84,18 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     }
 
 
-    int default_val = (precision_mode == PRECISION_LOW || sample_mode == 0) ? 1 : 64;
+    int default_val = (dither_algo == DA_LOW || sample_mode == 0) ? 1 : 64;
     int Y = ARG(Y).AsInt(default_val);
     int Cb = ARG(Cb).AsInt(default_val);
     int Cr = ARG(Cr).AsInt(default_val);
-    int ditherY = ARG(ditherY).AsInt(sample_mode == 0 ? 0 : default_val);
-    int ditherC = ARG(ditherC).AsInt(sample_mode == 0 ? 0 : default_val);
+    int grainY = ARG(grainY).AsInt(sample_mode == 0 ? 0 : default_val);
+    int grainC = ARG(grainC).AsInt(sample_mode == 0 ? 0 : default_val);
 
     if (sample_mode == 0)
     {
-        if (precision_mode != PRECISION_LOW)
+        if (dither_algo != DA_LOW)
         {
-            env->ThrowError("flash3kyuu_deband: sample_mode = 0 is valid only when precision_mode = 0.");
+            env->ThrowError("flash3kyuu_deband: sample_mode = 0 is valid only when dither_algo = 0.");
         }
 
         if (input_mode != LOW_BIT_DEPTH)
@@ -108,14 +108,14 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
             env->ThrowError("flash3kyuu_deband: When sample_mode = 0, setting blur_first has no effect.");
         }
 
-        if (ditherY != 0)
+        if (grainY != 0)
         {
-            env->ThrowError("flash3kyuu_deband: When sample_mode = 0, setting ditherY has no effect.");
+            env->ThrowError("flash3kyuu_deband: When sample_mode = 0, setting grainY has no effect.");
         }
 
-        if (ditherC != 0)
+        if (grainC != 0)
         {
-            env->ThrowError("flash3kyuu_deband: When sample_mode = 0, setting ditherC has no effect.");
+            env->ThrowError("flash3kyuu_deband: When sample_mode = 0, setting grainC has no effect.");
         }
     }
     
@@ -124,7 +124,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
         env->ThrowError("flash3kyuu_deband: When input_mode = 0, setting input_depth has no effect.");
     }
 
-    if (input_mode != LOW_BIT_DEPTH && precision_mode == PRECISION_LOW)
+    if (input_mode != LOW_BIT_DEPTH && dither_algo == DA_LOW)
     {
         env->ThrowError("flash3kyuu_deband: input_mode > 0 is only valid in high precision mode.");
     }
@@ -147,28 +147,28 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
         env->ThrowError("flash3kyuu_deband: output_mode = 0 is only valid when output_depth = 8.");
     }
     
-    if (precision_mode == PRECISION_16BIT_STACKED)
+    if (dither_algo == DA_16BIT_STACKED)
     {
         if (output_mode != HIGH_BIT_DEPTH_STACKED)
         {
-            env->ThrowError("flash3kyuu_deband: When precision_mode = 4, output_mode must be 1.");
+            env->ThrowError("flash3kyuu_deband: When dither_algo = 4, output_mode must be 1.");
         }
 
         if (output_depth != 16)
         {
-            env->ThrowError("flash3kyuu_deband: When precision_mode = 4 or 5, output_depth must be 16.");
+            env->ThrowError("flash3kyuu_deband: When dither_algo = 4 or 5, output_depth must be 16.");
         }
     } 
-    else if (precision_mode == PRECISION_16BIT_INTERLEAVED) 
+    else if (dither_algo == DA_16BIT_INTERLEAVED) 
     {
         if (output_mode != HIGH_BIT_DEPTH_INTERLEAVED)
         {
-            env->ThrowError("flash3kyuu_deband: When precision_mode = 5, output_mode must be 2.");
+            env->ThrowError("flash3kyuu_deband: When dither_algo = 5, output_mode must be 2.");
         }
 
         if (output_depth != 16)
         {
-            env->ThrowError("flash3kyuu_deband: When precision_mode = 4 or 5, output_depth must be 16.");
+            env->ThrowError("flash3kyuu_deband: When dither_algo = 4 or 5, output_depth must be 16.");
         }
     }
     else // need dithering
@@ -179,10 +179,10 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
             switch (output_mode)
             {
             case HIGH_BIT_DEPTH_INTERLEAVED:
-                precision_mode = PRECISION_16BIT_INTERLEAVED;
+                dither_algo = DA_16BIT_INTERLEAVED;
                 break;
             case HIGH_BIT_DEPTH_STACKED:
-                precision_mode = PRECISION_16BIT_STACKED;
+                dither_algo = DA_16BIT_STACKED;
                 break;
             default:
                 // something is wrong here!
@@ -201,17 +201,17 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     check_parameter_range("flash3kyuu_deband", value, lower_bound, upper_bound, #value, env);
     
     int threshold_upper_limit = default_val * 8 - 1;
-    int dither_upper_limit = (precision_mode == PRECISION_LOW || sample_mode == 0) ? 3 : 4096;
+    int dither_upper_limit = (dither_algo == DA_LOW || sample_mode == 0) ? 3 : 4096;
 
     CHECK_PARAM(range, 0, 31);
     CHECK_PARAM(Y, 0, threshold_upper_limit);
     CHECK_PARAM(Cb, 0, threshold_upper_limit);
     CHECK_PARAM(Cr, 0, threshold_upper_limit);
-    CHECK_PARAM(ditherY, 0, dither_upper_limit);
-    CHECK_PARAM(ditherC, 0, dither_upper_limit);
+    CHECK_PARAM(grainY, 0, dither_upper_limit);
+    CHECK_PARAM(grainC, 0, dither_upper_limit);
     CHECK_PARAM(sample_mode, 0, 2);
     CHECK_PARAM(opt, -1, (IMPL_COUNT - 1) );
-    CHECK_PARAM(precision_mode, 0, (PRECISION_COUNT - 1) );
+    CHECK_PARAM(dither_algo, 0, (DA_COUNT - 1) );
     CHECK_PARAM(random_algo_ref, 0, (RANDOM_ALGORITHM_COUNT - 1) );
     CHECK_PARAM(random_algo_dither, 0, (RANDOM_ALGORITHM_COUNT - 1) );
     CHECK_PARAM(input_mode, 0, PIXEL_MODE_COUNT - 1);
@@ -232,8 +232,8 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     Y <<= 2;
     Cb <<= 2;
     Cr <<= 2;
-    ditherY <<= 2;
-    ditherC <<= 2;
+    grainY <<= 2;
+    grainC <<= 2;
     
     return FLASH3KYUU_DEBAND_CREATE_CLASS(flash3kyuu_deband);
 }
@@ -380,7 +380,7 @@ void flash3kyuu_deband::init_frame_luts(void)
         for (int x = 0; x < width_in_pixels; x++)
         {
             pixel_dither_info info_y = {0, 0, 0};
-            info_y.change = random(_random_algo_dither, seed, _ditherY);
+            info_y.change = random(_random_algo_dither, seed, _grainY);
 
             int cur_range = min_multi(_range, y, height_in_pixels - y - 1, -1);
             if (_sample_mode == 2)
@@ -419,8 +419,8 @@ void flash3kyuu_deband::init_frame_luts(void)
                 // don't shift ref values here, since subsampling of width and height may be different
                 // shift them in actual processing
 
-                info_cb.change = random(_random_algo_dither, seed, _ditherC);
-                info_cr.change = random(_random_algo_dither, seed, _ditherC);
+                info_cb.change = random(_random_algo_dither, seed, _grainC);
+                info_cr.change = random(_random_algo_dither, seed, _grainC);
 
                 if (vi.IsPlanar())
                 {
@@ -442,7 +442,7 @@ void flash3kyuu_deband::init_frame_luts(void)
         }
     }
 
-    int multiplier = _dynamic_dither_noise ? 3 : 1;
+    int multiplier = _dynamic_grain ? 3 : 1;
     int item_count = width_in_pixels;
 
     // add some safety margin and align it
@@ -461,8 +461,8 @@ void flash3kyuu_deband::init_frame_luts(void)
         item_count * multiplier,
         _random_algo_dither,
         seed,
-        _ditherY,
-        vi.IsYUY2() ? _ditherC : _ditherY);
+        _grainY,
+        vi.IsYUY2() ? _grainC : _grainY);
 
     if (vi.IsPlanar() && !vi.IsY8())
     {
@@ -471,10 +471,10 @@ void flash3kyuu_deband::init_frame_luts(void)
             item_count * multiplier,
             _random_algo_dither,
             seed,
-            _ditherC,
-            _ditherC);
+            _grainC,
+            _grainC);
     }
-    if (_dynamic_dither_noise)
+    if (_dynamic_grain)
     {
         _dither_buffer_offsets = (int*)malloc(sizeof(int) * vi.num_frames);
         for (int i = 0; i < vi.num_frames; i++)
@@ -501,7 +501,7 @@ flash3kyuu_deband::~flash3kyuu_deband()
     destroy_frame_luts();
 }
 
-static process_plane_impl_t get_process_plane_impl(int sample_mode, bool blur_first, int opt, int precision_mode)
+static process_plane_impl_t get_process_plane_impl(int sample_mode, bool blur_first, int opt, int dither_algo)
 {
     if (opt == -1) {
         int cpu_info[4] = {-1};
@@ -516,7 +516,7 @@ static process_plane_impl_t get_process_plane_impl(int sample_mode, bool blur_fi
             opt = IMPL_C;
         }
     }
-    const process_plane_impl_t* impl_table = process_plane_impls[precision_mode][opt];
+    const process_plane_impl_t* impl_table = process_plane_impls[dither_algo][opt];
     return impl_table[select_impl_index(sample_mode, blur_first)];
 }
 
@@ -547,7 +547,7 @@ void flash3kyuu_deband::init(void)
 
     init_frame_luts();
 
-    _process_plane_impl = get_process_plane_impl(_sample_mode, _blur_first, _opt, _precision_mode);
+    _process_plane_impl = get_process_plane_impl(_sample_mode, _blur_first, _opt, _dither_algo);
 
 }
 
@@ -677,7 +677,7 @@ PVideoFrame __stdcall flash3kyuu_deband::GetFrame(int n, IScriptEnvironment* env
 {
     PVideoFrame src = child->GetFrame(n, env);
     // interleaved 16bit output needs extra alignment
-    PVideoFrame dst = env->NewVideoFrame(vi, _precision_mode != PRECISION_16BIT_INTERLEAVED ? PLANE_ALIGNMENT : PLANE_ALIGNMENT * 2);
+    PVideoFrame dst = env->NewVideoFrame(vi, _dither_algo != DA_16BIT_INTERLEAVED ? PLANE_ALIGNMENT : PLANE_ALIGNMENT * 2);
 
     if (vi.IsPlanar() && !vi.IsY8())
     {

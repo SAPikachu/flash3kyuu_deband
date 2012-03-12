@@ -1,6 +1,6 @@
 #pragma once
 
-namespace sse_low_precision_mode
+namespace sse_low_dither_algo
 {
     static __inline __m128i clamped_absolute_difference_low(__m128i a, __m128i b, __m128i difference_limit)
     {
@@ -274,11 +274,11 @@ namespace sse_low_precision_mode
         switch (sample_mode)
         {
         case 0:
-            return sse_low_precision_mode::process_pixels_mode0(src_pixels_0, threshold_vector, ref_pixels_1_0);
+            return sse_low_dither_algo::process_pixels_mode0(src_pixels_0, threshold_vector, ref_pixels_1_0);
             break;
         case 1:
         case 2:
-            return sse_low_precision_mode::process_pixels_mode12<sample_mode, blur_first>(
+            return sse_low_dither_algo::process_pixels_mode12<sample_mode, blur_first>(
                         src_pixels_0, 
                         threshold_vector, 
                         sign_convert_vector, 
