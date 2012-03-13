@@ -86,13 +86,22 @@ dither_algo
 	1: No dithering, LSB is truncated
 	2: Ordered dithering
 	3: Floyd-Steinberg dithering
-	
+
+	* Visual quality of mode 3 is the best, but the debanded pixels may 
+	  easily be destroyed by x264, you need to carefully tweak the settings
+	  to get better result.
+	* Mode 1 and mode 2 don't look the best, but if you are encoding at low 
+	  bitrate, they may be better choice since the debanded pixels is easier
+	  to survive encoding, mode 3 may look worse than 1/2 after encoding in
+	  this situation.
+	  (Thanks sneaker_ger @ doom9 for pointing this out!)
+	 
 	Note: 
 	1. In sample mode 0, only mode 0 is available (it doesn't make sense to use
 	   high precision mode). Setting this to other values will cause an error.
 	
 	2. It is not recommended to use mode 0 anymore (except that you want to use
-	   sample mode 0). Use mode 1/2 for speed, or mode 3 for quality.
+	   sample mode 0). 
 	   
 	3. In high precision mode, threshold and dither parameters are 64 times
 	   bigger than equivalent in low precision mode.
