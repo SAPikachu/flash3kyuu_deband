@@ -3,7 +3,8 @@ f3kdb(clip c, int "range", int "Y", int "Cb", int "Cr",
 		bool "blur_first", bool "dynamic_grain", int "opt", bool "mt", 
 		int "precision_mode", bool "keep_tv_range", int "input_mode",
 		int "input_depth", int "output_mode", int "output_depth", 
-		int "random_algo_ref", int "random_algo_grain")
+		int "random_algo_ref", int "random_algo_grain",
+		float "random_param_ref", float "random_param_grain")
 		
 由 http://www.geocities.jp/flash3kyuu/auf/banding17.zip 移植。
 滤镜支持逐行YUY2、YV12、YV16、YV24及YV411。
@@ -135,10 +136,15 @@ random_algo_ref / random_algo_grain
 	
 	0：旧版滤镜算法
 	1：均匀分布
-	2：高斯分布 （标准差1.0，只使用[-1.0, 1.0]范围内的值）
+	2：高斯分布 （标准差可通过random_param_ref / random_param_grain设置，只使用[-1.0, 1.0]范围内的原始值进行后续计算，超出范围的值会被忽略）
 	
 	默认值：1 / 1
 
+random_param_ref / random_param_grain
+	随机数生成算法的参数。目前只对高斯分布有效。
+	
+	默认值：1.0
+	
 --------------------------------------------------------------------------------
 
 f3kdb_dither(clip c, int "mode", bool "stacked", int "input_depth", 
@@ -178,6 +184,8 @@ keep_tv_range
 --------------------------------------------------------------------------------
 
 更新日志
+1.5.1 (2012-04-07)
+	 可设置高斯随机数生成器的标准差
 
 1.5.0 (2012-03-12)
 	（此版本无新功能，只修改了部分参数以减少混淆）

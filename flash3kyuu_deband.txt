@@ -3,7 +3,8 @@ f3kdb(clip c, int "range", int "Y", int "Cb", int "Cr",
 		bool "blur_first", bool "dynamic_grain", int "opt", bool "mt", 
 		int "dither_algo", bool "keep_tv_range", int "input_mode",
 		int "input_depth", int "output_mode", int "output_depth", 
-		int "random_algo_ref", int "random_algo_grain")
+		int "random_algo_ref", int "random_algo_grain",
+		float "random_param_ref", float "random_param_grain")
 		
 Ported from http://www.geocities.jp/flash3kyuu/auf/banding17.zip . 
 (I'm not the author of the original aviutl plugin, just ported the algorithm to
@@ -172,11 +173,19 @@ random_algo_ref / random_algo_grain
 	
 	0: Algorithm in old versions
 	1: Uniform distribution
-	2: Gaussian distribution 
-	   (StdDev = 1.0, only use values in [-1.0, 1.0] for multiplication)
+	2: Gaussian distribution
+	   (StdDev (sigma) is settable through random_param_ref / random_param_grain, 
+	    Only values in [-1.0, 1.0] is used for multiplication, numbers outside 
+	    this range are simply ignored)
 	
 	Default: 1 / 1
 		
+random_param_ref / random_param_grain
+	Parameter for the respective random number generator. Currently only have 
+	effect for the Gaussian generator.
+	
+	Default: 1.0
+	
 --------------------------------------------------------------------------------
 
 f3kdb_dither(clip c, int "mode", bool "stacked", int "input_depth", 
@@ -219,6 +228,8 @@ keep_tv_range
 --------------------------------------------------------------------------------
 
 Change log
+1.5.1 (2012-04-07)
+ * Supports setting StdDev (sigma) for the Gaussian random number generator
 
 1.5.0 (2012-03-12)
  * (There isn't any new feature in this version, only some parameters are 
