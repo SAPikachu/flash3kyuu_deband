@@ -45,6 +45,8 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     bool keep_tv_range = ARG(keep_tv_range).AsBool(false);
     int random_algo_ref = ARG(random_algo_ref).AsInt(RANDOM_ALGORITHM_UNIFORM);
     int random_algo_grain = ARG(random_algo_grain).AsInt(RANDOM_ALGORITHM_UNIFORM);
+    double random_param_ref = ARG(random_param_ref).AsFloat(DEFAULT_RANDOM_PARAM);
+    double random_param_grain = ARG(random_param_grain).AsFloat(DEFAULT_RANDOM_PARAM);
 
     int input_mode = ARG(input_mode).AsInt(-1);
     int input_depth = ARG(input_depth).AsInt(input_mode <= LOW_BIT_DEPTH ? 8 : 16);
@@ -255,13 +257,13 @@ static int get_frame_lut_stride(int width_in_pixels, VideoInfo& vi)
     return (((width - 1) | (FRAME_LUT_ALIGNMENT - 1)) + 1);
 }
 
-static short* generate_grain_buffer(size_t item_count, RANDOM_ALGORITHM algo, int& seed, int range0, int range1)
+static short* generate_grain_buffer(size_t item_count, RANDOM_ALGORITHM algo, int& seed, double param, int range0, int range1)
 {
     // range0 and range1 can be different, for YUY2
     short* buffer = (short*)_aligned_malloc(item_count * sizeof(short), FRAME_LUT_ALIGNMENT);
     for (size_t i = 0; i < item_count; i++)
     {
-        *(buffer + i) = random(algo, seed, (i & 1) == 0 ? range0 : range1);
+        *(buffer + i) = random(algo, seed, (i & 1) == 0 ? range0 : range1, param);
     }
     return buffer;
 }
@@ -328,7 +330,7 @@ void flash3kyuu_deband::init_frame_luts(void)
         for (int x = 0; x < width_in_pixels; x++)
         {
             pixel_dither_info info_y = {0, 0, 0};
-            info_y.change = random(_random_algo_grain, seed, _grainY);
+            info_y.change = random(_random_algo_grain, seed, _grainY, _random_param_grain);
 
             int cur_range = min_multi(_range, y, height_in_pixels - y - 1, -1);
             if (_sample_mode == 2)
@@ -337,10 +339,10 @@ void flash3kyuu_deband::init_frame_luts(void)
             }
 
             if (cur_range > 0) {
-                info_y.ref1 = (signed char)random(_random_algo_ref, seed, cur_range);
+                info_y.ref1 = (signed char)random(_random_algo_ref, seed, cur_range, _random_param_ref);
                 if (_sample_mode == 2)
                 {
-                    info_y.ref2 = (signed char)random(_random_algo_ref, seed, cur_range);
+                    info_y.ref2 = (signed char)random(_random_algo_ref, seed, cur_range, _random_param_ref);
                 }
                 if (_sample_mode > 0)
                 {
@@ -367,8 +369,8 @@ void flash3kyuu_deband::init_frame_luts(void)
                 // don't shift ref values here, since subsampling of width and height may be different
                 // shift them in actual processing
 
-                info_cb.change = random(_random_algo_grain, seed, _grainC);
-                info_cr.change = random(_random_algo_grain, seed, _grainC);
+                info_cb.change = random(_random_algo_grain, seed, _grainC, _random_param_grain);
+                info_cr.change = random(_random_algo_grain, seed, _grainC, _random_param_grain);
 
                 if (vi.IsPlanar())
                 {
@@ -409,6 +411,7 @@ void flash3kyuu_deband::init_frame_luts(void)
         item_count * multiplier,
         _random_algo_grain,
         seed,
+        _random_param_grain,
         _grainY,
         vi.IsYUY2() ? _grainC : _grainY);
 
@@ -419,6 +422,7 @@ void flash3kyuu_deband::init_frame_luts(void)
             item_count * multiplier,
             _random_algo_grain,
             seed,
+            _random_param_grain,
             _grainC,
             _grainC);
     }
@@ -427,7 +431,7 @@ void flash3kyuu_deband::init_frame_luts(void)
         _grain_buffer_offsets = (int*)malloc(sizeof(int) * vi.num_frames);
         for (int i = 0; i < vi.num_frames; i++)
         {
-            int offset = item_count + random(RANDOM_ALGORITHM_UNIFORM, seed, item_count);
+            int offset = item_count + random(RANDOM_ALGORITHM_UNIFORM, seed, item_count, DEFAULT_RANDOM_PARAM);
             offset &= 0xfffffff0; // align to 16-byte for SSE codes
 
             assert(offset >= 0);

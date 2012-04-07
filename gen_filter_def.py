@@ -23,12 +23,15 @@ def generate_output():
         p("i", "output_depth"),
         p("i", "random_algo_ref", c_type="RANDOM_ALGORITHM"),
         p("i", "random_algo_grain", c_type="RANDOM_ALGORITHM"),
+        p("f", "random_param_ref"),
+        p("f", "random_param_grain"),
     ))
 
 PARAM_TYPES = {
     "c": "PClip",
     "b": "bool",
     "i": "int",
+    "f": "double",
     "s": "const char*",
 }
 
