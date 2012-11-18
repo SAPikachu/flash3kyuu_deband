@@ -122,35 +122,35 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <LibraryPath>$(ICInstallDir)compiler\lib\ia32;$(ICInstallDir)ipp\lib\ia32;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
+    <LibraryPath>$(ICInstallDir)compiler\lib\$(IntelPlatform);$(ICInstallDir)ipp\lib\$(IntelPlatform);$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib;$(WindowsSDK_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug with dump|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <LibraryPath>$(ICInstallDir)compiler\lib\ia32;$(ICInstallDir)ipp\lib\ia32;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
+    <LibraryPath>$(ICInstallDir)compiler\lib\$(IntelPlatform);$(ICInstallDir)ipp\lib\$(IntelPlatform);$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib;$(WindowsSDK_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <LibraryPath>$(ICInstallDir)compiler\lib\Intel64;$(ICInstallDir)ipp\lib\Intel64;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSdkDir)lib\x64;</LibraryPath>
+    <LibraryPath>$(ICInstallDir)compiler\lib\$(IntelPlatform);$(ICInstallDir)ipp\lib\$(IntelPlatform);$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSdkDir)lib\x64;$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug with dump|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <LibraryPath>$(ICInstallDir)compiler\lib\Intel64;$(ICInstallDir)ipp\lib\Intel64;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSdkDir)lib\x64;</LibraryPath>
+    <LibraryPath>$(ICInstallDir)compiler\lib\$(IntelPlatform);$(ICInstallDir)ipp\lib\$(IntelPlatform);$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSdkDir)lib\x64;$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>$(ICInstallDir)compiler\lib\ia32;$(ICInstallDir)ipp\lib\ia32;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
+    <LibraryPath>$(ICInstallDir)compiler\lib\$(IntelPlatform);$(ICInstallDir)ipp\lib\$(IntelPlatform);$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib;$(WindowsSDK_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_MSVC|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>$(ICInstallDir)compiler\lib\ia32;$(ICInstallDir)ipp\lib\ia32;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
+    <LibraryPath>$(ICInstallDir)compiler\lib\$(IntelPlatform);$(ICInstallDir)ipp\lib\$(IntelPlatform);$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib;$(WindowsSDK_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>$(ICInstallDir)compiler\lib\Intel64;$(ICInstallDir)ipp\lib\Intel64;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSdkDir)lib\x64;</LibraryPath>
+    <LibraryPath>$(ICInstallDir)compiler\lib\$(IntelPlatform);$(ICInstallDir)ipp\lib\$(IntelPlatform);$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSdkDir)lib\x64;$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_MSVC|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>$(ICInstallDir)compiler\lib\Intel64;$(ICInstallDir)ipp\lib\Intel64;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSdkDir)lib\x64;</LibraryPath>
+    <LibraryPath>$(ICInstallDir)compiler\lib\$(IntelPlatform);$(ICInstallDir)ipp\lib\$(IntelPlatform);$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSdkDir)lib\x64;$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -168,6 +168,7 @@
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;alibcof32o.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PreBuildEvent>
       <Command>gen_filter_def.py &gt; flash3kyuu_deband.def.h</Command>
@@ -189,6 +190,7 @@
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;alibcof32o.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PreBuildEvent>
       <Command>gen_filter_def.py &gt; flash3kyuu_deband.def.h</Command>
@@ -210,6 +212,7 @@
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;alibcof64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug with dump|x64'">
@@ -228,6 +231,7 @@
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;alibcof64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -244,7 +248,6 @@
       <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
       <GenerateAlternateCodePaths>None</GenerateAlternateCodePaths>
       <UseProcessorExtensions>None</UseProcessorExtensions>
-      <AdditionalOptions>/Qopenmp-link:static %(AdditionalOptions)</AdditionalOptions>
       <UseMSVC>false</UseMSVC>
     </ClCompile>
     <Link>
@@ -256,6 +259,7 @@
       </AdditionalLibraryDirectories>
       <AdditionalDependencies>alibcof32o.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PreBuildEvent>
       <Command>gen_filter_def.py &gt; flash3kyuu_deband.def.h</Command>
@@ -275,7 +279,6 @@
       <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
       <GenerateAlternateCodePaths>None</GenerateAlternateCodePaths>
       <UseProcessorExtensions>None</UseProcessorExtensions>
-      <AdditionalOptions>/Qopenmp-link:static %(AdditionalOptions)</AdditionalOptions>
       <UseMSVC>true</UseMSVC>
     </ClCompile>
     <Link>
@@ -286,6 +289,7 @@
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
       <AdditionalDependencies>alibcof32o.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PreBuildEvent>
       <Command>gen_filter_def.py &gt; flash3kyuu_deband.def.h</Command>
@@ -305,7 +309,6 @@
       <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
       <GenerateAlternateCodePaths>None</GenerateAlternateCodePaths>
       <UseProcessorExtensions>None</UseProcessorExtensions>
-      <AdditionalOptions>/Qopenmp-link:static %(AdditionalOptions)</AdditionalOptions>
       <UseMSVC>false</UseMSVC>
     </ClCompile>
     <Link>
@@ -316,6 +319,7 @@
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
       <AdditionalDependencies>alibcof64.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_MSVC|x64'">
@@ -332,7 +336,6 @@
       <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
       <GenerateAlternateCodePaths>None</GenerateAlternateCodePaths>
       <UseProcessorExtensions>None</UseProcessorExtensions>
-      <AdditionalOptions>/Qopenmp-link:static %(AdditionalOptions)</AdditionalOptions>
       <UseMSVC>false</UseMSVC>
     </ClCompile>
     <Link>
@@ -343,6 +346,7 @@
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
       <AdditionalDependencies>alibcof64.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
