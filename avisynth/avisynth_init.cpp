@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#include "flash3kyuu_deband.h"
+#include "interface.h"
 
 #include "dither_avs.h"
 

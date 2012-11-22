@@ -171,7 +171,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PreBuildEvent>
-      <Command>gen_filter_def.py &gt; flash3kyuu_deband.def.h</Command>
+      <Command>gen_filter_def.py &gt; avisynth\flash3kyuu_deband.def.h</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug with dump|Win32'">
@@ -193,7 +193,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PreBuildEvent>
-      <Command>gen_filter_def.py &gt; flash3kyuu_deband.def.h</Command>
+      <Command>gen_filter_def.py &gt; avisynth\flash3kyuu_deband.def.h</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -214,6 +214,9 @@
       </AdditionalLibraryDirectories>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
+    <PreBuildEvent>
+      <Command>gen_filter_def.py &gt; avisynth\flash3kyuu_deband.def.h</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug with dump|x64'">
     <ClCompile>
@@ -233,6 +236,9 @@
       </AdditionalLibraryDirectories>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
+    <PreBuildEvent>
+      <Command>gen_filter_def.py &gt; avisynth\flash3kyuu_deband.def.h</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -262,7 +268,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PreBuildEvent>
-      <Command>gen_filter_def.py &gt; flash3kyuu_deband.def.h</Command>
+      <Command>gen_filter_def.py &gt; avisynth\flash3kyuu_deband.def.h</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_MSVC|Win32'">
@@ -292,7 +298,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PreBuildEvent>
-      <Command>gen_filter_def.py &gt; flash3kyuu_deband.def.h</Command>
+      <Command>gen_filter_def.py &gt; avisynth\flash3kyuu_deband.def.h</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -321,6 +327,9 @@
       <AdditionalDependencies>alibcof64.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
+    <PreBuildEvent>
+      <Command>gen_filter_def.py &gt; avisynth\flash3kyuu_deband.def.h</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_MSVC|x64'">
     <ClCompile>
@@ -348,18 +357,24 @@
       <AdditionalDependencies>alibcof64.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
+    <PreBuildEvent>
+      <Command>gen_filter_def.py &gt; avisynth\flash3kyuu_deband.def.h</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="asmlib.h" />
-    <ClInclude Include="avisynth.h" />
-    <ClInclude Include="avisynth_videoinfo_26.h" />
+    <ClInclude Include="avisynth\avisynth.h" />
+    <ClInclude Include="avisynth\avisynth_videoinfo_26.h" />
+    <ClInclude Include="avisynth\dither_avs.h" />
+    <ClInclude Include="avisynth\interface.h" />
+    <ClInclude Include="avisynth\mt_info.h" />
+    <ClInclude Include="avisynth\stdafx.h" />
     <ClInclude Include="check.h" />
     <ClInclude Include="constants.h" />
     <ClInclude Include="debug_dump.h" />
-    <ClInclude Include="dither_avs.h" />
     <ClInclude Include="dither_high.h" />
     <ClInclude Include="flash3kyuu_deband.def.h" />
     <ClInclude Include="flash3kyuu_deband.h" />
@@ -369,7 +384,6 @@
     <ClInclude Include="icc_override.h" />
     <ClInclude Include="impl_dispatch.h" />
     <ClInclude Include="impl_dispatch_decl.h" />
-    <ClInclude Include="mt_info.h" />
     <ClInclude Include="pixel_proc_c_16bit.h" />
     <ClInclude Include="pixel_proc_c_high_f_s_dithering.h" />
     <ClInclude Include="pixel_proc_c_high_ordered_dithering.h" />
@@ -388,13 +402,14 @@
     <ClInclude Include="x64_compat.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="avisynth_init.cpp" />
-    <ClCompile Include="avisynth_videoinfo_26.cpp" />
+    <ClCompile Include="avisynth\avisynth_init.cpp" />
+    <ClCompile Include="avisynth\avisynth_videoinfo_26.cpp" />
+    <ClCompile Include="avisynth\dither_avs.cpp" />
+    <ClCompile Include="avisynth\mt_info.cpp" />
     <ClCompile Include="benchmark.cpp" />
     <ClCompile Include="check.cpp" />
     <ClCompile Include="correctness_test.cpp" />
     <ClCompile Include="debug_dump.cpp" />
-    <ClCompile Include="dither_avs.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug with dump|Win32'">false</CompileAsManaged>
@@ -428,7 +443,6 @@
     <ClCompile Include="flash3kyuu_deband_impl_ssse3.cpp" />
     <ClCompile Include="icc_override.cpp" />
     <ClCompile Include="impl_dispatch.cpp" />
-    <ClCompile Include="mt_info.cpp" />
     <ClCompile Include="process_plane_context.cpp" />
     <ClCompile Include="random.cpp" />
     <ClCompile Include="stdafx.cpp">

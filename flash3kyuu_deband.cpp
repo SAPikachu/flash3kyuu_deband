@@ -10,6 +10,7 @@
 #define FLASH3KYUU_DEBAND_SIMPLE_MACRO_NAME
 
 #include "flash3kyuu_deband.h"
+#include "avisynth/interface.h"
 #include "impl_dispatch.h"
 #include "icc_override.h"
 

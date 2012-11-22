@@ -65,7 +65,7 @@ OUTPUT_TEMPLATE = """
 
 #include "avisynth.h"
 
-#include "constants.h"
+#include "../constants.h"
 
 static const char* {filter_name_u}_AVS_PARAMS = "{avs_params}";
 

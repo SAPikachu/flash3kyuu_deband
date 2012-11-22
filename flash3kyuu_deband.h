@@ -1,13 +1,6 @@
-// The following ifdef block is the standard way of creating macros which make exporting 
-// from a DLL simpler. All files within this DLL are compiled with the FLASH3KYUU_DEBAND_EXPORTS
-// symbol defined on the command line. This symbol should not be defined on any project
-// that uses this DLL. This way any other project whose source files include this file see 
-// FLASH3KYUU_DEBAND_API functions as being imported from a DLL, whereas this DLL sees symbols
-// defined with this macro as being exported.
-
 #pragma once
 
-#include "avisynth.h"
+#include "avisynth/avisynth.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -15,11 +8,7 @@
 #include <memory.h>
 #include <malloc.h>
 
-#include "flash3kyuu_deband.def.h"
-
 #include "process_plane_context.h"
-
-#include "mt_info.h"
 
 #include "constants.h"
 
@@ -44,10 +33,6 @@
 #else
 #define __PRAGMA_NOUNROLL__
 #endif
-
-AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScriptEnvironment* env);
-
-FLASH3KYUU_DEBAND_API const char* __stdcall AvisynthPluginInit2(IScriptEnvironment* env);
 
 
 typedef __declspec(align(4)) struct _pixel_dither_info {
@@ -100,39 +85,3 @@ typedef struct _process_plane_params
 
 typedef void (__cdecl *process_plane_impl_t)(const process_plane_params& params, process_plane_context* context);
 
-class flash3kyuu_deband : public GenericVideoFilter, public flash3kyuu_deband_parameter_storage_t {
-private:
-    process_plane_impl_t _process_plane_impl;
-        
-    pixel_dither_info *_y_info;
-    pixel_dither_info *_cb_info;
-    pixel_dither_info *_cr_info;
-    
-    process_plane_context _y_context;
-    process_plane_context _cb_context;
-    process_plane_context _cr_context;
-    
-    short* _grain_buffer_y;
-    short* _grain_buffer_c;
-
-    int* _grain_buffer_offsets;
-
-    volatile mt_info* _mt_info;
-
-    VideoInfo _src_vi;
-
-    void init(void);
-    void init_frame_luts(void);
-
-    void destroy_frame_luts(void);
-    
-    void process_plane(int n, PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane, IScriptEnvironment* env);
-
-
-public:
-    void mt_proc(void);
-    flash3kyuu_deband(PClip child, flash3kyuu_deband_parameter_storage_t& o);
-    ~flash3kyuu_deband();
-
-    PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);
-};
