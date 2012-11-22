@@ -481,9 +481,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 
     __m128i src_pitch_vector = _mm_set1_epi32(params.src_pitch);
            
-    __m128i threshold_vector;
-    
-    threshold_vector = _mm_set1_epi16(params.threshold);
+    __m128i threshold_vector = _mm_set1_epi16(params.threshold);
 
     __m128i sign_convert_vector = _mm_set1_epi8(0x80u);
 
@@ -492,16 +490,11 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 
     __m128i one_i8 = _mm_set1_epi8(1);
     
-    bool use_cached_info = false;
-
-    char* info_data_stream = NULL;
-    
     __declspec(align(16))
     char context_buffer[DITHER_CONTEXT_BUFFER_SIZE];
 
     dither_high::init<dither_algo>(context_buffer, params.plane_width_in_pixels, params.output_depth);
 
-    info_cache *cache = NULL;
     
     __m128i width_subsample_vector = _mm_set_epi32(0, 0, 0, params.width_subsampling);
     __m128i height_subsample_vector = _mm_set_epi32(0, 0, 0, params.height_subsampling);
@@ -532,6 +525,10 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 
     __m128i downshift_bits = _mm_set_epi32(0, 0, 0, 16 - params.output_depth);
 
+    bool use_cached_info = false;
+    info_cache *cache = NULL;
+    char* info_data_stream = NULL;
+
     __declspec(align(16))
     char dummy_info_buffer[128];
 
@@ -543,7 +540,10 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
         if (cache->pitch == params.src_pitch) {
             info_data_stream = cache->data_stream;
             use_cached_info = true;
+        } else {
+            // info_data_stream can be NULL, in this case dummy_info_buffer will be used for temporary storage
         }
+        cache = NULL;
     } else {
         // set up buffer for cache
         cache = (info_cache*)malloc(sizeof(info_cache));
