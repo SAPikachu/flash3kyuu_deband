@@ -70,17 +70,10 @@ typedef struct _process_plane_params
 
     unsigned char width_subsampling;
     unsigned char height_subsampling;
-
     
     int pixel_max;
     int pixel_min;
-
-    // for use with YUY2
-    int pixel_max_c;
-    int pixel_min_c;
     
-    unsigned short threshold_y, threshold_cb, threshold_cr;
-
     // Helper functions
     __inline int get_dst_width() const {
         int width = src_width;

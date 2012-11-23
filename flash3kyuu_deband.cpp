@@ -145,12 +145,6 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
         }
     }
 
-    if (vi.IsYUY2())
-    {
-        // currently only C code is available
-        opt = 0;
-    }
-    
     int threshold_upper_limit = default_val * 8 - 1;
     int dither_upper_limit = (dither_algo == DA_LOW || sample_mode == 0) ? 3 : 4096;
 
@@ -251,20 +245,15 @@ static int get_frame_lut_stride(int width_in_pixels, VideoInfo& vi)
 {
     // whole multiples of alignment, so SSE codes don't need to check boundaries
     int width = width_in_pixels;
-    if (vi.IsYUY2())
-    {
-        width *= 2;
-    }
     return (((width - 1) | (FRAME_LUT_ALIGNMENT - 1)) + 1);
 }
 
-static short* generate_grain_buffer(size_t item_count, RANDOM_ALGORITHM algo, int& seed, double param, int range0, int range1)
+static short* generate_grain_buffer(size_t item_count, RANDOM_ALGORITHM algo, int& seed, double param, int range)
 {
-    // range0 and range1 can be different, for YUY2
     short* buffer = (short*)_aligned_malloc(item_count * sizeof(short), FRAME_LUT_ALIGNMENT);
     for (size_t i = 0; i < item_count; i++)
     {
-        *(buffer + i) = random(algo, seed, (i & 1) == 0 ? range0 : range1, param);
+        *(buffer + i) = random(algo, seed, range, param);
     }
     return buffer;
 }
@@ -359,8 +348,6 @@ void flash3kyuu_deband::init_frame_luts(void)
             {
                 should_set_c = ((x & ( ( 1 << width_subsamp ) - 1)) == 0 && 
                     (y & ( ( 1 << height_subsamp ) - 1)) == 0);
-            } else if (vi.IsYUY2()) {
-                should_set_c = ((x & 1) == 0);
             }
 
             if (should_set_c) {
@@ -379,17 +366,9 @@ void flash3kyuu_deband::init_frame_luts(void)
                     *cr_info_ptr = info_cr;
                     cb_info_ptr++;
                     cr_info_ptr++;
-                } else if (vi.IsYUY2()) {
-                    *(y_info_ptr + 1) = info_cb;
-                    *(y_info_ptr + 3) = info_cr;
                 }
             }
-            if (vi.IsYUY2())
-            {
-                y_info_ptr += 2;
-            } else {
-                y_info_ptr++;
-            }
+            y_info_ptr++;
         }
     }
 
@@ -402,19 +381,12 @@ void flash3kyuu_deband::init_frame_luts(void)
 
     item_count *= height_in_pixels;
 
-    if (vi.IsYUY2())
-    {
-        item_count *= 2;
-    }
-
-
     _grain_buffer_y = generate_grain_buffer(
         item_count * multiplier,
         _random_algo_grain,
         seed,
         _random_param_grain,
-        _grainY,
-        vi.IsYUY2() ? _grainC : _grainY);
+        _grainY);
 
     if (vi.IsPlanar() && !vi.IsY8())
     {
@@ -424,7 +396,6 @@ void flash3kyuu_deband::init_frame_luts(void)
             _random_algo_grain,
             seed,
             _random_param_grain,
-            _grainC,
             _grainC);
     }
     if (_dynamic_grain)
@@ -596,14 +567,6 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
         return;
     }
 
-    params.pixel_max_c = _keep_tv_range ? TV_RANGE_C_MAX : FULL_RANGE_C_MAX;
-    params.pixel_min_c = _keep_tv_range ? TV_RANGE_C_MIN : FULL_RANGE_C_MIN;
-    params.threshold_y = _Y;
-    params.threshold_cb = _Cb;
-    params.threshold_cr = _Cr;
-
-
-
     _process_plane_impl(params, context);
 }
 
@@ -682,7 +645,7 @@ PVideoFrame __stdcall flash3kyuu_deband::GetFrame(int n, IScriptEnvironment* env
             WaitForSingleObject(_mt_info->work_complete_event, INFINITE);
         }
     } else {
-        // YUY2 or Y8
+        // Y8
         process_plane(n, src, dst, dst->GetWritePtr(), PLANAR_Y, env);
     }
     return dst;

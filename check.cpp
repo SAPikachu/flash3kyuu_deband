@@ -14,8 +14,8 @@ void check_parameter_range(const char* name, int value, int lower_bound, int upp
 void check_video_format(const char* name, const VideoInfo& vi, IScriptEnvironment* env)
 {
     char name_buffer[256];
-    if (!vi.IsYUV() || !(vi.IsYUY2() || vi.IsPlanar())) {
-        sprintf_s(name_buffer, "%s: Only YUY2 and planar YUV clips are supported.", name);
+    if (!vi.IsYUV() || !vi.IsPlanar()) {
+        sprintf_s(name_buffer, "%s: Only planar YUV clips are supported.", name);
         env->ThrowError(_strdup(name_buffer));
     }
     if (vi.IsFieldBased()) {

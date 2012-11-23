@@ -17,26 +17,6 @@ static __forceinline void __cdecl process_plane_plainc_mode0(const process_plane
             pixel_dither_info info = *info_ptr;
             assert((abs(info.ref1) >> params.height_subsampling) <= i && (abs(info.ref1) >> params.height_subsampling) + i < params.src_height);
 
-            if (/*params.vi->IsYUY2()*/false)
-            {
-                int index = j & 3;
-                switch (index)
-                {
-                case 0:
-                case 2:
-                    threshold = params.threshold_y;
-                    break;
-                case 1:
-                    threshold = params.threshold_cb;
-                    break;
-                case 3:
-                    threshold = params.threshold_cr;
-                    break;
-                default:
-                    abort();
-                }
-            }
-
             int ref_pos = (abs(info.ref1) >> params.height_subsampling) * (info.ref1 >> 7) * params.src_pitch;
             int diff = *src_px - src_px[ref_pos];
             if (is_above_threshold(threshold, diff)) {
@@ -58,9 +38,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12_low(const process_
     assert(mode == DA_LOW);
 
     pixel_dither_info* info_ptr;
-    char context_y[CONTEXT_BUFFER_SIZE];
-    char context_cb[CONTEXT_BUFFER_SIZE];
-    char context_cr[CONTEXT_BUFFER_SIZE];
+    char context[CONTEXT_BUFFER_SIZE];
 
     unsigned short threshold = params.threshold;
 
@@ -69,15 +47,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12_low(const process_
 
     int width_subsamp = params.width_subsampling;
 
-    if (/*!params.vi->IsYUY2()*/true)
-    {
-        pixel_proc_init_context<mode>(context_y, params.plane_width_in_pixels, params.output_depth);
-    } else {
-        pixel_proc_init_context<mode>(context_y, params.plane_width_in_pixels / 2, params.output_depth);
-        pixel_proc_init_context<mode>(context_cb, params.plane_width_in_pixels / 4, params.output_depth);
-        pixel_proc_init_context<mode>(context_cr, params.plane_width_in_pixels / 4, params.output_depth);
-    }
-    char* context = context_y;
+    pixel_proc_init_context<mode>(context, params.plane_width_in_pixels, params.output_depth);
 
     DUMP_INIT("c", params.plane, params.plane_width_in_pixels);
 
@@ -91,41 +61,6 @@ static __forceinline void __cdecl process_plane_plainc_mode12_low(const process_
 
         for (int j = 0; j < params.plane_width_in_pixels; j++)
         {
-            int real_col = j;
-            if (/*params.vi->IsYUY2()*/false)
-            {
-                int index = j & 3;
-                switch (index)
-                {
-                case 0:
-                case 2:
-                    context = context_y;
-                    threshold = params.threshold_y;
-                    real_col = j >> 1;
-                    pixel_min = params.pixel_min;
-                    pixel_max = params.pixel_max;
-                    width_subsamp = 0;
-                    break;
-                case 1:
-                    context = context_cb;
-                    threshold = params.threshold_cb;
-                    real_col = j >> 2;
-                    pixel_min = params.pixel_min_c;
-                    pixel_max = params.pixel_max_c;
-                    width_subsamp = 1;
-                    break;
-                case 3:
-                    context = context_cr;
-                    threshold = params.threshold_cr;
-                    real_col = j >> 2;
-                    pixel_min = params.pixel_min_c;
-                    pixel_max = params.pixel_max_c;
-                    width_subsamp = 1;
-                    break;
-                default:
-                    abort();
-                }
-            }
             pixel_dither_info info = *info_ptr;
             int src_px_up = read_pixel<mode>(params, context, src_px);
 
@@ -166,17 +101,6 @@ static __forceinline void __cdecl process_plane_plainc_mode12_low(const process_
                 }
             } else {
                 int x_multiplier = 1;
-                if (/*params.vi->IsYUY2()*/false)
-                {
-                    if ( (j & 1) == 0 )
-                    {
-                        // Y
-                        x_multiplier = 2;
-                    } else {
-                        // Cb, Cr
-                        x_multiplier = 4;
-                    }
-                } 
                 
                 assert(info.ref2 >= 0);
                 assert((info.ref2 >> params.height_subsampling) <= i && 
@@ -238,7 +162,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12_low(const process_
             
             DUMP_VALUE("new_pixel_before_downsample", new_pixel);
 
-            new_pixel = pixel_proc_downsample<mode>(context, new_pixel, i, real_col, pixel_min, pixel_max, params.output_depth);
+            new_pixel = pixel_proc_downsample<mode>(context, new_pixel, i, j, pixel_min, pixel_max, params.output_depth);
             
             DUMP_VALUE("dst", new_pixel);
 
@@ -249,21 +173,11 @@ static __forceinline void __cdecl process_plane_plainc_mode12_low(const process_
             info_ptr++;
             pixel_proc_next_pixel<mode>(context);
         }
-        pixel_proc_next_row<mode>(context_y);
+        pixel_proc_next_row<mode>(context);
         DUMP_NEXT_LINE();
-        if (/*params.vi->IsYUY2()*/false)
-        {
-            pixel_proc_next_row<mode>(context_cb);
-            pixel_proc_next_row<mode>(context_cr);
-        }
     }
 
     DUMP_FINISH();
 
-    pixel_proc_destroy_context<mode>(context_y);
-    if (/*params.vi->IsYUY2()*/false)
-    {
-        pixel_proc_destroy_context<mode>(context_cb);
-        pixel_proc_destroy_context<mode>(context_cr);
-    }
+    pixel_proc_destroy_context<mode>(context);
 }
