@@ -1,4 +1,4 @@
-
+#include <assert.h>
 
 namespace pixel_proc_16bit {
     

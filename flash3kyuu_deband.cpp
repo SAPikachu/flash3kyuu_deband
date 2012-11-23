@@ -6,6 +6,7 @@
 #include <intrin.h>
 #include <process.h>
 #include <windows.h>
+#include <assert.h>
 
 #define FLASH3KYUU_DEBAND_SIMPLE_MACRO_NAME
 

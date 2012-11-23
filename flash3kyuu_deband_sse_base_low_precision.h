@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdlib.h>
+
 namespace sse_low_dither_algo
 {
     static __inline __m128i clamped_absolute_difference_low(__m128i a, __m128i b, __m128i difference_limit)

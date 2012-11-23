@@ -1,15 +1,6 @@
 #pragma once
 
-#include "avisynth/avisynth.h"
-
-#include <string.h>
-#include <stdio.h>
-#include <assert.h>
-#include <memory.h>
-#include <malloc.h>
-
 #include "process_plane_context.h"
-
 #include "constants.h"
 
 #ifdef FLASH3KYUU_DEBAND_EXPORTS
@@ -33,7 +24,6 @@
 #else
 #define __PRAGMA_NOUNROLL__
 #endif
-
 
 typedef __declspec(align(4)) struct _pixel_dither_info {
     signed char ref1, ref2;

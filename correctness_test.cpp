@@ -1,5 +1,7 @@
 #include "stdafx.h"
 
+#include <stdio.h>
+
 #include "test.h"
 
 

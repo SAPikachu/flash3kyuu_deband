@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdlib.h>
+
 #include "impl_dispatch.h"
 
 #define CALL_IMPL(func, ...) \

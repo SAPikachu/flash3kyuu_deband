@@ -1,3 +1,5 @@
+#include <assert.h>
+
 // freezed code, don't add new feature to it
 
 static __forceinline void __cdecl process_plane_plainc_mode0(const process_plane_params& params, process_plane_context*)

@@ -4,9 +4,9 @@
 #define FS_DITHER_SKIP_PRE_CLAMP
 
 #include "pixel_proc_c_high_f_s_dithering.h"
-
 #include "pixel_proc_c_high_ordered_dithering.h"
 
+#include <assert.h>
 #include <emmintrin.h>
 
 namespace dither_high

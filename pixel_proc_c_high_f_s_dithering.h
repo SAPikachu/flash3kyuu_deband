@@ -1,5 +1,7 @@
 #pragma once
 
+#include <math.h>
+
 #include "impl_dispatch.h"
 
 namespace pixel_proc_high_f_s_dithering {

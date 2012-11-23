@@ -1,13 +1,10 @@
+#include <assert.h>
+
 #include "dither_avs.h"
-
 #include "../dither_high.h"
-
 #include "../check.h"
-
 #include "../constants.h"
-
 #include "../sse_utils.h"
-
 #include "../x64_compat.h"
 
 AVSValue __cdecl Create_dither(AVSValue args, void* user_data, IScriptEnvironment* env)

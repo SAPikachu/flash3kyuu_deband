@@ -1,3 +1,4 @@
+#include <assert.h>
 
 namespace pixel_proc_8bit {
 

@@ -1,10 +1,9 @@
 
+#include <stdio.h>
+
 #include "flash3kyuu_deband.h"
-
 #include "impl_dispatch.h"
-
 #include "intrin.h"
-
 #include "asmlib.h"
 
 #define GUARD_CONST 0xDEADBEEF
