@@ -43,6 +43,7 @@ typedef __declspec(align(4)) struct _pixel_dither_info {
 typedef struct _process_plane_params
 {
     const unsigned char *src_plane_ptr;
+
     int src_width;
     int src_height;
     int src_pitch;
@@ -79,8 +80,30 @@ typedef struct _process_plane_params
     int pixel_min_c;
     
     unsigned short threshold_y, threshold_cb, threshold_cr;
-    VideoInfo* vi;
-    VideoInfo* dst_vi;
+
+    // Helper functions
+    __inline int get_dst_width() const {
+        int width = src_width;
+        if (input_mode != output_mode) {
+            if (output_mode == HIGH_BIT_DEPTH_INTERLEAVED) {
+                width *= 2;
+            } else if (input_mode == HIGH_BIT_DEPTH_INTERLEAVED) {
+                width /= 2;
+            }
+        }
+        return width;
+    }
+    __inline int get_dst_height() const {
+        int height = src_height;
+        if (input_mode != output_mode) {
+            if (output_mode == HIGH_BIT_DEPTH_STACKED) {
+                height *= 2;
+            } else if (input_mode == HIGH_BIT_DEPTH_STACKED) {
+                height /= 2;
+            }
+        }
+        return height;
+    }
 } process_plane_params;
 
 typedef void (__cdecl *process_plane_impl_t)(const process_plane_params& params, process_plane_context* context);

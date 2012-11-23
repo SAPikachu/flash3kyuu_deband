@@ -21,8 +21,8 @@ void __cdecl process_plane_correctness_test(const process_plane_params& params, 
     unsigned char* buffer = NULL;
     unsigned char* plane_start = NULL;
     
-    int width = params.dst_vi->RowSize(params.plane);
-    int height = params.dst_vi->height >> params.dst_vi->GetPlaneHeightSubsampling(params.plane);
+    int width = params.get_dst_width();
+    int height = params.get_dst_height();
 
     buffer = create_guarded_buffer(height, params.dst_pitch, plane_start);
 

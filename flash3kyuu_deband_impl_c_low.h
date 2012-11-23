@@ -17,7 +17,7 @@ static __forceinline void __cdecl process_plane_plainc_mode0(const process_plane
             pixel_dither_info info = *info_ptr;
             assert((abs(info.ref1) >> params.height_subsampling) <= i && (abs(info.ref1) >> params.height_subsampling) + i < params.src_height);
 
-            if (params.vi->IsYUY2())
+            if (/*params.vi->IsYUY2()*/false)
             {
                 int index = j & 3;
                 switch (index)
@@ -69,7 +69,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12_low(const process_
 
     int width_subsamp = params.width_subsampling;
 
-    if (!params.vi->IsYUY2())
+    if (/*!params.vi->IsYUY2()*/true)
     {
         pixel_proc_init_context<mode>(context_y, params.plane_width_in_pixels, params.output_depth);
     } else {
@@ -92,7 +92,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12_low(const process_
         for (int j = 0; j < params.plane_width_in_pixels; j++)
         {
             int real_col = j;
-            if (params.vi->IsYUY2())
+            if (/*params.vi->IsYUY2()*/false)
             {
                 int index = j & 3;
                 switch (index)
@@ -166,7 +166,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12_low(const process_
                 }
             } else {
                 int x_multiplier = 1;
-                if (params.vi->IsYUY2())
+                if (/*params.vi->IsYUY2()*/false)
                 {
                     if ( (j & 1) == 0 )
                     {
@@ -251,7 +251,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12_low(const process_
         }
         pixel_proc_next_row<mode>(context_y);
         DUMP_NEXT_LINE();
-        if (params.vi->IsYUY2())
+        if (/*params.vi->IsYUY2()*/false)
         {
             pixel_proc_next_row<mode>(context_cb);
             pixel_proc_next_row<mode>(context_cr);
@@ -261,7 +261,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12_low(const process_
     DUMP_FINISH();
 
     pixel_proc_destroy_context<mode>(context_y);
-    if (params.vi->IsYUY2())
+    if (/*params.vi->IsYUY2()*/false)
     {
         pixel_proc_destroy_context<mode>(context_cb);
         pixel_proc_destroy_context<mode>(context_cr);

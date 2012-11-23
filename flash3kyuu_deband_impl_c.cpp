@@ -79,7 +79,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12_high(const process
 
     int width_subsamp = params.width_subsampling;
 
-    if (!params.vi->IsYUY2())
+    if (/*!params.vi->IsYUY2()*/true)
     {
         pixel_proc_init_context<mode>(context_y, params.plane_width_in_pixels, params.output_depth);
     } else {
@@ -93,7 +93,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12_high(const process
 
     int process_width = params.plane_width_in_pixels;
 
-    if (params.vi->IsYUY2())
+    if (/*params.vi->IsYUY2()*/false)
     {
         process_width *= 2;
     }
@@ -115,7 +115,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12_high(const process
         for (int j = 0; j < process_width; j++)
         {
             int real_col = j;
-            if (params.vi->IsYUY2())
+            if (/*params.vi->IsYUY2()*/false)
             {
                 int index = j & 3;
                 switch (index)
@@ -189,7 +189,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12_high(const process
                 }
             } else {
                 int x_multiplier = 1;
-                if (params.vi->IsYUY2())
+                if (/*params.vi->IsYUY2()*/false)
                 {
                     if ( (j & 1) == 0 )
                     {
@@ -289,7 +289,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12_high(const process
         }
         pixel_proc_next_row<mode>(context_y);
         DUMP_NEXT_LINE();
-        if (params.vi->IsYUY2())
+        if (/*params.vi->IsYUY2()*/false)
         {
             pixel_proc_next_row<mode>(context_cb);
             pixel_proc_next_row<mode>(context_cr);
@@ -299,7 +299,7 @@ static __forceinline void __cdecl process_plane_plainc_mode12_high(const process
     DUMP_FINISH();
 
     pixel_proc_destroy_context<mode>(context_y);
-    if (params.vi->IsYUY2())
+    if (/*params.vi->IsYUY2()*/false)
     {
         pixel_proc_destroy_context<mode>(context_cb);
         pixel_proc_destroy_context<mode>(context_cr);

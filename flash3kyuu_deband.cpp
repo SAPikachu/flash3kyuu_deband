@@ -534,10 +534,6 @@ void flash3kyuu_deband::process_plane(int n, PVideoFrame src, PVideoFrame dst, u
     params.plane_width_in_pixels >>= params.width_subsampling;
     params.plane_height_in_pixels >>= params.height_subsampling;
 
-
-    params.vi = &_src_vi;
-    params.dst_vi = &vi;
-    
     params.info_stride = get_frame_lut_stride(params.plane_width_in_pixels, vi);
     params.grain_buffer_stride = get_frame_lut_stride(params.plane_width_in_pixels, vi);
 
