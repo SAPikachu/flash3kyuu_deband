@@ -8,7 +8,7 @@
 
 #include "avisynth.h"
 
-#include "../constants.h"
+#include "../include/f3kdb_enums.h"
 
 static const char* FLASH3KYUU_DEBAND_AVS_PARAMS = "c[range]i[Y]i[Cb]i[Cr]i[grainY]i[grainC]i[sample_mode]i[seed]i[blur_first]b[dynamic_grain]b[opt]i[mt]b[dither_algo]i[keep_tv_range]b[input_mode]i[input_depth]i[output_mode]i[output_depth]i[random_algo_ref]i[random_algo_grain]i[random_param_ref]f[random_param_grain]f";
 
@@ -118,5 +118,4 @@ typedef struct _FLASH3KYUU_DEBAND_RAW_ARGS
 #define CREATE_CLASS FLASH3KYUU_DEBAND_CREATE_CLASS
 
 #endif
-
 

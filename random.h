@@ -1,6 +1,7 @@
 #pragma once
 
 #include "constants.h"
+#include "include/f3kdb.h"
 
 #define DEFAULT_RANDOM_PARAM 1.0
 

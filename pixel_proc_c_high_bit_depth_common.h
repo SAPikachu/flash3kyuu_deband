@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "constants.h"
 
     static inline int upsample(void* context, unsigned char pixel)
     {

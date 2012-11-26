@@ -1,6 +1,8 @@
 #pragma once
 
 #include <stdlib.h>
+#include "include/f3kdb.h"
+#include "constants.h"
 
 namespace sse_low_dither_algo
 {

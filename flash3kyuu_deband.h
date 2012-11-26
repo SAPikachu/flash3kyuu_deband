@@ -1,7 +1,7 @@
 #pragma once
 
 #include "process_plane_context.h"
-#include "constants.h"
+#include "include/f3kdb.h"
 
 #ifdef FLASH3KYUU_DEBAND_EXPORTS
 #define FLASH3KYUU_DEBAND_API extern "C" __declspec(dllexport)

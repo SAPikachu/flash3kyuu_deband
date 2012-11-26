@@ -9,16 +9,12 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="avisynth">
       <UniqueIdentifier>{67a61580-c424-4c77-bab9-6bb124249721}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ReadMe.txt" />
+    <Filter Include="include">
+      <UniqueIdentifier>{fe79c3ee-5a42-4400-841e-4a492c86116e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -125,6 +121,15 @@
     </ClInclude>
     <ClInclude Include="avisynth\stdafx.h">
       <Filter>avisynth</Filter>
+    </ClInclude>
+    <ClInclude Include="include\f3kdb_enums.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\f3kdb.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\f3kdb_params.h">
+      <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

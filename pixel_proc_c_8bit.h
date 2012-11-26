@@ -1,5 +1,7 @@
 #include <assert.h>
 
+#include "constants.h"
+
 namespace pixel_proc_8bit {
 
     #include "utils.h"
