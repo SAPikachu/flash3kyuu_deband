@@ -1,6 +1,6 @@
 #pragma once
 
-#include "flash3kyuu_deband.h"
+#include "core.h"
 
 extern const process_plane_impl_t** process_plane_impls[];
 

@@ -422,7 +422,7 @@ namespace sse_low_dither_algo
             // set up buffer for cache
             cache = (info_cache*)malloc(sizeof(info_cache));
             // 4 offsets (2 bytes per item) + 2-byte change
-            info_data_stream = (char*)_aligned_malloc(params.info_stride * (4 * 2 + 2) * params.src_height, FRAME_LUT_ALIGNMENT);
+            info_data_stream = (char*)_aligned_malloc(params.info_stride * (4 * 2 + 2) * params.get_src_height(), FRAME_LUT_ALIGNMENT);
             cache->data_stream = info_data_stream;
             cache->pitch = params.src_pitch;
         }

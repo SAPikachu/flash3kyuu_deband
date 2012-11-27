@@ -77,9 +77,6 @@
     <ClInclude Include="utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="check.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="constants.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -103,9 +100,6 @@
     </ClInclude>
     <ClInclude Include="random.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="avisynth\interface.h">
-      <Filter>avisynth</Filter>
     </ClInclude>
     <ClInclude Include="avisynth\avisynth.h">
       <Filter>avisynth</Filter>
@@ -131,12 +125,21 @@
     <ClInclude Include="include\f3kdb_params.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="auto_utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="avisynth\check.h">
+      <Filter>avisynth</Filter>
+    </ClInclude>
+    <ClInclude Include="avisynth\filter.h">
+      <Filter>avisynth</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="flash3kyuu_deband.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dllmain.cpp">
@@ -169,9 +172,6 @@
     <ClCompile Include="impl_dispatch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="check.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="debug_dump.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -188,6 +188,21 @@
       <Filter>avisynth</Filter>
     </ClCompile>
     <ClCompile Include="avisynth\dither_avs.cpp">
+      <Filter>avisynth</Filter>
+    </ClCompile>
+    <ClCompile Include="auto_utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="core.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="public_interface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avisynth\check.cpp">
+      <Filter>avisynth</Filter>
+    </ClCompile>
+    <ClCompile Include="avisynth\filter.cpp">
       <Filter>avisynth</Filter>
     </ClCompile>
   </ItemGroup>

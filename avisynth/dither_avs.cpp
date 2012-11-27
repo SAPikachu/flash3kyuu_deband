@@ -1,8 +1,9 @@
 #include <assert.h>
 
 #include "dither_avs.h"
+#include "../core.h"
 #include "../dither_high.h"
-#include "../check.h"
+#include "check.h"
 #include "../constants.h"
 #include "../sse_utils.h"
 #include "../x64_compat.h"

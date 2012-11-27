@@ -363,14 +363,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="asmlib.h" />
+    <ClInclude Include="auto_utils.h" />
     <ClInclude Include="avisynth\avisynth.h" />
     <ClInclude Include="avisynth\avisynth_videoinfo_26.h" />
+    <ClInclude Include="avisynth\check.h" />
     <ClInclude Include="avisynth\dither_avs.h" />
-    <ClInclude Include="avisynth\interface.h" />
+    <ClInclude Include="avisynth\filter.h" />
     <ClInclude Include="avisynth\mt_info.h" />
     <ClInclude Include="avisynth\stdafx.h" />
-    <ClInclude Include="check.h" />
     <ClInclude Include="constants.h" />
+    <ClInclude Include="core.h" />
     <ClInclude Include="debug_dump.h" />
     <ClInclude Include="dither_high.h" />
     <ClInclude Include="flash3kyuu_deband.def.h" />
@@ -402,12 +404,15 @@
     <ClInclude Include="x64_compat.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="auto_utils.cpp" />
     <ClCompile Include="avisynth\avisynth_init.cpp" />
     <ClCompile Include="avisynth\avisynth_videoinfo_26.cpp" />
+    <ClCompile Include="avisynth\check.cpp" />
     <ClCompile Include="avisynth\dither_avs.cpp" />
+    <ClCompile Include="avisynth\filter.cpp" />
     <ClCompile Include="avisynth\mt_info.cpp" />
     <ClCompile Include="benchmark.cpp" />
-    <ClCompile Include="check.cpp" />
+    <ClCompile Include="core.cpp" />
     <ClCompile Include="correctness_test.cpp" />
     <ClCompile Include="debug_dump.cpp" />
     <ClCompile Include="dllmain.cpp">
@@ -436,7 +441,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_MSVC|x64'">
       </PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="flash3kyuu_deband.cpp" />
+    <ClCompile Include="public_interface.cpp" />
     <ClCompile Include="flash3kyuu_deband_impl_c.cpp" />
     <ClCompile Include="flash3kyuu_deband_impl_sse2.cpp" />
     <ClCompile Include="flash3kyuu_deband_impl_sse4.cpp" />

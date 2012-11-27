@@ -1,14 +1,14 @@
 
-#pragma once
-
 /*************************
  * Script generated code *
  *     Do not modify     *
  *************************/
 
+#pragma once
+
 #include "f3kdb_enums.h"
 
-typedef struct _flash3kyuu_deband_params_t
+typedef struct _f3kdb_params_t
 {
     int range; 
     unsigned short Y; 
@@ -31,5 +31,5 @@ typedef struct _flash3kyuu_deband_params_t
     RANDOM_ALGORITHM random_algo_grain; 
     double random_param_ref; 
     double random_param_grain; 
-} flash3kyuu_deband_params_t;
+} f3kdb_params_t;
 

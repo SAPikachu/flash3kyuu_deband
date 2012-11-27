@@ -1,6 +1,6 @@
 #pragma once
 
-#include "avisynth/avisynth.h"
+#include "avisynth.h"
 
 void check_parameter_range(const char* name, int value, int lower_bound, int upper_bound, char* param_name, IScriptEnvironment* env);
 

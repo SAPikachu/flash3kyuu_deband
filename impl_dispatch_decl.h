@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core.h"
+
 #ifdef IMPL_DISPATCH_IMPORT_DECLARATION
 
 #define DEFINE_IMPL(n, \

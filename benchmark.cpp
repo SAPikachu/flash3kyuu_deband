@@ -32,8 +32,10 @@ void __cdecl process_plane_benchmark(const process_plane_params& params, process
     printf(__FUNCTION__ ", sample_mode=%d, blur_first=%d\n", sample_mode, blur_first);
     printf("-----------------------------------\n");
 
-    int total_bytes = params.src_width * params.src_height;
-    printf("Width: %d, Height: %d, Total: %d bytes\n", params.src_width, params.src_height, total_bytes);
+    int src_width = params.get_src_width();
+    int src_height = params.get_src_height();
+    int total_bytes = src_width * src_height;
+    printf("Width: %d, Height: %d, Total: %d bytes\n", src_width, src_height, total_bytes);
 
     process_plane_impl_t c_impl = process_plane_impls[DA_LOW][IMPL_C][select_impl_index(sample_mode, blur_first)];
     process_plane_impl_t sse_impl = process_plane_impls[DA_LOW][IMPL_SSE4][select_impl_index(sample_mode, blur_first)];

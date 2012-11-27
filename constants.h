@@ -2,7 +2,6 @@
 
 // alignment for SSE operations
 #define FRAME_LUT_ALIGNMENT 16
-#define PLANE_ALIGNMENT 16
 
 #define INTERNAL_BIT_DEPTH 16
 

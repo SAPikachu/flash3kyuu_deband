@@ -6,15 +6,18 @@ static __forceinline void __cdecl process_plane_plainc_mode0(const process_plane
 {
     pixel_dither_info* info_ptr;
     unsigned short threshold = params.threshold;
+    
+    int src_height = params.get_src_height();
+    int src_width = params.get_dst_width();
 
-    for (int i = 0; i < params.src_height; i++)
+    for (int i = 0; i < src_height; i++)
     {
         const unsigned char* src_px = params.src_plane_ptr + params.src_pitch * i;
         unsigned char* dst_px = params.dst_plane_ptr + params.dst_pitch * i;
 
         info_ptr = params.info_ptr_base + params.info_stride * i;
 
-        for (int j = 0; j < params.src_width; j++)
+        for (int j = 0; j < src_width; j++)
         {
             pixel_dither_info info = *info_ptr;
             assert((abs(info.ref1) >> params.height_subsampling) <= i && (abs(info.ref1) >> params.height_subsampling) + i < params.src_height);

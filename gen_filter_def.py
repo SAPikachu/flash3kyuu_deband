@@ -3,52 +3,68 @@ def generate_output():
     p = FilterParam
     params = (
         p("c", "child", optional=False, has_field=False),
-        p("i", "range"),
-        p("i", "Y", c_type="unsigned short"),
-        p("i", "Cb", c_type="unsigned short"),
-        p("i", "Cr", c_type="unsigned short"),
-        p("i", "grainY"),
-        p("i", "grainC"),
-        p("i", "sample_mode"),
-        p("i", "seed"),
-        p("b", "blur_first"),
-        p("b", "dynamic_grain"),
-        p("i", "opt"),
+        p("i", "range", default_value=15),
+        p("i", "Y", c_type="unsigned short", default_value=64),
+        p("i", "Cb", c_type="unsigned short", default_value=64),
+        p("i", "Cr", c_type="unsigned short", default_value=64),
+        p("i", "grainY", default_value=64),
+        p("i", "grainC", default_value=64),
+        p("i", "sample_mode", default_value=2),
+        p("i", "seed", default_value=0),
+        p("b", "blur_first", default_value="true"),
+        p("b", "dynamic_grain", default_value="false"),
+        p("i", "opt", default_value=-1),
         p("b", "mt", scope=["avisynth"]),
-        p("i", "dither_algo", c_type="DITHER_ALGORITHM"),
-        p("b", "keep_tv_range"),
-        p("i", "input_mode", c_type="PIXEL_MODE"),
-        p("i", "input_depth"),
-        p("i", "output_mode", c_type="PIXEL_MODE"),
-        p("i", "output_depth"),
-        p("i", "random_algo_ref", c_type="RANDOM_ALGORITHM"),
-        p("i", "random_algo_grain", c_type="RANDOM_ALGORITHM"),
-        p("f", "random_param_ref"),
-        p("f", "random_param_grain"),
+        p("i", "dither_algo", c_type="DITHER_ALGORITHM", 
+          default_value="DA_HIGH_FLOYD_STEINBERG_DITHERING"),
+        p("b", "keep_tv_range", default_value="false"),
+        p("i", "input_mode", c_type="PIXEL_MODE", 
+          default_value="DEFAULT_PIXEL_MODE"),
+        p("i", "input_depth", default_value=-1),
+        p("i", "output_mode", c_type="PIXEL_MODE",
+          default_value="DEFAULT_PIXEL_MODE"),
+        p("i", "output_depth", default_value=-1),
+        p("i", "random_algo_ref", c_type="RANDOM_ALGORITHM", 
+          default_value="RANDOM_ALGORITHM_UNIFORM"),
+        p("i", "random_algo_grain", c_type="RANDOM_ALGORITHM",
+          default_value="RANDOM_ALGORITHM_UNIFORM"),
+        p("f", "random_param_ref",
+          default_value="DEFAULT_RANDOM_PARAM"),
+        p("f", "random_param_grain",
+          default_value="DEFAULT_RANDOM_PARAM"),
     )
 
-    with open(r"avisynth\flash3kyuu_deband.def.h", "w") as f:
-        f.write(generate_definition(
-            "flash3kyuu_deband",
-            OUTPUT_TEMPLATE_AVISYNTH,
-            "avisynth",
-            *params
-        ))
+    def _generate(file_name, template, scope):
+        with open(file_name, "w") as f:
+            f.write(generate_definition(
+                "f3kdb",
+                template,
+                scope,
+                *params
+            ))
 
-    with open(r"include\f3kdb_params.h", "w") as f:
-        f.write(generate_definition(
-            "flash3kyuu_deband",
-            OUTPUT_TEMPLATE_PUBLIC_PARAMS,
-            "public_params",
-            *params
-        ))
+    _generate(
+        r"avisynth\flash3kyuu_deband.def.h",
+        OUTPUT_TEMPLATE_AVISYNTH,
+        "avisynth",
+    )
+    _generate(
+        r"include\f3kdb_params.h",
+        OUTPUT_TEMPLATE_PUBLIC_PARAMS,
+        "common",
+    )
+    _generate(
+        r"auto_utils.cpp",
+        OUTPUT_TEMPLATE_AUTO_UTILS,
+        "common",
+    )
 
 PARAM_TYPES = {
-    "c": "PClip",
-    "b": "bool",
-    "i": "int",
-    "f": "double",
-    "s": "const char*",
+    "c": ("PClip", None),
+    "b": ("bool", "AsBool"),
+    "i": ("int", "AsInt"),
+    "f": ("double", "AsFloat"),
+    "s": ("const char*", "AsString"),
 }
 
 class FilterParam:
@@ -61,6 +77,7 @@ class FilterParam:
             optional=True,
             has_field=True,
             scope=None,
+            default_value=None,
     ):
         if type not in PARAM_TYPES.keys():
             raise ValueError("Type {} is not supported.".format(type))
@@ -71,61 +88,49 @@ class FilterParam:
         self.type = type
         self.name = name
         self.field_name = field_name or name
-        self.c_type = c_type or PARAM_TYPES[type]
+        self.c_type = c_type or PARAM_TYPES[type][0]
         self.custom_c_type = c_type is not None
+        self.converter = PARAM_TYPES[type][1]
         self.optional = optional
         self.has_field = has_field
         self.scope = scope
+        self.default_value = default_value
 
-OUTPUT_TEMPLATE_PUBLIC_PARAMS = """
-#pragma once
-
+OUTPUT_HEADER = """
 /*************************
  * Script generated code *
  *     Do not modify     *
  *************************/
+"""
+
+OUTPUT_TEMPLATE_PUBLIC_PARAMS = """
+#pragma once
 
 #include "f3kdb_enums.h"
 
-typedef struct _{filter_name}_params_t
+typedef struct _f3kdb_params_t
 {{
     {class_field_def_public}
-}} {filter_name}_params_t;
+}} f3kdb_params_t;
 
+"""
+
+OUTPUT_TEMPLATE_AUTO_UTILS = """
+#include "random.h"
+
+void params_set_defaults(f3kdb_params_t* params)
+{{
+    {params_set_defaults}
+}}
 """
 
 OUTPUT_TEMPLATE_AVISYNTH = """
 #pragma once
 
-/*************************
- * Script generated code *
- *     Do not modify     *
- *************************/
-
 #include "avisynth.h"
-
-#include "../include/f3kdb_enums.h"
+#include "../include/f3kdb.h"
 
 static const char* {filter_name_u}_AVS_PARAMS = "{avs_params}";
-
-class {filter_name}_parameter_storage_t
-{{
-protected:
-
-    {class_field_def}
-
-public:
-
-    {filter_name}_parameter_storage_t(const {filter_name}_parameter_storage_t& o)
-    {{
-        {class_field_copy}
-    }}
-
-    {filter_name}_parameter_storage_t( {init_param_list_with_field_func_def} )
-    {{
-        {class_field_init}
-    }}
-}};
 
 typedef struct _{filter_name_u}_RAW_ARGS
 {{
@@ -135,8 +140,6 @@ typedef struct _{filter_name_u}_RAW_ARGS
 #define {filter_name_u}_ARG_INDEX(name) (offsetof({filter_name_u}_RAW_ARGS, name) / sizeof(AVSValue))
 
 #define {filter_name_u}_ARG(name) args[{filter_name_u}_ARG_INDEX(name)]
-
-#define {filter_name_u}_CREATE_CLASS(klass) new klass( {init_param_list_without_field_invoke}, {filter_name}_parameter_storage_t( {init_param_list_with_field_invoke} ) )
 
 #ifdef {filter_name_u}_SIMPLE_MACRO_NAME
 
@@ -148,9 +151,12 @@ typedef struct _{filter_name_u}_RAW_ARGS
 
 #define ARG {filter_name_u}_ARG
 
-#define CREATE_CLASS {filter_name_u}_CREATE_CLASS
-
 #endif
+
+static void f3kdb_params_from_avs(AVSValue args, f3kdb_params_t* f3kdb_params)
+{{
+    {f3kdb_params_from_avs}
+}}
 
 """
 
@@ -178,6 +184,21 @@ def build_class_field_init(params):
 def build_class_field_copy(params):
     return "\n        ".join(["_{0} = o._{0}; ".format(x.field_name) for x in params if x.has_field])
 
+def build_params_set_defaults(params):
+    return "\n    ".join(["params->{0} = {1};".format(x.field_name, x.default_value) for x in params if x.has_field])
+
+def build_f3kdb_params_from_avs(filter_name, params):
+    params = [x for x in params if not x.scope]
+    return "\n    ".join([
+        "if ({filter_name_u}_ARG({field_name}).Defined()) {{ f3kdb_params->{field_name} = {type_conversion}{filter_name_u}_ARG({field_name}).{converter}(); }}".
+        format(
+            filter_name_u=filter_name.upper(),
+            field_name=x.field_name,
+            type_conversion="({})".format(x.c_type) if x.custom_c_type else "",
+            converter=x.converter,
+        ) 
+        for x in params if x.has_field])
+
 def generate_definition(filter_name, template, scope, *params):
     params = [x for x in params if not x.scope or scope in x.scope]
     format_params = {
@@ -192,9 +213,12 @@ def generate_definition(filter_name, template, scope, *params):
        "class_field_def_public": build_class_field_def(params, prefix=""),
        "class_field_init": build_class_field_init(params),
        "class_field_copy": build_class_field_copy(params),
+       "params_set_defaults": build_params_set_defaults(params),
+       "f3kdb_params_from_avs": 
+            build_f3kdb_params_from_avs(filter_name, params),
     }
 
-    return template.format(**format_params)
+    return OUTPUT_HEADER + template.format(**format_params)
 
 
 if __name__ == "__main__":
