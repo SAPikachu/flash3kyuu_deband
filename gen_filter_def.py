@@ -116,11 +116,21 @@ typedef struct _f3kdb_params_t
 """
 
 OUTPUT_TEMPLATE_AUTO_UTILS = """
+#include <string>
+
 #include "random.h"
+#include "auto_utils.h"
+#include "auto_utils_helper.h"
 
 void params_set_defaults(f3kdb_params_t* params)
 {{
     {params_set_defaults}
+}}
+
+int params_set_by_string(f3kdb_params_t* params, const char* name, const char* value_string)
+{{
+    {params_set_by_string}
+    return F3KDB_ERROR_INVALID_NAME;
 }}
 """
 
@@ -189,6 +199,14 @@ def build_class_field_copy(params):
 def build_params_set_defaults(params):
     return "\n    ".join(["params->{0} = {1};".format(x.field_name, x.default_value) for x in params if x.has_field])
 
+def build_params_set_by_string(params):
+    return "\n    ".join([
+        """if (!_stricmp(name, "{field_name}")) {{ return params_set_value_by_string(&params->{field_name}, value_string); }}""".
+        format(
+            field_name=x.field_name,
+        ) 
+        for x in params if x.has_field])
+
 def build_f3kdb_params_from_avs(filter_name, params):
     params = [x for x in params if not x.scope]
     return "\n    ".join([
@@ -216,6 +234,7 @@ def generate_definition(filter_name, template, scope, *params):
        "class_field_init": build_class_field_init(params),
        "class_field_copy": build_class_field_copy(params),
        "params_set_defaults": build_params_set_defaults(params),
+       "params_set_by_string": build_params_set_by_string(params),
        "f3kdb_params_from_avs": 
             build_f3kdb_params_from_avs(filter_name, params),
     }

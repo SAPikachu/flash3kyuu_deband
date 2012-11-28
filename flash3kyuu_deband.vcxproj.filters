@@ -137,6 +137,9 @@
     <ClInclude Include="avisynth\filter.h">
       <Filter>avisynth</Filter>
     </ClInclude>
+    <ClInclude Include="auto_utils_helper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

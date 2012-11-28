@@ -364,6 +364,7 @@
   <ItemGroup>
     <ClInclude Include="asmlib.h" />
     <ClInclude Include="auto_utils.h" />
+    <ClInclude Include="auto_utils_helper.h" />
     <ClInclude Include="avisynth\avisynth.h" />
     <ClInclude Include="avisynth\avisynth_videoinfo_26.h" />
     <ClInclude Include="avisynth\check.h" />

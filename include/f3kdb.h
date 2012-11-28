@@ -44,8 +44,13 @@ enum
     F3KDB_SUCCESS = 0,
     F3KDB_ERROR_INVALID_INTERFACE_VERSION,
     F3KDB_INSUFFICIENT_MEMORY,
-    F3KDB_ERROR_INVALID_PARAMETER,
+    F3KDB_INVALID_ARGUMENT,
     F3KDB_ERROR_INVALID_STATE,
+    F3KDB_ERROR_INVALID_NAME,
+    F3KDB_ERROR_INVALID_VALUE,
+    F3KDB_ERROR_VALUE_OUT_OF_RANGE,
+    F3KDB_ERROR_NOT_IMPLEMENTED,
+    F3KDB_ERROR_UNEXPECTED_END,
 
     F3KDB_ERROR_MAX
 };
@@ -54,6 +59,7 @@ extern "C"
 {
 
 int f3kdb_params_init_defaults(f3kdb_params_t* params, int interface_version = F3KDB_INTERFACE_VERSION);
+int f3kdb_params_fill_by_string(f3kdb_params_t* params, const char* param_string, int interface_version = F3KDB_INTERFACE_VERSION);
 int f3kdb_params_sanitize(f3kdb_params_t* params, int interface_version = F3KDB_INTERFACE_VERSION);
 int f3kdb_create(const f3kdb_video_info_t* video_info, const f3kdb_params_t* params, f3kdb_core_t** core_out, char* error_msg = nullptr, size_t error_msg_size = 0, int interface_version = F3KDB_INTERFACE_VERSION);
 int f3kdb_destroy(f3kdb_core_t* context);

@@ -20,6 +20,68 @@ int f3kdb_params_init_defaults(f3kdb_params_t* params, int interface_version)
     return F3KDB_SUCCESS;
 }
 
+int f3kdb_params_fill_by_string(f3kdb_params_t* params, const char* param_string, int interface_version)
+{
+    if (interface_version != F3KDB_INTERFACE_VERSION)
+    {
+        return F3KDB_ERROR_INVALID_INTERFACE_VERSION;
+    }
+
+    char* param_string_dup = _strdup(param_string);
+    const char* name_ptr = param_string_dup;
+    const char* value_ptr = nullptr;
+    
+    char* cur = param_string_dup;
+    while (true)
+    {
+        bool completed = false;
+        switch (*cur)
+        {
+        case 0:
+            if (!value_ptr)
+            {
+                free(param_string_dup);
+                return F3KDB_ERROR_UNEXPECTED_END;
+            }
+            completed = true;
+            // Fall below
+        case ',':
+        case '/':
+            if (value_ptr)
+            {
+                *cur = 0;
+                int result = params_set_by_string(params, name_ptr, value_ptr);
+                if (result != F3KDB_SUCCESS)
+                {
+                    free(param_string_dup);
+                    return result;
+                }
+                name_ptr = cur + 1;
+                value_ptr = nullptr;
+            }
+            break;
+        case '=':
+            if (!value_ptr)
+            {
+                *cur = 0;
+                value_ptr = cur + 1;
+            }
+            break;
+        default:
+            // Nothing to do
+            break;
+        }
+        if (completed)
+        {
+            break;
+        }
+        cur++;
+    }
+
+    free(param_string_dup);
+    return F3KDB_SUCCESS;
+}
+
 int f3kdb_params_sanitize(f3kdb_params_t* params, int interface_version)
 {
     if (interface_version != F3KDB_INTERFACE_VERSION)
@@ -72,7 +134,7 @@ int f3kdb_create(const f3kdb_video_info_t* video_info, const f3kdb_params_t* par
     }
 
 #define INVALID_PARAM_IF(cond) \
-    do { if (cond) { print_error(error_msg, error_msg_size, "Invalid parameter condition: %s", #cond); return F3KDB_ERROR_INVALID_PARAMETER; } } while (0)
+    do { if (cond) { print_error(error_msg, error_msg_size, "Invalid parameter condition: %s", #cond); return F3KDB_INVALID_ARGUMENT; } } while (0)
 
     INVALID_PARAM_IF(!video_info);
     INVALID_PARAM_IF(!params_in);
@@ -90,12 +152,12 @@ int f3kdb_create(const f3kdb_video_info_t* video_info, const f3kdb_params_t* par
     if (params.output_depth == 8 && params.output_mode != LOW_BIT_DEPTH)
     {
         print_error(error_msg, error_msg_size, "%s", "output_mode > 0 is only valid when output_depth > 8");
-        return F3KDB_ERROR_INVALID_PARAMETER;
+        return F3KDB_INVALID_ARGUMENT;
     }
     if (params.output_depth > 8 && params.output_mode == LOW_BIT_DEPTH)
     {
         print_error(error_msg, error_msg_size, "%s", "output_mode = 0 is only valid when output_depth = 8");
-        return F3KDB_ERROR_INVALID_PARAMETER;
+        return F3KDB_INVALID_ARGUMENT;
     }
     if (params.output_depth == 16)
     {
@@ -119,7 +181,7 @@ int f3kdb_create(const f3kdb_video_info_t* video_info, const f3kdb_params_t* par
     int dither_upper_limit = 4096;
 
 #define CHECK_PARAM(value, lower_bound, upper_bound) \
-    do { if (params.value < lower_bound || params.value > upper_bound) { print_error(error_msg, error_msg_size, "Invalid parameter %s, must be between %d and %d", #value, lower_bound, upper_bound); return F3KDB_ERROR_INVALID_PARAMETER; } } while(0)
+    do { if (params.value < lower_bound || params.value > upper_bound) { print_error(error_msg, error_msg_size, "Invalid parameter %s, must be between %d and %d", #value, lower_bound, upper_bound); return F3KDB_INVALID_ARGUMENT; } } while(0)
 
     CHECK_PARAM(range, 0, 31);
     CHECK_PARAM(Y, 0, threshold_upper_limit);
@@ -172,7 +234,7 @@ int f3kdb_process_plane(f3kdb_core_t* core, int frame_index, int plane, unsigned
 {
     if (!core)
     {
-        return F3KDB_ERROR_INVALID_PARAMETER;
+        return F3KDB_INVALID_ARGUMENT;
     }
     return core->process_plane(frame_index, plane, dst_frame_ptr, dst_pitch, src_frame_ptr, src_pitch);
 }
