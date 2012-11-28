@@ -20,7 +20,7 @@ static __forceinline void __cdecl process_plane_plainc_mode0(const process_plane
         for (int j = 0; j < src_width; j++)
         {
             pixel_dither_info info = *info_ptr;
-            assert((abs(info.ref1) >> params.height_subsampling) <= i && (abs(info.ref1) >> params.height_subsampling) + i < params.src_height);
+            assert((abs(info.ref1) >> params.height_subsampling) <= i && (abs(info.ref1) >> params.height_subsampling) + i < params.get_src_height());
 
             int ref_pos = (abs(info.ref1) >> params.height_subsampling) * (info.ref1 >> 7) * params.src_pitch;
             int diff = *src_px - src_px[ref_pos];
