@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <stddef.h>
+
 #include "avisynth.h"
 #include "../include/f3kdb.h"
 

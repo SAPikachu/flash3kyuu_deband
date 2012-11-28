@@ -127,6 +127,8 @@ void params_set_defaults(f3kdb_params_t* params)
 OUTPUT_TEMPLATE_AVISYNTH = """
 #pragma once
 
+#include <stddef.h>
+
 #include "avisynth.h"
 #include "../include/f3kdb.h"
 
