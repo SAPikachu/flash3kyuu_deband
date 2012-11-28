@@ -5,7 +5,7 @@
 
 static const int F3KDB_INTERFACE_VERSION = 1;
 
-// All planes need to be aligned to 16-byte boundary
+// Input plane can be unaligned, but all output planes need to be aligned to 16-byte boundary
 static const int PLANE_ALIGNMENT = 16;
 
 enum {
