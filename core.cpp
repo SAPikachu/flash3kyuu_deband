@@ -339,14 +339,19 @@ int f3kdb_core_t::process_plane(int frame_index, int plane, unsigned char* dst_f
 
     if (copy_plane) {
         // no need to process
-        int line_size = min_multi(src_pitch, dst_pitch, params.get_src_width() | 15);
+        int line_size = params.get_src_width();
         auto src = src_frame_ptr;
         auto dst = dst_frame_ptr;
-        for (int row = 0; row < _video_info.height; row++) 
+        if (line_size == src_pitch && src_pitch == dst_pitch)
         {
-            memcpy(dst, src, line_size);
-            src += src_pitch;
-            dst += dst_pitch;
+            memcpy(dst, src, line_size * params.get_src_height());
+        } else {
+            for (int row = 0; row < params.get_src_height(); row++) 
+            {
+                memcpy(dst, src, line_size);
+                src += src_pitch;
+                dst += dst_pitch;
+            }
         }
         return F3KDB_SUCCESS;
     }
