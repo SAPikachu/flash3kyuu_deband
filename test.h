@@ -1,7 +1,6 @@
 
 #include <stdio.h>
 
-#include "flash3kyuu_deband.h"
 #include "constants.h"
 #include "impl_dispatch.h"
 #include "intrin.h"

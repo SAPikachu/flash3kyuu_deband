@@ -1,6 +1,7 @@
 #pragma once
 
-#include "flash3kyuu_deband.h"
+#include "include/f3kdb.h"
+#include "process_plane_context.h"
 
 typedef __declspec(align(4)) struct _pixel_dither_info {
     signed char ref1, ref2;

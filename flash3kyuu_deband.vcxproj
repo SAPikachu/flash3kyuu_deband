@@ -372,12 +372,11 @@
     <ClInclude Include="avisynth\filter.h" />
     <ClInclude Include="avisynth\mt_info.h" />
     <ClInclude Include="avisynth\stdafx.h" />
+    <ClInclude Include="compiler_compat.h" />
     <ClInclude Include="constants.h" />
     <ClInclude Include="core.h" />
     <ClInclude Include="debug_dump.h" />
     <ClInclude Include="dither_high.h" />
-    <ClInclude Include="flash3kyuu_deband.def.h" />
-    <ClInclude Include="flash3kyuu_deband.h" />
     <ClInclude Include="flash3kyuu_deband_impl_c_low.h" />
     <ClInclude Include="flash3kyuu_deband_sse_base.h" />
     <ClInclude Include="flash3kyuu_deband_sse_base_low_precision.h" />
@@ -402,6 +401,7 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="test.h" />
     <ClInclude Include="utils.h" />
+    <ClInclude Include="vapoursynth\VapourSynth.h" />
     <ClInclude Include="x64_compat.h" />
   </ItemGroup>
   <ItemGroup>

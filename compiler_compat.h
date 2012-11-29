@@ -1,12 +1,9 @@
 #pragma once
 
-#include "process_plane_context.h"
-#include "include/f3kdb.h"
-
 #ifdef FLASH3KYUU_DEBAND_EXPORTS
-#define FLASH3KYUU_DEBAND_API extern "C" __declspec(dllexport)
+#define F3KDB_API extern "C" __declspec(dllexport)
 #else
-#define FLASH3KYUU_DEBAND_API extern "C" __declspec(dllimport)
+#define F3KDB_API extern "C" __declspec(dllimport)
 #endif
 
 #if defined(__GNUC__) || defined(__INTEL_COMPILER)

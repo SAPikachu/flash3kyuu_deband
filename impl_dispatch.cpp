@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#include "flash3kyuu_deband.h"
+#include "core.h"
 
 #define IMPL_DISPATCH_IMPORT_DECLARATION
 

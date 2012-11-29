@@ -3,12 +3,9 @@
 // we intend the C version to be usable on most CPUs
 #define NO_SSE
 
-#include "flash3kyuu_deband.h"
-
+#include "core.h"
 #include "pixel_proc_c.h"
-
 #include <limits.h>
-
 #include "debug_dump.h"
 
 static inline bool _is_above_threshold(int threshold, int diff) {
