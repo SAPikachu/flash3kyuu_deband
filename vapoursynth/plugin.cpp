@@ -23,7 +23,7 @@ static const VSFrameRef *VS_CC f3kdbGetFrame(int n, int activationReason, void *
     } else if (activationReason == arAllFramesReady) {
         const VSFrameRef *src = vsapi->getFrameFilter(n, d->node, frameCtx);
         VSFrameRef *dst = vsapi->newVideoFrame(d->vi.format, d->vi.width, d->vi.height, src, core);
-        for (int i = 0; i < d->vi.numFrames; i++)
+        for (int i = 0; i < d->vi.format->numPlanes; i++)
         {
             const unsigned char* src_ptr = vsapi->getReadPtr(src, i);
             int src_stride = vsapi->getStride(src, i);
