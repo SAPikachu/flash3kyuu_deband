@@ -143,6 +143,15 @@
     <ClInclude Include="compiler_compat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="vapoursynth\VSHelper.h">
+      <Filter>vapoursynth</Filter>
+    </ClInclude>
+    <ClInclude Include="vapoursynth\plugin.h">
+      <Filter>vapoursynth</Filter>
+    </ClInclude>
+    <ClInclude Include="vapoursynth\plugin.def.h">
+      <Filter>vapoursynth</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -210,6 +219,9 @@
     </ClCompile>
     <ClCompile Include="avisynth\filter.cpp">
       <Filter>avisynth</Filter>
+    </ClCompile>
+    <ClCompile Include="vapoursynth\plugin.cpp">
+      <Filter>vapoursynth</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

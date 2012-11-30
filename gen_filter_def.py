@@ -18,11 +18,11 @@ def generate_output():
         p("i", "dither_algo", c_type="DITHER_ALGORITHM", 
           default_value="DA_HIGH_FLOYD_STEINBERG_DITHERING"),
         p("b", "keep_tv_range", default_value="false"),
-        p("i", "input_mode", c_type="PIXEL_MODE", 
+        p("i", "input_mode", c_type="PIXEL_MODE", scope_exclude=["vapoursynth"],
           default_value="DEFAULT_PIXEL_MODE"),
-        p("i", "input_depth", default_value=-1),
-        p("i", "output_mode", c_type="PIXEL_MODE",
-          default_value="DEFAULT_PIXEL_MODE"),
+        p("i", "input_depth", default_value=-1, scope_exclude=["vapoursynth"]),
+        p("i", "output_mode", c_type="PIXEL_MODE", 
+          scope_exclude=["vapoursynth"], default_value="DEFAULT_PIXEL_MODE"),
         p("i", "output_depth", default_value=-1),
         p("i", "random_algo_ref", c_type="RANDOM_ALGORITHM", 
           default_value="RANDOM_ALGORITHM_UNIFORM"),
@@ -49,6 +49,11 @@ def generate_output():
         "avisynth",
     )
     _generate(
+        r"vapoursynth\plugin.def.h",
+        OUTPUT_TEMPLATE_VAPOURSYNTH,
+        "vapoursynth",
+    )
+    _generate(
         r"include\f3kdb_params.h",
         OUTPUT_TEMPLATE_PUBLIC_PARAMS,
         "common",
@@ -60,11 +65,12 @@ def generate_output():
     )
 
 PARAM_TYPES = {
-    "c": ("PClip", None),
-    "b": ("bool", "AsBool"),
-    "i": ("int", "AsInt"),
-    "f": ("double", "AsFloat"),
-    "s": ("const char*", "AsString"),
+    #     AVS type       AVS accessor     VS type
+    "c": ("PClip",       None,            None),
+    "b": ("bool",        "AsBool",        "int"),
+    "i": ("int",         "AsInt",         "int"),
+    "f": ("double",      "AsFloat",       "float"),
+    "s": ("const char*", "AsString",      "data"),
 }
 
 class FilterParam:
@@ -77,6 +83,7 @@ class FilterParam:
             optional=True,
             has_field=True,
             scope=None,
+            scope_exclude=None,
             default_value=None,
     ):
         if type not in PARAM_TYPES.keys():
@@ -85,15 +92,20 @@ class FilterParam:
         if scope and isinstance(scope, str):
             raise ValueError("scope must be a collection, not a string")
 
+        if scope_exclude and isinstance(scope_exclude, str):
+            raise ValueError("scope must be a collection, not a string")
+
         self.type = type
         self.name = name
         self.field_name = field_name or name
         self.c_type = c_type or PARAM_TYPES[type][0]
         self.custom_c_type = c_type is not None
         self.converter = PARAM_TYPES[type][1]
+        self.vs_type = PARAM_TYPES[type][2]
         self.optional = optional
         self.has_field = has_field
         self.scope = scope
+        self.scope_exclude = scope_exclude
         self.default_value = default_value
 
 OUTPUT_HEADER = """
@@ -172,6 +184,22 @@ static void f3kdb_params_from_avs(AVSValue args, f3kdb_params_t* f3kdb_params)
 
 """
 
+OUTPUT_TEMPLATE_VAPOURSYNTH = """
+#pragma once
+
+#include "../include/f3kdb.h"
+#include "plugin.h"
+#include "VapourSynth.h"
+
+static const char* F3KDB_VAPOURSYNTH_PARAMS = "clip:clip;{vapoursynth_params}";
+
+static bool f3kdb_params_from_vs(f3kdb_params_t* f3kdb_params, const VSMap* in, VSMap* out, const VSAPI* vsapi)
+{{
+    {f3kdb_params_from_vs}
+    return true;
+}}
+"""
+
 def build_avs_params(params):
     def get_param(param):
         return param.optional and '[{0.name}]{0.type}'.format(param) or param.type
@@ -219,24 +247,46 @@ def build_f3kdb_params_from_avs(filter_name, params):
         ) 
         for x in params if x.has_field])
 
+def build_vapoursynth_params(params):
+    return "".join(["{}:{}{};".format(
+                        x.field_name.lower(),
+                        x.vs_type,
+                        ":opt" if x.optional else "",
+                    )
+                    for x in params if x.has_field])
+
+def build_f3kdb_params_from_vs(params):
+    params = [x for x in params if not x.scope]
+    return "\n    ".join([
+        """if (!param_from_vsmap(&f3kdb_params->{field_name}, "{field_name_l}", in, out, vsapi)) {{ return false; }}""".
+        format(
+            field_name=x.field_name,
+            field_name_l=x.field_name.lower(),
+        ) 
+        for x in params if x.has_field])
+
 def generate_definition(filter_name, template, scope, *params):
-    params = [x for x in params if not x.scope or scope in x.scope]
+    params = [x for x in params 
+              if (not x.scope or scope in x.scope) and 
+                 (not x.scope_exclude or scope not in x.scope_exclude)]
     format_params = {
-       "filter_name": filter_name,
-       "filter_name_u": filter_name.upper(),
-       "avs_params": build_avs_params(params),
-       "init_param_list": ', '.join([x.field_name for x in params]),
-       "init_param_list_with_field_invoke": build_init_param_list_invoke(params, lambda x: x.has_field),
-       "init_param_list_without_field_invoke": build_init_param_list_invoke(params, lambda x: not x.has_field),
-       "init_param_list_with_field_func_def": build_init_param_list_func_def(params, lambda x: x.has_field),
-       "class_field_def": build_class_field_def(params),
-       "class_field_def_public": build_class_field_def(params, prefix=""),
-       "class_field_init": build_class_field_init(params),
-       "class_field_copy": build_class_field_copy(params),
-       "params_set_defaults": build_params_set_defaults(params),
-       "params_set_by_string": build_params_set_by_string(params),
-       "f3kdb_params_from_avs": 
-            build_f3kdb_params_from_avs(filter_name, params),
+        "filter_name": filter_name,
+        "filter_name_u": filter_name.upper(),
+        "avs_params": build_avs_params(params),
+        "init_param_list": ', '.join([x.field_name for x in params]),
+        "init_param_list_with_field_invoke": build_init_param_list_invoke(params, lambda x: x.has_field),
+        "init_param_list_without_field_invoke": build_init_param_list_invoke(params, lambda x: not x.has_field),
+        "init_param_list_with_field_func_def": build_init_param_list_func_def(params, lambda x: x.has_field),
+        "class_field_def": build_class_field_def(params),
+        "class_field_def_public": build_class_field_def(params, prefix=""),
+        "class_field_init": build_class_field_init(params),
+        "class_field_copy": build_class_field_copy(params),
+        "params_set_defaults": build_params_set_defaults(params),
+        "params_set_by_string": build_params_set_by_string(params),
+        "f3kdb_params_from_avs": 
+        build_f3kdb_params_from_avs(filter_name, params),
+        "vapoursynth_params": build_vapoursynth_params(params),
+        "f3kdb_params_from_vs": build_f3kdb_params_from_vs(params),
     }
 
     return OUTPUT_HEADER + template.format(**format_params)

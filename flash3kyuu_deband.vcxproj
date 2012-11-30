@@ -401,7 +401,10 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="test.h" />
     <ClInclude Include="utils.h" />
+    <ClInclude Include="vapoursynth\plugin.def.h" />
+    <ClInclude Include="vapoursynth\plugin.h" />
     <ClInclude Include="vapoursynth\VapourSynth.h" />
+    <ClInclude Include="vapoursynth\VSHelper.h" />
     <ClInclude Include="x64_compat.h" />
   </ItemGroup>
   <ItemGroup>
@@ -461,6 +464,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_MSVC|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="vapoursynth\plugin.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
