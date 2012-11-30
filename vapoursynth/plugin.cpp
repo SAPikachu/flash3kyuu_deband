@@ -32,6 +32,14 @@ static const VSFrameRef *VS_CC f3kdbGetFrame(int n, int activationReason, void *
             int f3kdb_plane = F3KDB_PLANES[i];
 
             int result = f3kdb_process_plane(d->core, n, f3kdb_plane, dst_ptr, dst_stride, src_ptr, src_stride);
+            if (result != F3KDB_SUCCESS)
+            {
+                char msg[1024];
+                memset(msg, 0, sizeof(msg));
+                _snprintf(msg, sizeof(msg) - 1, "f3kdb: Error while processing plane, f3kdb_plane: %d, code: %d", f3kdb_plane, result);
+                vsapi->setFilterError(msg, frameCtx);
+                return 0;
+            }
         }
         vsapi->freeFrame(src);
         return dst;
