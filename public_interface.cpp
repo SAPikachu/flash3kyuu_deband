@@ -4,12 +4,13 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#include "compiler_compat.h"
 #include "core.h"
 #include "auto_utils.h"
 #include "constants.h"
 #include "impl_dispatch.h"
 
-int f3kdb_params_init_defaults(f3kdb_params_t* params, int interface_version)
+F3KDB_API(int) f3kdb_params_init_defaults(f3kdb_params_t* params, int interface_version)
 {
     if (interface_version != F3KDB_INTERFACE_VERSION)
     {
@@ -20,7 +21,7 @@ int f3kdb_params_init_defaults(f3kdb_params_t* params, int interface_version)
     return F3KDB_SUCCESS;
 }
 
-int f3kdb_params_fill_by_string(f3kdb_params_t* params, const char* param_string, int interface_version)
+F3KDB_API(int) f3kdb_params_fill_by_string(f3kdb_params_t* params, const char* param_string, int interface_version)
 {
     if (interface_version != F3KDB_INTERFACE_VERSION)
     {
@@ -82,7 +83,7 @@ int f3kdb_params_fill_by_string(f3kdb_params_t* params, const char* param_string
     return F3KDB_SUCCESS;
 }
 
-int f3kdb_params_sanitize(f3kdb_params_t* params, int interface_version)
+F3KDB_API(int) f3kdb_params_sanitize(f3kdb_params_t* params, int interface_version)
 {
     if (interface_version != F3KDB_INTERFACE_VERSION)
     {
@@ -121,7 +122,7 @@ static void print_error(char* buffer, size_t buffer_size, const char* format, ..
     vsnprintf(buffer, buffer_size, format, va);
 }
 
-int f3kdb_create(const f3kdb_video_info_t* video_info, const f3kdb_params_t* params_in, f3kdb_core_t** core_out, char* extra_error_msg, size_t error_msg_size, int interface_version)
+F3KDB_API(int) f3kdb_create(const f3kdb_video_info_t* video_info, const f3kdb_params_t* params_in, f3kdb_core_t** core_out, char* extra_error_msg, size_t error_msg_size, int interface_version)
 {
     if (interface_version != F3KDB_INTERFACE_VERSION)
     {
@@ -224,13 +225,13 @@ int f3kdb_create(const f3kdb_video_info_t* video_info, const f3kdb_params_t* par
     return F3KDB_SUCCESS;
 }
 
-int f3kdb_destroy(f3kdb_core_t* context)
+F3KDB_API(int) f3kdb_destroy(f3kdb_core_t* context)
 {
     delete context;
     return F3KDB_SUCCESS;
 }
 
-int f3kdb_process_plane(f3kdb_core_t* core, int frame_index, int plane, unsigned char* dst_frame_ptr, int dst_pitch, const unsigned char* src_frame_ptr, int src_pitch)
+F3KDB_API(int) f3kdb_process_plane(f3kdb_core_t* core, int frame_index, int plane, unsigned char* dst_frame_ptr, int dst_pitch, const unsigned char* src_frame_ptr, int src_pitch)
 {
     if (!core)
     {

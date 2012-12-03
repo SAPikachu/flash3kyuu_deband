@@ -1,11 +1,9 @@
 #include "stdafx.h"
-
 #include "filter.h"
-
 #include "dither_avs.h"
+#include "../compiler_compat.h"
 
-
-extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit2(IScriptEnvironment* env)
+F3KDB_API(const char*) AvisynthPluginInit2(IScriptEnvironment* env)
 {
 	env->AddFunction("flash3kyuu_deband", 
 		F3KDB_AVS_PARAMS, 

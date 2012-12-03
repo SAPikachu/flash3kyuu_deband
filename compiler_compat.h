@@ -1,11 +1,5 @@
 #pragma once
 
-#ifdef FLASH3KYUU_DEBAND_EXPORTS
-#define F3KDB_API extern "C" __declspec(dllexport)
-#else
-#define F3KDB_API extern "C" __declspec(dllimport)
-#endif
-
 #if defined(__GNUC__) || defined(__INTEL_COMPILER)
 #define LIKELY(x)       __builtin_expect((x),1)
 #define UNLIKELY(x)     __builtin_expect((x),0)
@@ -21,4 +15,3 @@
 #else
 #define __PRAGMA_NOUNROLL__
 #endif
-

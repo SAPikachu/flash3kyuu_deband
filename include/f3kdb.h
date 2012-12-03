@@ -55,14 +55,17 @@ enum
     F3KDB_ERROR_MAX
 };
 
-extern "C"
-{
+#define F3KDB_CC __stdcall
 
-int f3kdb_params_init_defaults(f3kdb_params_t* params, int interface_version = F3KDB_INTERFACE_VERSION);
-int f3kdb_params_fill_by_string(f3kdb_params_t* params, const char* param_string, int interface_version = F3KDB_INTERFACE_VERSION);
-int f3kdb_params_sanitize(f3kdb_params_t* params, int interface_version = F3KDB_INTERFACE_VERSION);
-int f3kdb_create(const f3kdb_video_info_t* video_info, const f3kdb_params_t* params, f3kdb_core_t** core_out, char* extra_error_msg = nullptr, size_t error_msg_size = 0, int interface_version = F3KDB_INTERFACE_VERSION);
-int f3kdb_destroy(f3kdb_core_t* context);
-int f3kdb_process_plane(f3kdb_core_t* core, int frame_index, int plane, unsigned char* dst_frame_ptr, int dst_pitch, const unsigned char* src_frame_ptr, int src_pitch);
+#ifdef FLASH3KYUU_DEBAND_EXPORTS
+#define F3KDB_API(ret) extern "C" __declspec(dllexport) ret F3KDB_CC
+#else
+#define F3KDB_API(ret) extern "C" ret F3KDB_CC
+#endif
 
-}
+F3KDB_API(int) f3kdb_params_init_defaults(f3kdb_params_t* params, int interface_version = F3KDB_INTERFACE_VERSION);
+F3KDB_API(int) f3kdb_params_fill_by_string(f3kdb_params_t* params, const char* param_string, int interface_version = F3KDB_INTERFACE_VERSION);
+F3KDB_API(int) f3kdb_params_sanitize(f3kdb_params_t* params, int interface_version = F3KDB_INTERFACE_VERSION);
+F3KDB_API(int) f3kdb_create(const f3kdb_video_info_t* video_info, const f3kdb_params_t* params, f3kdb_core_t** core_out, char* extra_error_msg = nullptr, size_t error_msg_size = 0, int interface_version = F3KDB_INTERFACE_VERSION);
+F3KDB_API(int) f3kdb_destroy(f3kdb_core_t* context);
+F3KDB_API(int) f3kdb_process_plane(f3kdb_core_t* core, int frame_index, int plane, unsigned char* dst_frame_ptr, int dst_pitch, const unsigned char* src_frame_ptr, int src_pitch);
