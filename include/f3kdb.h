@@ -3,8 +3,6 @@
 #include "f3kdb_enums.h"
 #include "f3kdb_params.h"
 
-static const int F3KDB_INTERFACE_VERSION = 1;
-
 // Input plane can be unaligned, but all output planes need to be aligned to 16-byte boundary
 static const int PLANE_ALIGNMENT = 16;
 
@@ -36,6 +34,8 @@ typedef struct _f3kdb_video_info_t
         return plane == PLANE_Y ? height : height >> chroma_height_subsampling;
     }
 } f3kdb_video_info_t;
+
+static const int F3KDB_INTERFACE_VERSION = 1 << 16 | sizeof(f3kdb_params_t) << 8 | sizeof(f3kdb_video_info_t);
 
 class f3kdb_core_t;
 
