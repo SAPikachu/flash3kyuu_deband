@@ -28,8 +28,8 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 
     f3kdb_video_info_t video_info;
     video_info.num_frames = vi.num_frames;
-    video_info.chroma_width_subsampling = vi.GetPlaneWidthSubsampling(PLANAR_U);
-    video_info.chroma_height_subsampling = vi.GetPlaneHeightSubsampling(PLANAR_U);
+    video_info.chroma_width_subsampling  = vi.IsY8() ? 0 : vi.GetPlaneWidthSubsampling(PLANAR_U);
+    video_info.chroma_height_subsampling = vi.IsY8() ? 0 : vi.GetPlaneHeightSubsampling(PLANAR_U);
 
     video_info.width = vi.width;
     if (params.input_mode == HIGH_BIT_DEPTH_INTERLEAVED)
