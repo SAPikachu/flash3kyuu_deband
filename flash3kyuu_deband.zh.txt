@@ -266,6 +266,7 @@ http://www.nmm-hd.org/newbbs/viewtopic.php?f=7&t=239
 
 Acknowledgment:
 flash3kyuu (http://www.geocities.jp/flash3kyuu/)
+06_taro (https://astrataro.wordpress.com/)
 
 Source code:
 https://github.com/SAPikachu/flash3kyuu_deband
