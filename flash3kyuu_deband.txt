@@ -326,4 +326,4 @@ flash3kyuu (http://www.geocities.jp/flash3kyuu/)
 Source code:
 https://github.com/SAPikachu/flash3kyuu_deband
 
-Copyleft 2011 SAPikachu (sapikachu@gmail.com, http://www.sapikachu.net)
+Copyleft 2011-2013 SAPikachu (sapikachu@gmail.com, http://www.sapikachu.net)
