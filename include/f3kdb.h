@@ -7,7 +7,7 @@
 static const int PLANE_ALIGNMENT = 16;
 
 enum {
-    // Supposed to be the same as respecting values in avisynth
+    // Supposed to be the same as corresponding values in avisynth
     PLANE_Y = 1<<0,
     PLANE_CB = 1<<1,
     PLANE_CR = 1<<2
