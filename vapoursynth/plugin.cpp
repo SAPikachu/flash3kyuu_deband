@@ -146,5 +146,5 @@ static void VS_CC f3kdbCreate(const VSMap *in, VSMap *out, void *userData, VSCor
 
 VS_EXTERNAL_API(void) VapourSynthPluginInit(VSConfigPlugin configFunc, VSRegisterFunction registerFunc, VSPlugin *plugin) {
     configFunc("net.sapikachu.f3kdb", "f3kdb", "flash3kyuu_deband", VAPOURSYNTH_API_VERSION, 1, plugin);
-    registerFunc("F3kdb", F3KDB_VAPOURSYNTH_PARAMS, f3kdbCreate, 0, plugin);
+    registerFunc("Deband", F3KDB_VAPOURSYNTH_PARAMS, f3kdbCreate, 0, plugin);
 }
