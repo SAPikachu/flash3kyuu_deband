@@ -6,6 +6,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
-    <ClCompile Include="f3kdb_test_params_from_string.cpp" />
+    <ClCompile Include="test_params_from_string.cpp" />
   </ItemGroup>
 </Project>
