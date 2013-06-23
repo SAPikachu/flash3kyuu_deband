@@ -47,6 +47,7 @@ F3KDB_API(int) f3kdb_params_fill_by_string(f3kdb_params_t* params, const char* p
             completed = true;
             // Fall below
         case ',':
+        case ':':
         case '/':
             if (value_ptr)
             {
