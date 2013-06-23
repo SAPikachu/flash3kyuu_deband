@@ -157,8 +157,13 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="f3kdb_test.cpp" />
+    <ClCompile Include="f3kdb_test_params_from_string.cpp" />
     <ClCompile Include="stdafx.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\flash3kyuu_deband.vcxproj">
+      <Project>{ff740f9d-9d3d-43b5-ae5a-e5283909419b}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
