@@ -192,7 +192,7 @@ F3KDB_API(int) f3kdb_create(const f3kdb_video_info_t* video_info, const f3kdb_pa
     CHECK_PARAM(grainY, 0, dither_upper_limit);
     CHECK_PARAM(grainC, 0, dither_upper_limit);
     CHECK_PARAM(sample_mode, 1, 2);
-    CHECK_PARAM(opt, -1, (IMPL_COUNT - 1) );
+    CHECK_PARAM(opt, IMPL_AUTO_DETECT, (IMPL_COUNT - 1) );
     CHECK_PARAM(dither_algo, DA_HIGH_NO_DITHERING, (DA_COUNT - 1) );
     CHECK_PARAM(random_algo_ref, 0, (RANDOM_ALGORITHM_COUNT - 1) );
     CHECK_PARAM(random_algo_grain, 0, (RANDOM_ALGORITHM_COUNT - 1) );

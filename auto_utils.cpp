@@ -22,7 +22,7 @@ void params_set_defaults(f3kdb_params_t* params)
     params->seed = 0;
     params->blur_first = true;
     params->dynamic_grain = false;
-    params->opt = -1;
+    params->opt = IMPL_AUTO_DETECT;
     params->dither_algo = DA_HIGH_FLOYD_STEINBERG_DITHERING;
     params->keep_tv_range = false;
     params->input_mode = DEFAULT_PIXEL_MODE;

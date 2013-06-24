@@ -46,7 +46,7 @@ static void f3kdb_params_from_avs(AVSValue args, f3kdb_params_t* f3kdb_params)
     if (F3KDB_ARG(seed).Defined()) { f3kdb_params->seed = F3KDB_ARG(seed).AsInt(); }
     if (F3KDB_ARG(blur_first).Defined()) { f3kdb_params->blur_first = F3KDB_ARG(blur_first).AsBool(); }
     if (F3KDB_ARG(dynamic_grain).Defined()) { f3kdb_params->dynamic_grain = F3KDB_ARG(dynamic_grain).AsBool(); }
-    if (F3KDB_ARG(opt).Defined()) { f3kdb_params->opt = F3KDB_ARG(opt).AsInt(); }
+    if (F3KDB_ARG(opt).Defined()) { f3kdb_params->opt = (OPTIMIZATION_MODE)F3KDB_ARG(opt).AsInt(); }
     if (F3KDB_ARG(dither_algo).Defined()) { f3kdb_params->dither_algo = (DITHER_ALGORITHM)F3KDB_ARG(dither_algo).AsInt(); }
     if (F3KDB_ARG(keep_tv_range).Defined()) { f3kdb_params->keep_tv_range = F3KDB_ARG(keep_tv_range).AsBool(); }
     if (F3KDB_ARG(input_mode).Defined()) { f3kdb_params->input_mode = (PIXEL_MODE)F3KDB_ARG(input_mode).AsInt(); }

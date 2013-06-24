@@ -20,7 +20,7 @@ typedef struct _f3kdb_params_t
     int seed; 
     bool blur_first; 
     bool dynamic_grain; 
-    int opt; 
+    OPTIMIZATION_MODE opt; 
     DITHER_ALGORITHM dither_algo; 
     bool keep_tv_range; 
     PIXEL_MODE input_mode; 

@@ -228,7 +228,7 @@ f3kdb_core_t::~f3kdb_core_t()
 
 static process_plane_impl_t get_process_plane_impl(int sample_mode, bool blur_first, int opt, int dither_algo)
 {
-    if (opt == -1) {
+    if (opt == IMPL_AUTO_DETECT) {
         int cpu_info[4] = {-1};
         __cpuid(cpu_info, 1);
         if (cpu_info[2] & 0x80000) {
