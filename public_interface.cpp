@@ -226,9 +226,9 @@ F3KDB_API(int) f3kdb_create(const f3kdb_video_info_t* video_info, const f3kdb_pa
     return F3KDB_SUCCESS;
 }
 
-F3KDB_API(int) f3kdb_destroy(f3kdb_core_t* context)
+F3KDB_API(int) f3kdb_destroy(f3kdb_core_t* core)
 {
-    delete context;
+    delete core;
     return F3KDB_SUCCESS;
 }
 
