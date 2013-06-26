@@ -20,9 +20,9 @@ def generate_output():
         p("i", "dither_algo", c_type="DITHER_ALGORITHM", 
           default_value="DA_HIGH_FLOYD_STEINBERG_DITHERING"),
         p("b", "keep_tv_range", default_value="false"),
-        p("i", "input_mode", c_type="PIXEL_MODE", scope_exclude=["vapoursynth"],
+        p("i", "input_mode", c_type="PIXEL_MODE", scope=["avisynth"],
           default_value="DEFAULT_PIXEL_MODE"),
-        p("i", "input_depth", default_value=-1, scope_exclude=["vapoursynth"]),
+        p("i", "input_depth", default_value=-1, scope=["avisynth"]),
         p("i", "output_mode", c_type="PIXEL_MODE", 
           scope_exclude=["vapoursynth"], default_value="DEFAULT_PIXEL_MODE"),
         p("i", "output_depth", default_value=-1),
@@ -58,7 +58,7 @@ def generate_output():
     _generate(
         r"include\f3kdb_params.h",
         OUTPUT_TEMPLATE_PUBLIC_PARAMS,
-        "common",
+        "public_params",
     )
     _generate(
         r"auto_utils.cpp",

@@ -28,11 +28,14 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 
     f3kdb_video_info_t video_info;
     video_info.num_frames = vi.num_frames;
+    video_info.pixel_mode = (PIXEL_MODE)ARG(input_mode).AsInt(DEFAULT_PIXEL_MODE);
+    video_info.depth = ARG(input_depth).AsInt(-1);
     video_info.chroma_width_subsampling  = vi.IsY8() ? 0 : vi.GetPlaneWidthSubsampling(PLANAR_U);
     video_info.chroma_height_subsampling = vi.IsY8() ? 0 : vi.GetPlaneHeightSubsampling(PLANAR_U);
+    f3kdb_video_info_sanitize(&video_info);
 
     video_info.width = vi.width;
-    if (params.input_mode == HIGH_BIT_DEPTH_INTERLEAVED)
+    if (video_info.pixel_mode == HIGH_BIT_DEPTH_INTERLEAVED)
     {
         int width_mod = 2 << video_info.chroma_width_subsampling;
         if (video_info.width % width_mod != 0)
@@ -43,7 +46,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     }
 
     video_info.height = vi.height;
-    if (params.input_mode == HIGH_BIT_DEPTH_STACKED)
+    if (video_info.pixel_mode == HIGH_BIT_DEPTH_STACKED)
     {
         int height_mod = 2 << video_info.chroma_height_subsampling;
         if (video_info.height % height_mod != 0)

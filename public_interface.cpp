@@ -84,6 +84,17 @@ F3KDB_API(int) f3kdb_params_fill_by_string(f3kdb_params_t* params, const char* p
     return F3KDB_SUCCESS;
 }
 
+static void sanitize_mode_and_depth(PIXEL_MODE* mode, int* depth) {
+    if (*mode == DEFAULT_PIXEL_MODE)
+    {
+        *mode = *depth <= 8 ? LOW_BIT_DEPTH : HIGH_BIT_DEPTH_STACKED;
+    }
+    if (*depth == -1)
+    {
+        *depth = *mode == LOW_BIT_DEPTH ? 8 : 16;
+    }
+}
+
 F3KDB_API(int) f3kdb_params_sanitize(f3kdb_params_t* params, int interface_version)
 {
     if (interface_version != F3KDB_INTERFACE_VERSION)
@@ -91,23 +102,19 @@ F3KDB_API(int) f3kdb_params_sanitize(f3kdb_params_t* params, int interface_versi
         return F3KDB_ERROR_INVALID_INTERFACE_VERSION;
     }
 
-    if (params->input_mode == DEFAULT_PIXEL_MODE)
+    sanitize_mode_and_depth(&params->output_mode, &params->output_depth);
+
+    return F3KDB_SUCCESS;
+}
+
+F3KDB_API(int) f3kdb_video_info_sanitize(f3kdb_video_info_t* vi, int interface_version)
+{
+    if (interface_version != F3KDB_INTERFACE_VERSION)
     {
-        params->input_mode = params->input_depth <= 8 ? LOW_BIT_DEPTH : HIGH_BIT_DEPTH_STACKED;
-    }
-    if (params->input_depth == -1)
-    {
-        params->input_depth = params->input_mode == LOW_BIT_DEPTH ? 8 : 16;
+        return F3KDB_ERROR_INVALID_INTERFACE_VERSION;
     }
 
-    if (params->output_mode == DEFAULT_PIXEL_MODE)
-    {
-        params->output_mode = params->output_depth <= 8 ? LOW_BIT_DEPTH : HIGH_BIT_DEPTH_STACKED;
-    }
-    if (params->output_depth == -1)
-    {
-        params->output_depth = params->output_mode == LOW_BIT_DEPTH ? 8 : 16;
-    }
+    sanitize_mode_and_depth(&vi->pixel_mode, &vi->depth);
 
     return F3KDB_SUCCESS;
 }
@@ -123,7 +130,7 @@ static void print_error(char* buffer, size_t buffer_size, const char* format, ..
     vsnprintf(buffer, buffer_size, format, va);
 }
 
-F3KDB_API(int) f3kdb_create(const f3kdb_video_info_t* video_info, const f3kdb_params_t* params_in, f3kdb_core_t** core_out, char* extra_error_msg, size_t error_msg_size, int interface_version)
+F3KDB_API(int) f3kdb_create(const f3kdb_video_info_t* video_info_in, const f3kdb_params_t* params_in, f3kdb_core_t** core_out, char* extra_error_msg, size_t error_msg_size, int interface_version)
 {
     if (interface_version != F3KDB_INTERFACE_VERSION)
     {
@@ -138,13 +145,22 @@ F3KDB_API(int) f3kdb_create(const f3kdb_video_info_t* video_info, const f3kdb_pa
 #define INVALID_PARAM_IF(cond) \
     do { if (cond) { print_error(extra_error_msg, error_msg_size, "Invalid parameter condition: %s", #cond); return F3KDB_ERROR_INVALID_ARGUMENT; } } while (0)
 
-    INVALID_PARAM_IF(!video_info);
+    INVALID_PARAM_IF(!video_info_in);
     INVALID_PARAM_IF(!params_in);
-    INVALID_PARAM_IF(video_info->width < 16);
-    INVALID_PARAM_IF(video_info->height < 16);
-    INVALID_PARAM_IF(video_info->chroma_width_subsampling < 0 || video_info->chroma_width_subsampling > 4);
-    INVALID_PARAM_IF(video_info->chroma_height_subsampling < 0 || video_info->chroma_height_subsampling > 4);
-    INVALID_PARAM_IF(video_info->num_frames <= 0);
+
+    f3kdb_video_info_t video_info;
+    memcpy(&video_info, video_info_in, sizeof(f3kdb_video_info_t));
+    f3kdb_video_info_sanitize(&video_info);
+
+    INVALID_PARAM_IF(video_info.width < 16);
+    INVALID_PARAM_IF(video_info.height < 16);
+    INVALID_PARAM_IF(video_info.chroma_width_subsampling < 0 || video_info.chroma_width_subsampling > 4);
+    INVALID_PARAM_IF(video_info.chroma_height_subsampling < 0 || video_info.chroma_height_subsampling > 4);
+    INVALID_PARAM_IF(video_info.num_frames <= 0);
+    INVALID_PARAM_IF(video_info.depth < 8 || video_info.depth > INTERNAL_BIT_DEPTH);
+    INVALID_PARAM_IF(video_info.pixel_mode < 0 || video_info.pixel_mode >= PIXEL_MODE_COUNT);
+    INVALID_PARAM_IF(video_info.pixel_mode == LOW_BIT_DEPTH && video_info.depth != 8);
+    INVALID_PARAM_IF(video_info.pixel_mode != LOW_BIT_DEPTH && video_info.depth == 8);
 
     f3kdb_params_t params;
     memcpy(&params, params_in, sizeof(f3kdb_params_t));
@@ -196,13 +212,8 @@ F3KDB_API(int) f3kdb_create(const f3kdb_video_info_t* video_info, const f3kdb_pa
     CHECK_PARAM(dither_algo, DA_HIGH_NO_DITHERING, (DA_COUNT - 1) );
     CHECK_PARAM(random_algo_ref, 0, (RANDOM_ALGORITHM_COUNT - 1) );
     CHECK_PARAM(random_algo_grain, 0, (RANDOM_ALGORITHM_COUNT - 1) );
-    CHECK_PARAM(input_mode, 0, PIXEL_MODE_COUNT - 1);
     CHECK_PARAM(output_mode, 0, PIXEL_MODE_COUNT - 1);
     
-    if (params.input_mode != LOW_BIT_DEPTH)
-    {
-        CHECK_PARAM(input_depth, 9, INTERNAL_BIT_DEPTH);
-    }
 
     if (params.output_mode != LOW_BIT_DEPTH)
     {
@@ -219,7 +230,7 @@ F3KDB_API(int) f3kdb_create(const f3kdb_video_info_t* video_info, const f3kdb_pa
 
     try
     {
-        *core_out = new f3kdb_core_t(video_info, &params);
+        *core_out = new f3kdb_core_t(&video_info, &params);
     } catch (std::bad_alloc&) {
         return F3KDB_ERROR_INSUFFICIENT_MEMORY;
     }

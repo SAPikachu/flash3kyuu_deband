@@ -49,8 +49,6 @@ static void f3kdb_params_from_avs(AVSValue args, f3kdb_params_t* f3kdb_params)
     if (F3KDB_ARG(opt).Defined()) { f3kdb_params->opt = (OPTIMIZATION_MODE)F3KDB_ARG(opt).AsInt(); }
     if (F3KDB_ARG(dither_algo).Defined()) { f3kdb_params->dither_algo = (DITHER_ALGORITHM)F3KDB_ARG(dither_algo).AsInt(); }
     if (F3KDB_ARG(keep_tv_range).Defined()) { f3kdb_params->keep_tv_range = F3KDB_ARG(keep_tv_range).AsBool(); }
-    if (F3KDB_ARG(input_mode).Defined()) { f3kdb_params->input_mode = (PIXEL_MODE)F3KDB_ARG(input_mode).AsInt(); }
-    if (F3KDB_ARG(input_depth).Defined()) { f3kdb_params->input_depth = F3KDB_ARG(input_depth).AsInt(); }
     if (F3KDB_ARG(output_mode).Defined()) { f3kdb_params->output_mode = (PIXEL_MODE)F3KDB_ARG(output_mode).AsInt(); }
     if (F3KDB_ARG(output_depth).Defined()) { f3kdb_params->output_depth = F3KDB_ARG(output_depth).AsInt(); }
     if (F3KDB_ARG(random_algo_ref).Defined()) { f3kdb_params->random_algo_ref = (RANDOM_ALGORITHM)F3KDB_ARG(random_algo_ref).AsInt(); }
