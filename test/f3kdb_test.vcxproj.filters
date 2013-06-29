@@ -7,5 +7,6 @@
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="test_params_from_string.cpp" />
+    <ClCompile Include="test_core.cpp" />
   </ItemGroup>
 </Project>
