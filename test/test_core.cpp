@@ -232,7 +232,8 @@ protected:
                 ASSERT_NO_FATAL_FAILURE(run_test());
             }
             {
-                SCOPED_TRACE("Test #2");
+                // Should work even after pitch changes
+                SCOPED_TRACE("Test #2 ");
                 src_pitch++;
                 ASSERT_NO_FATAL_FAILURE(prepare_src());
                 ASSERT_NO_FATAL_FAILURE(run_test());
