@@ -48,6 +48,11 @@ static void check_guard_bytes(unsigned char *buffer, int const height, int const
     }
 }
 
+typedef struct _case_frame_t {
+    f3kdb_video_info_t video_info;
+    const unsigned char* frame_data;
+} case_frame_t;
+
 template <typename T>
 class AlignedMemoryDeleter
 {
@@ -76,14 +81,17 @@ public:
 typedef unique_ptr< unsigned char, AlignedMemoryDeleter<unsigned char> > aligned_buffer_ptr;
 typedef unique_ptr< f3kdb_core_t, F3kdbCoreDeleter > f3kdb_core_ptr;
 
-class CoreTest : public TestWithParam< tuple<const char*, f3kdb_video_info_t, const unsigned char*> > {
+class CoreTest : public TestWithParam< tuple<const char*, const case_frame_t*> > {
 protected:
     virtual void SetUp() {
         int ret;
         ret = f3kdb_params_init_defaults(&_params);
         ASSERT_EQ(F3KDB_SUCCESS, ret);
         const char* param_string = nullptr;
-        tie(param_string, _video_info, _frame_data) = GetParam();
+        const case_frame_t* case_frame = nullptr;
+        tie(param_string, case_frame) = GetParam();
+        _frame_data = case_frame->frame_data;
+        _video_info = case_frame->video_info;
         _video_info.num_frames = TEST_ROUNDS;
         ret = f3kdb_params_fill_by_string(&_params, param_string);
         ASSERT_EQ(F3KDB_SUCCESS, ret);
@@ -255,8 +263,8 @@ TEST_P(CoreTest, CoreCheckUnalignedPitch) {
     do_core_check(0, PLANE_ALIGNMENT - 1);
 }
 
-#include "frame_data.h"
+#include "test_core_param_set.h"
 
-INSTANTIATE_TEST_CASE_P(TestTest, CoreTest, Combine(
-    Values("y=64"), Values(frame_wallorig_vi), Values(frame_wallorig_data)
+INSTANTIATE_TEST_CASE_P(Core, CoreTest, Combine(
+    ValuesIn(param_set), ValuesIn(frames)
 ));
