@@ -377,9 +377,7 @@
     <ClInclude Include="core.h" />
     <ClInclude Include="debug_dump.h" />
     <ClInclude Include="dither_high.h" />
-    <ClInclude Include="flash3kyuu_deband_impl_c_low.h" />
     <ClInclude Include="flash3kyuu_deband_sse_base.h" />
-    <ClInclude Include="flash3kyuu_deband_sse_base_low_precision.h" />
     <ClInclude Include="icc_override.h" />
     <ClInclude Include="impl_dispatch.h" />
     <ClInclude Include="impl_dispatch_decl.h" />
@@ -392,7 +390,6 @@
     <ClInclude Include="pixel_proc_c.h" />
     <ClInclude Include="pixel_proc_c_high_bit_depth_common.h" />
     <ClInclude Include="pixel_proc_c_high_no_dithering.h" />
-    <ClInclude Include="pixel_proc_c_8bit.h" />
     <ClInclude Include="process_plane_context.h" />
     <ClInclude Include="random.h" />
     <ClInclude Include="sse_compat.h" />

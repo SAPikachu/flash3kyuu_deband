@@ -1,13 +1,10 @@
+#include <stdlib.h>
+
 #include "impl_dispatch.h"
-
 #include "sse_compat.h"
-
 #include "sse_utils.h"
-
 #include "dither_high.h"
-
 #include "x64_compat.h"
-
 #include "debug_dump.h"
 
 /****************************************************************************
@@ -29,8 +26,6 @@ static void destroy_cache(void* data)
     _aligned_free(cache->data_stream);
     free(data);
 }
-
-#include "flash3kyuu_deband_sse_base_low_precision.h"
 
 #ifdef ENABLE_DEBUG_DUMP
 
@@ -470,7 +465,6 @@ static void __forceinline read_reference_pixels(
 template<int sample_mode, bool blur_first, int dither_algo, bool aligned, PIXEL_MODE output_mode>
 static void __cdecl _process_plane_sse_impl(const process_plane_params& params, process_plane_context* context)
 {
-    assert(dither_algo != DA_LOW);
     assert(sample_mode > 0);
 
     DUMP_INIT("sse", params.plane, params.plane_width_in_pixels);
@@ -710,11 +704,6 @@ static void process_plane_sse_impl_stub1(const process_plane_params& params, pro
 template<int sample_mode, bool blur_first, int dither_algo>
 static void __cdecl process_plane_sse_impl(const process_plane_params& params, process_plane_context* context)
 {
-    if (dither_algo == DA_LOW)
-    {
-        sse_low_dither_algo::process_plane_sse_impl<sample_mode, blur_first>(params, context);
-        return;
-    }
     if ( ( (POINTER_INT)params.src_plane_ptr & (PLANE_ALIGNMENT - 1) ) == 0 && (params.src_pitch & (PLANE_ALIGNMENT - 1) ) == 0 )
     {
         process_plane_sse_impl_stub1<sample_mode, blur_first, dither_algo, true>(params, context);

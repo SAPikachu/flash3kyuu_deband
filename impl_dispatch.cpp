@@ -6,13 +6,6 @@
 
 #include "impl_dispatch_decl.h"
 
-const process_plane_impl_t* process_plane_impl_low_precision[] = {
-	process_plane_impl_c,
-	process_plane_impl_sse2,
-	process_plane_impl_ssse3,
-	process_plane_impl_sse4
-};
-
 const process_plane_impl_t* process_plane_impl_high_precision_no_dithering[] = {
 	process_plane_impl_c_high_no_dithering,
 	process_plane_impl_sse2_high_no_dithering,
@@ -50,7 +43,7 @@ const process_plane_impl_t* process_plane_impl_16bit_interleaved[] = {
 
 
 const process_plane_impl_t** process_plane_impls[] = {
-	process_plane_impl_low_precision,
+	nullptr, // process_plane_impl_low_precision has been removed,
 	process_plane_impl_high_precision_no_dithering,
 	process_plane_impl_high_precision_ordered_dithering,
 	process_plane_impl_high_precision_floyd_steinberg_dithering,

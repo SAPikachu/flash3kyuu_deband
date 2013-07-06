@@ -100,7 +100,6 @@ namespace dither_high
     {
         switch (dither_algo)
         {
-        case DA_LOW:
         case DA_HIGH_NO_DITHERING:
             return pixels;
         case DA_HIGH_ORDERED_DITHERING:
@@ -140,7 +139,6 @@ namespace dither_high
     {
         switch (dither_algo)
         {
-        case DA_LOW:
         case DA_HIGH_NO_DITHERING:
             return pixels;
         case DA_HIGH_ORDERED_DITHERING:

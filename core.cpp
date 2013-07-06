@@ -226,6 +226,12 @@ f3kdb_core_t::~f3kdb_core_t()
     destroy_frame_luts();
 }
 
+static __inline int select_impl_index(int sample_mode, bool blur_first)
+{
+    assert(sample_mode != 0);
+	return sample_mode * 2 + (blur_first ? 0 : 1) - 1;
+}
+
 static process_plane_impl_t get_process_plane_impl(int sample_mode, bool blur_first, int opt, int dither_algo)
 {
     if (opt == IMPL_AUTO_DETECT) {

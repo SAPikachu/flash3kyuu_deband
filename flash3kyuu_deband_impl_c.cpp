@@ -57,13 +57,9 @@ static __inline int read_pixel(const process_plane_params& params, void* context
     return ret;
 }
 
-#include "flash3kyuu_deband_impl_c_low.h"
-
 template <int sample_mode, bool blur_first, int mode, int output_mode>
 static __forceinline void __cdecl process_plane_plainc_mode12_high(const process_plane_params& params, process_plane_context*)
 {
-    assert(mode != DA_LOW);
-
     pixel_dither_info* info_ptr;
     char context[CONTEXT_BUFFER_SIZE];
 
@@ -235,35 +231,24 @@ static __forceinline void __cdecl process_plane_plainc_mode12_high(const process
 template <int sample_mode, bool blur_first, int mode>
 void __cdecl process_plane_plainc(const process_plane_params& params, process_plane_context* context)
 {
-    if (sample_mode == 0) 
+    static_assert(sample_mode != 0, "No longer support sample_mode = 0");
+    switch (params.output_mode)
     {
-        process_plane_plainc_mode0(params, context);
-    } else {
-        if (mode == DA_LOW)
-        {
-            process_plane_plainc_mode12_low<sample_mode, blur_first, mode>(params, context);
-        } else {
-            switch (params.output_mode)
-            {
-            case LOW_BIT_DEPTH:
-                process_plane_plainc_mode12_high<sample_mode, blur_first, mode, LOW_BIT_DEPTH>(params, context);
-                break;
+    case LOW_BIT_DEPTH:
+        process_plane_plainc_mode12_high<sample_mode, blur_first, mode, LOW_BIT_DEPTH>(params, context);
+        break;
 
-            case HIGH_BIT_DEPTH_STACKED:
-                process_plane_plainc_mode12_high<sample_mode, blur_first, mode, HIGH_BIT_DEPTH_STACKED>(params, context);
-                break;
+    case HIGH_BIT_DEPTH_STACKED:
+        process_plane_plainc_mode12_high<sample_mode, blur_first, mode, HIGH_BIT_DEPTH_STACKED>(params, context);
+        break;
 
-            case HIGH_BIT_DEPTH_INTERLEAVED:
-                process_plane_plainc_mode12_high<sample_mode, blur_first, mode, HIGH_BIT_DEPTH_INTERLEAVED>(params, context);
-                break;
+    case HIGH_BIT_DEPTH_INTERLEAVED:
+        process_plane_plainc_mode12_high<sample_mode, blur_first, mode, HIGH_BIT_DEPTH_INTERLEAVED>(params, context);
+        break;
 
-            default:
-                abort();
-
-            }
-        }
+    default:
+        abort();
     }
-
 }
 
 #define DECLARE_IMPL_C

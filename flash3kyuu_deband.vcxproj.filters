@@ -44,9 +44,6 @@
     <ClInclude Include="icc_override.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pixel_proc_c_8bit.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="pixel_proc_c.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -84,12 +81,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="debug_dump.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="flash3kyuu_deband_sse_base_low_precision.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="flash3kyuu_deband_impl_c_low.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="random.h">
