@@ -399,7 +399,6 @@
     <ClInclude Include="sse_utils.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="test.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="vapoursynth\plugin.def.h" />
     <ClInclude Include="vapoursynth\plugin.h" />
@@ -415,9 +414,7 @@
     <ClCompile Include="avisynth\dither_avs.cpp" />
     <ClCompile Include="avisynth\filter.cpp" />
     <ClCompile Include="avisynth\mt_info.cpp" />
-    <ClCompile Include="benchmark.cpp" />
     <ClCompile Include="core.cpp" />
-    <ClCompile Include="correctness_test.cpp" />
     <ClCompile Include="debug_dump.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>

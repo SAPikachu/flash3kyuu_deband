@@ -29,9 +29,6 @@
     <ClInclude Include="impl_dispatch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="test.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="flash3kyuu_deband_sse_base.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -161,12 +158,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="flash3kyuu_deband_impl_c.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="correctness_test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="benchmark.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="flash3kyuu_deband_impl_sse4.cpp">
