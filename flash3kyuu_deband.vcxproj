@@ -161,6 +161,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <UseMSVC>true</UseMSVC>
       <PreprocessToFile>false</PreprocessToFile>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -183,6 +184,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <UseMSVC>true</UseMSVC>
       <PreprocessToFile>false</PreprocessToFile>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -205,6 +207,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <UseMSVC>true</UseMSVC>
       <PreprocessToFile>false</PreprocessToFile>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -227,6 +230,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <UseMSVC>true</UseMSVC>
       <PreprocessToFile>false</PreprocessToFile>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -255,6 +259,7 @@
       <GenerateAlternateCodePaths>None</GenerateAlternateCodePaths>
       <UseProcessorExtensions>None</UseProcessorExtensions>
       <UseMSVC>false</UseMSVC>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -286,6 +291,7 @@
       <GenerateAlternateCodePaths>None</GenerateAlternateCodePaths>
       <UseProcessorExtensions>None</UseProcessorExtensions>
       <UseMSVC>true</UseMSVC>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -316,6 +322,7 @@
       <GenerateAlternateCodePaths>None</GenerateAlternateCodePaths>
       <UseProcessorExtensions>None</UseProcessorExtensions>
       <UseMSVC>false</UseMSVC>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -346,6 +353,7 @@
       <GenerateAlternateCodePaths>None</GenerateAlternateCodePaths>
       <UseProcessorExtensions>None</UseProcessorExtensions>
       <UseMSVC>false</UseMSVC>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
