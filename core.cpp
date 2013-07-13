@@ -70,13 +70,6 @@ static short* generate_grain_buffer(size_t item_count, RANDOM_ALGORITHM algo, in
     return buffer;
 }
 
-static size_t get_grain_buffer_item_count(f3kdb_video_info_t* video_info, int plane)
-{
-    int width = get_frame_lut_stride(video_info->get_plane_width(plane));
-    int height = video_info->get_plane_height(plane);
-    return width * height;
-}
-
 void f3kdb_core_t::init_frame_luts(void)
 {
     destroy_frame_luts();
