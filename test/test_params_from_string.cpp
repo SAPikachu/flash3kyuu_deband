@@ -135,3 +135,66 @@ TEST(ParamsFromStringTest, MultiValuesFailInvalidValue) {
     ret = f3kdb_params_fill_by_string(&params, "y=1/cb=2:cr=dummy");
     ASSERT_EQ(F3KDB_ERROR_INVALID_VALUE, ret);
 }
+
+TEST(ParamsFromStringTest, Preset) {
+    f3kdb_params_t params;
+    f3kdb_params_init_defaults(&params);
+    int ret;
+    ret = f3kdb_params_fill_preset(&params, "dummy");
+    ASSERT_EQ(F3KDB_ERROR_INVALID_NAME, ret);
+    ret = f3kdb_params_fill_preset(&params, "depth/dummy");
+    ASSERT_EQ(F3KDB_ERROR_INVALID_NAME, ret);
+    ret = f3kdb_params_fill_preset(&params, "dummy/depth");
+    ASSERT_EQ(F3KDB_ERROR_INVALID_NAME, ret);
+
+    params.seed = 0xDEADBEEF;
+    ret = f3kdb_params_fill_preset(&params, "depth");
+    ASSERT_EQ(F3KDB_SUCCESS, ret);
+    ASSERT_EQ(0xDEADBEEF, params.seed);
+    ASSERT_EQ(0, params.Y);
+    ASSERT_EQ(0, params.Cb);
+    ASSERT_EQ(0, params.Cr);
+    ASSERT_EQ(0, params.grainY);
+    ASSERT_EQ(0, params.grainC);
+
+    ret = f3kdb_params_fill_preset(&params, "depth");
+    ASSERT_EQ(F3KDB_SUCCESS, ret);
+    ret = f3kdb_params_fill_preset(&params, "low");
+    ASSERT_EQ(F3KDB_SUCCESS, ret);
+    ASSERT_EQ(0xDEADBEEF, params.seed);
+    ASSERT_NE(0, params.Y);
+    ASSERT_NE(0, params.Cb);
+    ASSERT_NE(0, params.Cr);
+    ASSERT_NE(0, params.grainY);
+    ASSERT_NE(0, params.grainC);
+
+    f3kdb_params_init_defaults(&params);
+    ASSERT_NE(0, params.Y);
+    params.seed = 0xDEADBEEF;
+    ret = f3kdb_params_fill_preset(&params, "nograin");
+    ASSERT_EQ(F3KDB_SUCCESS, ret);
+    ASSERT_EQ(0xDEADBEEF, params.seed);
+    ASSERT_NE(0, params.Y);
+    ASSERT_EQ(0, params.grainY);
+    ASSERT_EQ(0, params.grainC);
+
+    ret = f3kdb_params_fill_preset(&params, "depth");
+    ASSERT_EQ(F3KDB_SUCCESS, ret);
+    ret = f3kdb_params_fill_preset(&params, "low/nograin");
+    ASSERT_EQ(F3KDB_SUCCESS, ret);
+    ASSERT_EQ(0xDEADBEEF, params.seed);
+    ASSERT_NE(0, params.Y);
+    ASSERT_NE(0, params.Cb);
+    ASSERT_NE(0, params.Cr);
+    ASSERT_EQ(0, params.grainY);
+    ASSERT_EQ(0, params.grainC);
+
+    ret = f3kdb_params_fill_preset(&params, "nograin/low");
+    ASSERT_EQ(F3KDB_SUCCESS, ret);
+    ASSERT_EQ(0xDEADBEEF, params.seed);
+    ASSERT_NE(0, params.Y);
+    ASSERT_NE(0, params.Cb);
+    ASSERT_NE(0, params.Cr);
+    ASSERT_NE(0, params.grainY);
+    ASSERT_NE(0, params.grainC);
+}

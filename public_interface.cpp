@@ -41,19 +41,6 @@ F3KDB_API(int) f3kdb_params_init_defaults(f3kdb_params_t* params, int interface_
     return F3KDB_SUCCESS;
 }
 
-F3KDB_API(int) f3kdb_params_fill_preset(f3kdb_params_t* params, const char* preset, int interface_version)
-{
-    if (interface_version != F3KDB_INTERFACE_VERSION)
-    {
-        return F3KDB_ERROR_INVALID_INTERFACE_VERSION;
-    }
-    if (!params || !preset)
-    {
-        return F3KDB_ERROR_INVALID_ARGUMENT;
-    }
-    return F3KDB_ERROR_NOT_IMPLEMENTED;
-}
-
 static int parse_param_string(const char* params, bool has_name, function<int (const char*, const char*)> item_callback)
 {
     string param_string(params);
@@ -101,6 +88,28 @@ static int parse_param_string(const char* params, bool has_name, function<int (c
         }
     }
     return F3KDB_SUCCESS;
+}
+
+F3KDB_API(int) f3kdb_params_fill_preset(f3kdb_params_t* params, const char* preset, int interface_version)
+{
+    if (interface_version != F3KDB_INTERFACE_VERSION)
+    {
+        return F3KDB_ERROR_INVALID_INTERFACE_VERSION;
+    }
+    if (!params || !preset)
+    {
+        return F3KDB_ERROR_INVALID_ARGUMENT;
+    }
+    return parse_param_string(preset, false, [params](const char*, const char* preset_item) {
+        for (size_t i = 0; i < sizeof(PRESETS) / sizeof(PRESETS[0]) - 2; i += 2)
+        {
+            if (!_stricmp(preset_item, PRESETS[i]))
+            {
+                return f3kdb_params_fill_by_string(params, PRESETS[i + 1]);
+            }
+        }
+        return (int)F3KDB_ERROR_INVALID_NAME;
+    });
 }
 
 F3KDB_API(int) f3kdb_params_fill_by_string(f3kdb_params_t* params, const char* param_string, int interface_version)
