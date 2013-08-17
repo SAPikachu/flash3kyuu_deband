@@ -3,12 +3,32 @@
 #include <exception>
 #include <stdio.h>
 #include <stdarg.h>
+#include <functional>
+#include <string>
 
 #include "compiler_compat.h"
 #include "core.h"
 #include "auto_utils.h"
 #include "constants.h"
 #include "impl_dispatch.h"
+
+using namespace std;
+
+static const char* const PRESETS[] = {
+    "depth",
+    "y=0/cb=0/cr=0/grainy=0/grainc=0",
+    "low",
+    "y=32/cb=32/cr=32/grainy=32/grainc=32",
+    "medium",
+    "y=48/cb=48/cr=48/grainy=48/grainc=48",
+    "high",
+    "y=64/cb=64/cr=64/grainy=64/grainc=64",
+    "veryhigh",
+    "y=80/cb=80/cr=80/grainy=80/grainc=80",
+    "nograin",
+    "grainy=0,grainc=0",
+    nullptr, nullptr
+};
 
 F3KDB_API(int) f3kdb_params_init_defaults(f3kdb_params_t* params, int interface_version)
 {
@@ -21,67 +41,77 @@ F3KDB_API(int) f3kdb_params_init_defaults(f3kdb_params_t* params, int interface_
     return F3KDB_SUCCESS;
 }
 
-F3KDB_API(int) f3kdb_params_fill_by_string(f3kdb_params_t* params, const char* param_string, int interface_version)
+F3KDB_API(int) f3kdb_params_fill_preset(f3kdb_params_t* params, const char* preset, int interface_version)
 {
     if (interface_version != F3KDB_INTERFACE_VERSION)
     {
         return F3KDB_ERROR_INVALID_INTERFACE_VERSION;
     }
-
-    char* param_string_dup = _strdup(param_string);
-    const char* name_ptr = param_string_dup;
-    const char* value_ptr = nullptr;
-    
-    char* cur = param_string_dup;
-    while (true)
+    if (!params || !preset)
     {
-        bool completed = false;
-        switch (*cur)
+        return F3KDB_ERROR_INVALID_ARGUMENT;
+    }
+    return F3KDB_ERROR_NOT_IMPLEMENTED;
+}
+
+static int parse_param_string(const char* params, bool has_name, function<int (const char*, const char*)> item_callback)
+{
+    string param_string(params);
+    string name_str, value_str;
+    size_t pos = 0;
+    for (size_t i = 0; i < param_string.size() + 1; i++)
+    {
+        switch (param_string[i])
         {
-        case 0:
-            if (!value_ptr)
-            {
-                free(param_string_dup);
-                return F3KDB_ERROR_UNEXPECTED_END;
-            }
-            completed = true;
-            // Fall below
+        case '\0':
         case ',':
         case ':':
         case '/':
-            if (value_ptr)
+            value_str = param_string.substr(pos, i - pos);
+            if (has_name && name_str.empty() && !value_str.empty())
             {
-                *cur = 0;
-                int result = params_set_by_string(params, name_ptr, value_ptr);
-                if (result != F3KDB_SUCCESS)
-                {
-                    free(param_string_dup);
-                    return result;
-                }
-                name_ptr = cur + 1;
-                value_ptr = nullptr;
+                return F3KDB_ERROR_UNEXPECTED_END;
             }
+            // Fall below
+            if (!value_str.empty() || !name_str.empty()) {
+                auto ret = item_callback(name_str.c_str(), value_str.c_str());
+                if (ret != F3KDB_SUCCESS)
+                {
+                    return ret;
+                }
+            }
+            name_str.clear();
+            value_str.clear();
+            pos = i + 1;
             break;
         case '=':
-            if (!value_ptr)
+            if (has_name && name_str.empty())
             {
-                *cur = 0;
-                value_ptr = cur + 1;
+                name_str = param_string.substr(pos, i - pos);
+                if (name_str.empty())
+                {
+                    return F3KDB_ERROR_INVALID_NAME;
+                }
+                pos = i + 1;
             }
             break;
         default:
             // Nothing to do
             break;
         }
-        if (completed)
-        {
-            break;
-        }
-        cur++;
     }
-
-    free(param_string_dup);
     return F3KDB_SUCCESS;
+}
+
+F3KDB_API(int) f3kdb_params_fill_by_string(f3kdb_params_t* params, const char* param_string, int interface_version)
+{
+    if (interface_version != F3KDB_INTERFACE_VERSION)
+    {
+        return F3KDB_ERROR_INVALID_INTERFACE_VERSION;
+    }
+    return parse_param_string(param_string, true, [=](const char* name, const char* value) {
+        return params_set_by_string(params, name, value);
+    });
 }
 
 static void sanitize_mode_and_depth(PIXEL_MODE* mode, int* depth) {

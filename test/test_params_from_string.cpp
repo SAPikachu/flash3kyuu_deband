@@ -105,6 +105,13 @@ TEST(ParamsFromStringTest, MultiValues) {
     ASSERT_EQ(4, params.Cr);
     ASSERT_TRUE(params.keep_tv_range);
     ASSERT_EQ(params.random_param_grain, 5.5);
+    ret = f3kdb_params_fill_by_string(&params, "y=1/cb=2,:cr=4,/keep_tv_range=true:/,random_param_grain=5.5/,");
+    ASSERT_EQ(F3KDB_SUCCESS, ret);
+    ASSERT_EQ(1, params.Y);
+    ASSERT_EQ(2, params.Cb);
+    ASSERT_EQ(4, params.Cr);
+    ASSERT_TRUE(params.keep_tv_range);
+    ASSERT_EQ(params.random_param_grain, 5.5);
 }
 
 TEST(ParamsFromStringTest, MultiValuesFailUnexpectedEnd) {
@@ -112,6 +119,8 @@ TEST(ParamsFromStringTest, MultiValuesFailUnexpectedEnd) {
     f3kdb_params_init_defaults(&params);
     int ret;
     ret = f3kdb_params_fill_by_string(&params, "y=1/cb=2:cr");
+    ASSERT_EQ(F3KDB_ERROR_UNEXPECTED_END, ret);
+    ret = f3kdb_params_fill_by_string(&params, "y=1/cb:cr=2");
     ASSERT_EQ(F3KDB_ERROR_UNEXPECTED_END, ret);
 }
 
