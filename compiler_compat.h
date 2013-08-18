@@ -45,3 +45,9 @@ static inline void* _aligned_malloc(size_t size, size_t alignment)
 #error "I don't know how to align variables"
 #endif
 #endif
+
+#if !defined(HAVE_ALIGNAS) && (defined(_MSC_VER) || defined(__INTEL_COMPILER))
+#define ALIGNED_ARRAY(decl, alignment) alignas(alignment) decl
+#else
+#define ALIGNED_ARRAY(decl, alignment) decl alignas(alignment)
+#endif
