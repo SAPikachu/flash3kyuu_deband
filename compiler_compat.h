@@ -22,6 +22,17 @@
 #define strnicmp strncasecmp
 #define _stricmp strcasecmp
 #define _strnicmp strncasecmp
+
+static inline void* _aligned_malloc(size_t size, size_t alignment)
+{
+    void *tmp;
+    if (posix_memalign(&tmp, alignment, size))
+    {
+        tmp = 0;
+    }
+    return tmp;
+}
+#define _aligned_free free
 #endif
 
 #ifndef HAVE_ALIGNAS
