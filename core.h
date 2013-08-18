@@ -92,5 +92,5 @@ public:
     f3kdb_core_t(const f3kdb_video_info_t* video_info, const f3kdb_params_t* params);
     virtual ~f3kdb_core_t();
 
-    int f3kdb_core_t::process_plane(int frame_index, int plane, unsigned char* dst_frame_ptr, int dst_pitch, const unsigned char* src_frame_ptr, int src_pitch);
+    int process_plane(int frame_index, int plane, unsigned char* dst_frame_ptr, int dst_pitch, const unsigned char* src_frame_ptr, int src_pitch);
 };
