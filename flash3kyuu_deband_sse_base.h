@@ -396,13 +396,13 @@ static void __forceinline read_reference_pixels(
     __m128i& ref_pixels_3_0,
     __m128i& ref_pixels_4_0)
 {
-    __declspec(align(16))
+    alignas(16)
     unsigned short tmp_1[8];
-    __declspec(align(16))
+    alignas(16)
     unsigned short tmp_2[8];
-    __declspec(align(16))
+    alignas(16)
     unsigned short tmp_3[8];
-    __declspec(align(16))
+    alignas(16)
     unsigned short tmp_4[8];
 
     // cache layout: 8 offset groups (1 or 2 offsets / group depending on sample mode) in a pack, 
@@ -482,7 +482,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
 
     __m128i one_i8 = _mm_set1_epi8(1);
     
-    __declspec(align(16))
+    alignas(16)
     char context_buffer[DITHER_CONTEXT_BUFFER_SIZE];
 
     dither_high::init<dither_algo>(context_buffer, params.plane_width_in_pixels, params.output_depth);
@@ -521,7 +521,7 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
     info_cache *cache = NULL;
     char* info_data_stream = NULL;
 
-    __declspec(align(16))
+    alignas(16)
     char dummy_info_buffer[128];
 
     // initialize storage for pre-calculated pixel offsets

@@ -4,7 +4,7 @@ namespace pixel_proc_high_ordered_dithering {
 
     // bayer dither matrix
     // align to 16 byte for reading from SSE code
-    static const __declspec(align(16)) unsigned char THRESHOLD_MAP [16] [16] =
+    static const alignas(16) unsigned char THRESHOLD_MAP [16] [16] =
     {
         {   0, 128,  32, 160,   8, 136,  40, 168,   2, 130,  34, 162,  10, 138,  42, 170 },
         { 192,  64, 224,  96, 200,  72, 232, 104, 194,  66, 226,  98, 202,  74, 234, 106 },

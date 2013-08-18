@@ -23,3 +23,7 @@
 #define _stricmp strcasecmp
 #define _strnicmp strncasecmp
 #endif
+
+#if defined(_MSC_VER) || defined(__INTEL_COMPILER)
+#define alignas(x) __declspec(align(x))
+#endif

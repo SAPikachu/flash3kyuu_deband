@@ -116,7 +116,7 @@ static void __forceinline read_pixels(unsigned char const*&src_ptr_cur, int src_
             {
                 pixels_temp_1 = _mm_loadu_si128((__m128i*)(src_ptr_cur + target_height * src_pitch));
             } else {
-                __declspec(align(16))
+                alignas(16)
                 unsigned char buffer[16];
                 memcpy(buffer, src_ptr_cur + target_height * src_pitch, remaining_pixels);
                 pixels_temp_1 = _mm_load_si128((__m128i*)buffer);
@@ -136,7 +136,7 @@ static void __forceinline read_pixels(unsigned char const*&src_ptr_cur, int src_
                 pixels_0 = _mm_loadu_si128((__m128i*)src_ptr_cur);
                 pixels_1 = _mm_loadu_si128((__m128i*)(src_ptr_cur + 16));
             } else {
-                __declspec(align(16))
+                alignas(16)
                 unsigned char buffer[32];
                 memcpy(buffer, src_ptr_cur, remaining_pixels * 2);
                 pixels_0 = _mm_load_si128((__m128i*)buffer);

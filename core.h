@@ -2,11 +2,15 @@
 
 #include "include/f3kdb.h"
 #include "process_plane_context.h"
+#include "compiler_compat.h"
 
-typedef __declspec(align(4)) struct _pixel_dither_info {
-    signed char ref1, ref2;
+typedef struct _pixel_dither_info {
+    alignas(4) signed char ref1;
+    signed char ref2;
     signed short change;
 } pixel_dither_info;
+
+static_assert(sizeof(pixel_dither_info) == 4, "Something wrong in pixel_dither_info");
 
 typedef struct _process_plane_params
 {

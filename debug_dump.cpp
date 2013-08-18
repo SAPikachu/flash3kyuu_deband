@@ -1,14 +1,12 @@
 #include "debug_dump.h"
 
 #include <assert.h>
-
 #include <stdlib.h>
-
 #include <string.h>
-
 #include <tchar.h>
-
 #include <Shlobj.h>
+
+#include "compiler_compat.h"
 
 #define DUMP_MAX_NAME_LENGTH 32
 #define DUMP_MAX_STAGES 32
@@ -31,7 +29,7 @@ const static TCHAR* DUMP_BASE_PATH = TEXT("%TEMP%\\f3kdb_dump\\");
 
 #define FAIL_ON_ZERO(expr) if (!(expr)) abort()
 
-__declspec(align(4))
+alignas(4)
 static volatile DWORD _tls_slot = TLS_OUT_OF_INDEXES;
 
 void ensure_tls_slot()
@@ -224,7 +222,7 @@ void dump_value(const TCHAR* dump_name, __m128i value, int word_size_in_bytes, b
     debug_dump_stage_t* stage = find_or_create_dump_stage(dump_name);
     debug_dump_t* handle = get_dump_handle();
 
-    __declspec(align(16))
+    alignas(16)
     char buffer[16];
 
     _mm_store_si128((__m128i*)buffer, value);
