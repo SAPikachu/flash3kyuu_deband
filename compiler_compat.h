@@ -43,6 +43,7 @@ static inline void* _aligned_malloc(size_t size, size_t alignment)
 
 #ifndef HAVE_ALIGNAS
 #if defined(_MSC_VER) || defined(__INTEL_COMPILER)
+#define _ALLOW_KEYWORD_MACROS
 #define alignas(x) __declspec(align(x))
 #else
 #error "I don't know how to align variables"
