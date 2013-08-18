@@ -60,6 +60,7 @@ def build(bld):
                 "dllmain.cpp",
                 "icc_override.cpp",
                 "stdafx.cpp",
+                "debug_dump.cpp",
             ],
         ),
         target="objs",
