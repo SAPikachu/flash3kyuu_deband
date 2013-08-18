@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+import os
+import sys
+
 def generate_output():
     p = FilterParam
     params = (
@@ -37,6 +40,13 @@ def generate_output():
     )
 
     def _generate(file_name, template, scope):
+        if isinstance(file_name, list):
+            file_name = os.path.join(*file_name)
+
+        if "--list-outputs" in sys.argv:
+            print(file_name)
+            return
+
         with open(file_name, "w") as f:
             f.write(generate_definition(
                 "f3kdb",
@@ -46,22 +56,22 @@ def generate_output():
             ))
 
     _generate(
-        r"avisynth\flash3kyuu_deband.def.h",
+        ["avisynth", "flash3kyuu_deband.def.h"],
         OUTPUT_TEMPLATE_AVISYNTH,
         "avisynth",
     )
     _generate(
-        r"vapoursynth\plugin.def.h",
+        ["vapoursynth", "plugin.def.h"],
         OUTPUT_TEMPLATE_VAPOURSYNTH,
         "vapoursynth",
     )
     _generate(
-        r"include\f3kdb_params.h",
+        ["include", "f3kdb_params.h"],
         OUTPUT_TEMPLATE_PUBLIC_PARAMS,
         "public_params",
     )
     _generate(
-        r"auto_utils.cpp",
+        ["auto_utils.cpp"],
         OUTPUT_TEMPLATE_AUTO_UTILS,
         "common",
     )
