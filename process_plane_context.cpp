@@ -2,6 +2,7 @@
 
 #include "process_plane_context.h"
 
+#include <cstring>
 #include <assert.h>
 
 // disable SSE instructions here to allow running on pre-SSE2 systems
