@@ -59,12 +59,33 @@ enum
     F3KDB_ERROR_MAX
 };
 
-#define F3KDB_CC __stdcall
-
-#ifdef FLASH3KYUU_DEBAND_EXPORTS
-#define F3KDB_API(ret) extern "C" __declspec(dllexport) ret F3KDB_CC
+// Stolen from VapourSynth
+// Convenience for C++ users.
+#ifdef __cplusplus
+# define F3KDB_EXTERN_C extern "C"
 #else
-#define F3KDB_API(ret) extern "C" ret F3KDB_CC
+# define F3KDB_EXTERN_C
+#endif
+
+#if defined(_WIN32) && !defined(_WIN64)
+# define F3KDB_CC __stdcall
+#else
+# define F3KDB_CC
+#endif
+
+// And now for some symbol hide-and-seek...
+#if defined(_WIN32) // Windows being special
+# define F3KDB_EXTERNAL_API(ret) F3KDB_EXTERN_C __declspec(dllexport) ret F3KDB_CC
+#elif defined(__GNUC__) && __GNUC__ >= 4
+# define F3KDB_EXTERNAL_API(ret) F3KDB_EXTERN_C __attribute__((visibility("default"))) ret F3KDB_CC
+#else
+# define F3KDB_EXTERNAL_API(ret) F3KDB_EXTERN_C ret F3KDB_CC
+#endif
+
+#if !defined(FLASH3KYUU_DEBAND_EXPORTS) && defined(_WIN32)
+# define F3KDB_API(ret) F3KDB_EXTERN_C __declspec(dllimport) ret F3KDB_CC
+#else
+# define F3KDB_API(ret) F3KDB_EXTERNAL_API(ret)
 #endif
 
 F3KDB_API(int) f3kdb_params_init_defaults(f3kdb_params_t* params, int interface_version = F3KDB_INTERFACE_VERSION);
