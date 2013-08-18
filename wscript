@@ -11,6 +11,13 @@ top = "."
 def options(opt):
     opt.load("compiler_cxx")
 
+    opt.add_option("--mode", action="store", default="release",
+                   help="the mode to compile in (debug/release)")
+    opt.add_option("--shared", action="store", default="true",
+                   help="build shared libraries (true/false)")
+    opt.add_option("--static", action="store", default="false",
+                   help="build static libraries (true/false)")
+
 
 def _check_cxx(conf, feature, fragment, mandatory=False):
     conf.check_cxx(
@@ -27,8 +34,25 @@ def configure(conf):
             conf.env.append_unique(flag, options)
 
     conf.load("compiler_cxx")
-    add_options(["CFLAGS", "CXXFLAGS"], ["-fPIC", "-mavx"])
-    add_options(["CFLAGS", "CXXFLAGS"], ["-Wall", "-Werror", "-std=c++11"])
+    add_options(["CFLAGS", "CXXFLAGS"],
+                ["-fPIC", "-mavx"])
+    add_options(["CFLAGS", "CXXFLAGS"],
+                ["-Wall", "-Werror", "-std=c++11"])
+    add_options(['LINKFLAGS_cshlib',
+                 'LINKFLAGS_cprogram',
+                 'LINKFLAGS_cxxshlib',
+                 'LINKFLAGS_cxxprogram'],
+                ['-Wl,-Bsymbolic',
+                 '-Wl,-z,noexecstack'])
+    if conf.options.mode == "debug":
+        add_options(["CFLAGS", "CXXFLAGS"],
+                    ["-DVS_CORE_DEBUG", "-g", "-ggdb", "-ftrapv"])
+    elif conf.options.mode == "release":
+        add_options(["CFLAGS", "CXXFLAGS"],
+                    ["-O3"])
+    else:
+        conf.fatal("--mode must be either debug or release.")
+
     _check_cxx(
         conf,
         "alignas",
