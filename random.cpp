@@ -41,14 +41,19 @@ double rand_to_double(int rand_num)
 {
     // convert the number to 52 bit, use high 12 bits to fill lower space 
     // (otherwise the upper bound will be significantly less than 1.0)
-    uint64_t itemp = ((uint64_t)rand_num) & 0xffffffffULL;
+    union
+    {
+        uint64_t itemp;
+        double result;
+    };
+    itemp = ((uint64_t)rand_num) & 0xffffffffULL;
     itemp = itemp << 20 | itemp >> 12;
 
     // fill exponent with 1
     itemp |= 0x3ff0000000000000ULL;
 
     // itemp is now in [1.0, 2.0), convert to [-1.0, 1.0)
-    return ((*(double*)&itemp) - 1.0) * 2 - 1.0;
+    return (result - 1.0) * 2 - 1.0;
 }
 
 double rand_old(int& seed, double)
