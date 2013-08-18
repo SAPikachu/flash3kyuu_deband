@@ -114,7 +114,7 @@ namespace dither_high
             // due to an ICC bug, accessing pixels using union will give us incorrect results
             // so we have to use a buffer here
             // tested on ICC 12.0.1024.2010
-            __declspec (align(16))
+            alignas(16)
             unsigned short buffer[8];
             _mm_store_si128((__m128i*)buffer, pixels);
             __PRAGMA_NOUNROLL__
@@ -150,7 +150,7 @@ namespace dither_high
             // due to an ICC bug, accessing pixels using union will give us incorrect results
             // so we have to use a buffer here
             // tested on ICC 12.0.1024.2010
-            __declspec (align(16))
+            alignas(16)
             unsigned short buffer[8];
             _mm_store_si128((__m128i*)buffer, pixels);
             for (int i = 0; i < 8; i++)
