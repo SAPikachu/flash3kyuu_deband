@@ -27,7 +27,7 @@ def configure(conf):
             conf.env.append_unique(flag, options)
 
     conf.load("compiler_cxx")
-    add_options(["CFLAGS", "CXXFLAGS"], ["-fPIC"])
+    add_options(["CFLAGS", "CXXFLAGS"], ["-fPIC", "-mavx"])
     add_options(["CFLAGS", "CXXFLAGS"], ["-Werror", "-std=c++11"])
     _check_cxx(
         conf,
