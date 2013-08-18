@@ -2,7 +2,7 @@ import re
 
 import waflib
 
-APPNAME = "flash3kyuu_deband"
+APPNAME = "f3kdb"
 VERSION = "2.0pre"
 
 top = "."
@@ -32,6 +32,19 @@ def configure(conf):
     def add_options(flags, options):
         for flag in flags:
             conf.env.append_unique(flag, options)
+
+    for x in ["shared", "static"]:
+        val = conf.options.__dict__[x]
+
+        if not val in ["true", "false"]:
+            conf.fatal("--{0} must be either true or false.".format(x))
+        else:
+            u = x.upper()
+
+            conf.env[u] = val
+
+    if (conf.env.SHARED, conf.env.STATIC) == ("false", "false"):
+        conf.fatal("--static and --shared cannot both be false.")
 
     conf.load("compiler_cxx")
     add_options(["CFLAGS", "CXXFLAGS"],
@@ -89,3 +102,14 @@ def build(bld):
         ),
         target="objs",
     )
+    if bld.env.SHARED == "true":
+        bld(features="cxx cxxshlib",
+            use=["objs"],
+            target="f3kdb",
+            install_path="${LIBDIR}")
+
+    if bld.env.STATIC == "true":
+        bld(features="cxx cxxstlib",
+            use=["objs"],
+            target="f3kdb",
+            install_path="${LIBDIR}")
