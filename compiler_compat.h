@@ -17,6 +17,8 @@
 #endif
 
 #ifndef _WIN32
+#define __forceinline inline
+
 #include <cstring>
 #include <cstdlib>
 #define stricmp strcasecmp
