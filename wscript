@@ -12,17 +12,31 @@ def options(opt):
     opt.load("compiler_cxx")
 
 
+def _check_cxx(conf, feature, fragment, mandatory=False):
+    conf.check_cxx(
+        msg=" - " + feature,
+        define_name="HAVE_" + feature.replace(" ", "_").upper(),
+        fragment=fragment,
+        mandatory=mandatory,
+    )
+
+
 def configure(conf):
     def add_options(flags, options):
         for flag in flags:
             conf.env.append_unique(flag, options)
 
     conf.load("compiler_cxx")
-
-    conf.find_program("python3", var="PYTHON3")
-
     add_options(["CFLAGS", "CXXFLAGS"], ["-fPIC"])
     add_options(["CFLAGS", "CXXFLAGS"], ["-Werror", "-std=c++11"])
+    _check_cxx(
+        conf,
+        "alignas",
+        "int main() { alignas(8) int x = 0; return x; }",
+        mandatory=True,
+    )
+
+    conf.find_program("python3", var="PYTHON3")
 
 
 def build(bld):

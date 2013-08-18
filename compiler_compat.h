@@ -24,6 +24,10 @@
 #define _strnicmp strncasecmp
 #endif
 
+#ifndef HAVE_ALIGNAS
 #if defined(_MSC_VER) || defined(__INTEL_COMPILER)
 #define alignas(x) __declspec(align(x))
+#else
+#error "I don't know how to align variables"
+#endif
 #endif
