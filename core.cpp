@@ -2,13 +2,29 @@
 #include <stdarg.h>
 #include <memory.h>
 #include <assert.h>
-#include <intrin.h>
 
 #include "core.h"
 #include "constants.h"
 #include "random.h"
 #include "impl_dispatch.h"
 #include "icc_override.h"
+
+#ifdef _WIN32
+#include <intrin.h>
+#else
+
+void __cpuid(int CPUInfo[4], int InfoType) {
+    __asm__ __volatile__ (
+        "cpuid":
+        "=a" (CPUInfo[0]),
+        "=b" (CPUInfo[1]),
+        "=c" (CPUInfo[2]),
+        "=d" (CPUInfo[3]) :
+        "a" (InfoType)
+    );
+}
+
+#endif
 
 void f3kdb_core_t::destroy_frame_luts(void)
 {
