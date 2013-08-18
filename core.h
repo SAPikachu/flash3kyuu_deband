@@ -58,7 +58,7 @@ typedef struct _process_plane_params
     }
 } process_plane_params;
 
-typedef void (__cdecl *process_plane_impl_t)(const process_plane_params& params, process_plane_context* context);
+typedef void (*process_plane_impl_t)(const process_plane_params& params, process_plane_context* context);
 
 class f3kdb_core_t {
 private:
