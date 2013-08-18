@@ -475,13 +475,9 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
            
     __m128i threshold_vector = _mm_set1_epi16(params.threshold);
 
-    __m128i sign_convert_vector = _mm_set1_epi8(0x80u);
-
     // general-purpose constant
     __m128i minus_one = _mm_set1_epi32(-1);
 
-    __m128i one_i8 = _mm_set1_epi8(1);
-    
     alignas(16)
     char context_buffer[DITHER_CONTEXT_BUFFER_SIZE];
 

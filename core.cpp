@@ -217,15 +217,15 @@ void f3kdb_core_t::init_frame_luts(void)
 }
 
 f3kdb_core_t::f3kdb_core_t(const f3kdb_video_info_t* video_info, const f3kdb_params_t* params) :
-    _video_info(*video_info),
-    _params(*params),
+    _process_plane_impl(NULL),
     _y_info(NULL),
     _cb_info(NULL),
     _cr_info(NULL),
     _grain_buffer_y(NULL),
     _grain_buffer_c(NULL),
     _grain_buffer_offsets(NULL),
-    _process_plane_impl(NULL)
+    _video_info(*video_info),
+    _params(*params)
 {
     this->init();
 }

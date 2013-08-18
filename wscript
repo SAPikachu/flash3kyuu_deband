@@ -28,7 +28,7 @@ def configure(conf):
 
     conf.load("compiler_cxx")
     add_options(["CFLAGS", "CXXFLAGS"], ["-fPIC", "-mavx"])
-    add_options(["CFLAGS", "CXXFLAGS"], ["-Werror", "-std=c++11"])
+    add_options(["CFLAGS", "CXXFLAGS"], ["-Wall", "-Werror", "-std=c++11"])
     _check_cxx(
         conf,
         "alignas",
