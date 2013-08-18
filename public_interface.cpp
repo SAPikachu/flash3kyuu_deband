@@ -169,7 +169,7 @@ static void print_error(char* buffer, size_t buffer_size, const char* format, ..
     vsnprintf(buffer, buffer_size, format, va);
 }
 
-F3KDB_API(int) f3kdb_create(const f3kdb_video_info_t* video_info_in, const f3kdb_params_t* params_in, f3kdb_core_t** core_out, char* extra_error_msg, size_t error_msg_size, int interface_version)
+F3KDB_API(int) f3kdb_create(const f3kdb_video_info_t* video_info_in, const f3kdb_params_t* params_in, f3kdb_core_t** core_out, char* extra_error_msg, int error_msg_size, int interface_version)
 {
     if (interface_version != F3KDB_INTERFACE_VERSION)
     {
