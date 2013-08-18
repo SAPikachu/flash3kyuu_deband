@@ -18,6 +18,7 @@
 
 #ifndef _WIN32
 #include <cstring>
+#include <cstdlib>
 #define stricmp strcasecmp
 #define strnicmp strncasecmp
 #define _stricmp strcasecmp

@@ -3,6 +3,7 @@
 // we intend the C version to be usable on most CPUs
 #define NO_SSE
 
+#include <cstdlib>
 #include "core.h"
 #include "pixel_proc_c.h"
 #include <limits.h>
