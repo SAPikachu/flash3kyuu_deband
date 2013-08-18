@@ -18,6 +18,7 @@
 
 #ifndef _WIN32
 #define __forceinline inline
+#define __cdecl
 
 #include <cstring>
 #include <cstdlib>
