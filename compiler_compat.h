@@ -15,3 +15,11 @@
 #else
 #define __PRAGMA_NOUNROLL__
 #endif
+
+#ifndef _WIN32
+#include <cstring>
+#define stricmp strcasecmp
+#define strnicmp strncasecmp
+#define _stricmp strcasecmp
+#define _strnicmp strncasecmp
+#endif
