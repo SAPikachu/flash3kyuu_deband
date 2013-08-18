@@ -38,12 +38,12 @@ def configure(conf):
                 ["-fPIC", "-mavx"])
     add_options(["CFLAGS", "CXXFLAGS"],
                 ["-Wall", "-Werror", "-std=c++11"])
-    add_options(['LINKFLAGS_cshlib',
-                 'LINKFLAGS_cprogram',
-                 'LINKFLAGS_cxxshlib',
-                 'LINKFLAGS_cxxprogram'],
-                ['-Wl,-Bsymbolic',
-                 '-Wl,-z,noexecstack'])
+    add_options(["LINKFLAGS_cshlib",
+                 "LINKFLAGS_cprogram",
+                 "LINKFLAGS_cxxshlib",
+                 "LINKFLAGS_cxxprogram"],
+                ["-Wl,-Bsymbolic",
+                 "-Wl,-z,noexecstack"])
     if conf.options.mode == "debug":
         add_options(["CFLAGS", "CXXFLAGS"],
                     ["-DVS_CORE_DEBUG", "-g", "-ggdb", "-ftrapv"])
