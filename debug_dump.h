@@ -1,4 +1,4 @@
-
+#ifdef _WIN32
 #include "stdafx.h"
 
 #include <stdio.h>
@@ -39,4 +39,5 @@ void dump_finish();
 
 #define DUMP_FINISH() ((void)0)
 
+#endif
 #endif
