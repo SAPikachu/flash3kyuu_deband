@@ -12,3 +12,7 @@ test/x64
 
 *.dyn
 *.obj
+*.sublime-*
+.lock-waf*
+.waf-*
+build
