@@ -19,9 +19,11 @@
 #ifndef _WIN32
 #define __forceinline inline
 #define __cdecl
+#define InterlockedCompareExchangePointer(a,b,c) __sync_val_compare_and_swap(a,c,b)
 
 #include <cstring>
 #include <cstdlib>
+
 #define stricmp strcasecmp
 #define strnicmp strncasecmp
 #define _stricmp strcasecmp
