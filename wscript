@@ -92,7 +92,7 @@ def build(bld):
     bld(
         features="cxx",
         source=bld.path.ant_glob(
-            "*.cpp",
+            ["*.cpp", "vapoursynth/*.cpp"],
             excl=[
                 "dllmain.cpp",
                 "icc_override.cpp",

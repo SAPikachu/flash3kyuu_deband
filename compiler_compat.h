@@ -28,6 +28,7 @@
 #define strnicmp strncasecmp
 #define _stricmp strcasecmp
 #define _strnicmp strncasecmp
+#define _snprintf snprintf
 
 static inline void* _aligned_malloc(size_t size, size_t alignment)
 {

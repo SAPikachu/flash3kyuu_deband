@@ -7,6 +7,7 @@
 
 #include "../include/f3kdb.h"
 #include "VapourSynth.h"
+#include "../compiler_compat.h"
 
 static const int _peOutOfRange = 0x7fffffff;
 static const int _peNoError = 0;
@@ -26,19 +27,19 @@ static T get_value_from_vsmap(const VSAPI* vsapi, const VSMap* in, const char* n
 }
 
 template <>
-static bool get_value_from_vsmap<bool>(const VSAPI* vsapi, const VSMap* in, const char* name, int* error)
+inline bool get_value_from_vsmap<bool>(const VSAPI* vsapi, const VSMap* in, const char* name, int* error)
 {
     return !!vsapi->propGetInt(in, name, 0, error);
 }
 
 template <>
-static double get_value_from_vsmap<double>(const VSAPI* vsapi, const VSMap* in, const char* name, int* error)
+inline double get_value_from_vsmap<double>(const VSAPI* vsapi, const VSMap* in, const char* name, int* error)
 {
     return vsapi->propGetFloat(in, name, 0, error);
 }
 
 template <class T>
-static bool param_from_vsmap(T* target, const char* name, const VSMap* in, VSMap* out,  const VSAPI* vsapi)
+inline bool param_from_vsmap(T* target, const char* name, const VSMap* in, VSMap* out,  const VSAPI* vsapi)
 {
     using namespace std;
 
