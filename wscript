@@ -86,7 +86,7 @@ def build(bld):
     bld(
         rule="${PYTHON3} ${SRC[0].abspath()}",
         source="gen_filter_def.py",
-        target=map(bld.path.find_node, gen_output_list),
+        target=[bld.path.find_node(x) for x in gen_output_list],
         cwd=bld.path.abspath(),
     )
     bld(

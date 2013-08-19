@@ -16,3 +16,4 @@ test/x64
 .lock-waf*
 .waf-*
 build
+.waf3-*
