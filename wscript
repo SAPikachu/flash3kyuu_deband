@@ -124,7 +124,7 @@ def build(bld):
         cxxflags=["-msse4.1"],
     )
     for var, feature in [("SHARED", "cxxshlib"), ("STATIC", "cxxstlib")]:
-        if getattr(bld.env, var) == "true":
+        if bld.env[var] == "true":
             bld(features="cxx " + feature,
                 use=["objs", "impl-sse2", "impl-ssse3", "impl-sse4"],
                 target="f3kdb",
