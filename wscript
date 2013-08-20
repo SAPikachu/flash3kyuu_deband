@@ -48,7 +48,7 @@ def configure(conf):
 
     conf.load("compiler_cxx")
     add_options(["CFLAGS", "CXXFLAGS"],
-                ["-fPIC", "-mavx"])
+                ["-fPIC"])
     add_options(["CFLAGS", "CXXFLAGS"],
                 ["-Wall", "-Werror", "-std=c++11"])
     add_options(["LINKFLAGS_cshlib",
@@ -59,7 +59,7 @@ def configure(conf):
                  "-Wl,-z,noexecstack"])
     if conf.options.mode == "debug":
         add_options(["CFLAGS", "CXXFLAGS"],
-                    ["-DVS_CORE_DEBUG", "-g", "-ggdb", "-ftrapv"])
+                    ["-g", "-ggdb", "-ftrapv"])
     elif conf.options.mode == "release":
         add_options(["CFLAGS", "CXXFLAGS"],
                     ["-O3"])
@@ -98,18 +98,34 @@ def build(bld):
                 "icc_override.cpp",
                 "stdafx.cpp",
                 "debug_dump.cpp",
+                "flash3kyuu_deband_impl_ssse3.cpp",
+                "flash3kyuu_deband_impl_sse2.cpp",
+                "flash3kyuu_deband_impl_sse4.cpp",
             ],
         ),
         target="objs",
     )
-    if bld.env.SHARED == "true":
-        bld(features="cxx cxxshlib",
-            use=["objs"],
-            target="f3kdb",
-            install_path="${LIBDIR}")
-
-    if bld.env.STATIC == "true":
-        bld(features="cxx cxxstlib",
-            use=["objs"],
-            target="f3kdb",
-            install_path="${LIBDIR}")
+    bld(
+        features="cxx",
+        source="flash3kyuu_deband_impl_sse2.cpp",
+        target="impl-sse2",
+        cxxflags=["-msse2"],
+    )
+    bld(
+        features="cxx",
+        source="flash3kyuu_deband_impl_ssse3.cpp",
+        target="impl-ssse3",
+        cxxflags=["-mssse3"],
+    )
+    bld(
+        features="cxx",
+        source="flash3kyuu_deband_impl_sse4.cpp",
+        target="impl-sse4",
+        cxxflags=["-msse4.1"],
+    )
+    for var, feature in [("SHARED", "cxxshlib"), ("STATIC", "cxxstlib")]:
+        if getattr(bld.env, var) == "true":
+            bld(features="cxx " + feature,
+                use=["objs", "impl-sse2", "impl-ssse3", "impl-sse4"],
+                target="f3kdb",
+                install_path="${LIBDIR}")

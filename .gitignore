@@ -17,3 +17,4 @@ test/x64
 .waf-*
 build
 .waf3-*
+sandbox
