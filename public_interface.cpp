@@ -169,6 +169,12 @@ static void print_error(char* buffer, size_t buffer_size, const char* format, ..
     vsnprintf(buffer, buffer_size, format, va);
 }
 
+static inline bool is_out_of_range(int value, int lower_bound, int upper_bound)
+{
+    // Suppress -Wtype-limits
+    return value < lower_bound || value > upper_bound;
+}
+
 F3KDB_API(int) f3kdb_create(const f3kdb_video_info_t* video_info_in, const f3kdb_params_t* params_in, f3kdb_core_t** core_out, char* extra_error_msg, int error_msg_size, int interface_version)
 {
     if (interface_version != F3KDB_INTERFACE_VERSION)
@@ -238,7 +244,7 @@ F3KDB_API(int) f3kdb_create(const f3kdb_video_info_t* video_info_in, const f3kdb
     int dither_upper_limit = 4096;
 
 #define CHECK_PARAM(value, lower_bound, upper_bound) \
-    do { if (params.value < lower_bound || params.value > upper_bound) { print_error(extra_error_msg, error_msg_size, "Invalid parameter %s, must be between %d and %d", #value, lower_bound, upper_bound); return F3KDB_ERROR_INVALID_ARGUMENT; } } while(0)
+    do { if (is_out_of_range(params.value, lower_bound, upper_bound)) { print_error(extra_error_msg, error_msg_size, "Invalid parameter %s, must be between %d and %d", #value, lower_bound, upper_bound); return F3KDB_ERROR_INVALID_ARGUMENT; } } while(0)
 
     CHECK_PARAM(range, 0, 31);
     CHECK_PARAM(Y, 0, threshold_upper_limit);

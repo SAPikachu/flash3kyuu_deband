@@ -48,9 +48,8 @@ def configure(conf):
 
     conf.load("compiler_cxx")
     add_options(["CFLAGS", "CXXFLAGS"],
-                ["-fPIC"])
-    add_options(["CFLAGS", "CXXFLAGS"],
-                ["-Wall", "-Werror", "-std=c++11"])
+                ["-fPIC", "-Wall", "-Wextra", "-Wno-unused-parameter",
+                 "-Werror", "-std=c++11"])
     add_options(["LINKFLAGS_cshlib",
                  "LINKFLAGS_cprogram",
                  "LINKFLAGS_cxxshlib",
