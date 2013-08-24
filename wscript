@@ -1,6 +1,7 @@
 import re
 
 import waflib
+from waflib import Utils
 
 APPNAME = "f3kdb"
 VERSION = "2.0pre"
@@ -11,12 +12,22 @@ top = "."
 def options(opt):
     opt.load("compiler_cxx")
 
+    opt.add_option("--libdir", action="store", default="${PREFIX}/lib",
+                   help="library installation directory")
+    opt.add_option("--includedir", action="store",
+                   default="${PREFIX}/include/f3kdb",
+                   help="header installation directory")
+
     opt.add_option("--mode", action="store", default="release",
                    help="the mode to compile in (debug/release)")
-    opt.add_option("--shared", action="store", default="true",
-                   help="build shared libraries (true/false)")
-    opt.add_option("--static", action="store", default="false",
-                   help="build static libraries (true/false)")
+    opt.add_option("--shared", action="store_true", default=True,
+                   help="build shared libraries (default)")
+    opt.add_option("--no-shared", action="store_false", dest="shared",
+                   help="do not build shared libraries")
+    opt.add_option("--static", action="store_true", default=False,
+                   help="build static libraries")
+    opt.add_option("--no-static", action="store_false", dest="static",
+                   help="do not build static libraries (default)")
 
 
 def _check_cxx(conf, feature, fragment, mandatory=False):
@@ -35,16 +46,17 @@ def configure(conf):
 
     for x in ["shared", "static"]:
         val = conf.options.__dict__[x]
+        conf.env[x.upper()] = val
+        conf.msg(x.title() + " library", "yes" if val else "no")
 
-        if not val in ["true", "false"]:
-            conf.fatal("--{0} must be either true or false.".format(x))
-        else:
-            u = x.upper()
+    if (conf.env.SHARED, conf.env.STATIC) == (False, False):
+        conf.fatal("Either shared or static library need to be selected.")
 
-            conf.env[u] = val
+    for dir in ["libdir", "includedir"]:
+        u = dir.upper()
 
-    if (conf.env.SHARED, conf.env.STATIC) == ("false", "false"):
-        conf.fatal("--static and --shared cannot both be false.")
+        conf.env[u] = Utils.subst_vars(conf.options.__dict__[dir], conf.env)
+        conf.msg("Setting {0} to".format(u), conf.env[u])
 
     conf.load("compiler_cxx")
     add_options(["CFLAGS", "CXXFLAGS"],
@@ -123,8 +135,10 @@ def build(bld):
         cxxflags=["-msse4.1"],
     )
     for var, feature in [("SHARED", "cxxshlib"), ("STATIC", "cxxstlib")]:
-        if bld.env[var] == "true":
+        if bld.env[var]:
             bld(features="cxx " + feature,
                 use=["objs", "impl-sse2", "impl-ssse3", "impl-sse4"],
                 target="f3kdb",
                 install_path="${LIBDIR}")
+
+    bld.install_files("${INCLUDEDIR}", bld.path.ant_glob(["include/*.h"]))
