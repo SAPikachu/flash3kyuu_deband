@@ -1,10 +1,9 @@
 #include "stdafx.h"
 
 #include <memory>
-
 #include <gtest/gtest.h>
-
 #include "../include/f3kdb.h"
+#include "../compiler_compat.h"
 
 using namespace testing;
 using namespace std;
@@ -202,7 +201,7 @@ protected:
         const int planes[] = {PLANE_Y, PLANE_CB, PLANE_CR};
         char scoped_trace_text[2048];
         memset(scoped_trace_text, 0, sizeof(scoped_trace_text));
-        for (int i = 0; i < sizeof(planes) / sizeof(planes[0]); i++) {
+        for (int i = 0; i < (int)(sizeof(planes) / sizeof(planes[0])); i++) {
             int plane = planes[i];
             _snprintf(scoped_trace_text, sizeof(scoped_trace_text) - 1, "i = %d, plane = 0x%x", i, plane);
             SCOPED_TRACE(scoped_trace_text);

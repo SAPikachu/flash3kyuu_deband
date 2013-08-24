@@ -55,8 +55,6 @@ def convert_param_item(item):
 
 
 def generate_param_set():
-    import debugging
-    debugging.setup()
     params = (
         list(product(
             (("y", "cb", "cr",),),
@@ -100,7 +98,7 @@ def generate_param_set():
 def main():
     print(HEADER)
     frames = []
-    for name in glob.iglob(os.path.join("case_frames", "*.yuv")):
+    for name in sorted(glob.iglob(os.path.join("case_frames", "*.yuv"))):
         frames.append(process_file(name))
 
     print("const case_frame_t* frames[] = {{ {} }};".format(", ".join(

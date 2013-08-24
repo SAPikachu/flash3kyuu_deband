@@ -1,0 +1,74 @@
+import os
+
+from waflib import Utils
+
+
+def options(opt):
+    opt.add_option("--test", action="store_true", default=False,
+                   help="build unit test")
+
+
+def configure(conf):
+    if not conf.options.test:
+        return
+
+    conf.env.BUILD_TEST = True
+    conf.find_program("cmake", var="CMAKE")
+    conf.find_program("make", var="MAKE")
+
+    if not any(conf.check_cxx(lib=x, uselib_store="PTHREAD", mandatory=False)
+               for x in ["pthreads", "pthread"]):
+        conf.fatal("Can't find pthread.")
+
+    googletest_dir = Utils.subst_vars("${VENDORLIBS}/googletest", conf.env)
+    if not os.path.isdir(googletest_dir):
+        conf.fatal("Can't find Google Test, please update git submodules")
+
+    conf.env.GTEST_ROOT = googletest_dir
+
+
+def build(bld):
+    if not bld.env.BUILD_TEST:
+        return
+
+    gtest_build = bld.path.get_bld().make_node("gtest")
+    gtest_build.mkdir()
+
+    makefile = gtest_build.make_node("Makefile")
+    cmakelists = bld.root.find_node(bld.env.GTEST_ROOT + "/CMakeLists.txt")
+    bld(
+        rule="CXX=${CXX} ${CMAKE} ${GTEST_ROOT}",
+        source=cmakelists,
+        target=makefile,
+        cwd=gtest_build.abspath(),
+    )
+    gtest_output = [gtest_build.make_node(x)
+                    for x in ("libgtest.a", "libgtest_main.a")]
+    bld(
+        name="gtest",
+        rule="${MAKE}",
+        source=makefile,
+        target=gtest_output,
+        cwd=gtest_build.abspath(),
+    )
+    bld(
+        rule="${PYTHON3} ${SRC[0].abspath()} > ${TGT[0].abspath()}",
+        source="build_core_param_set.py",
+        target=bld.path.find_node("test_core_param_set.h"),
+        cwd=bld.path.abspath(),
+    )
+    bld(
+        features="cxx cxxprogram",
+        source=bld.path.ant_glob(
+            ["*.cpp"],
+            excl=[
+                "stdafx.cpp",
+            ],
+        ),
+        includes=[Utils.subst_vars("${GTEST_ROOT}/include", bld.env)],
+        use=["f3kdb", "gtest"],
+        uselib=["PTHREAD"],
+        lib=["gtest", "gtest_main"],
+        libpath=[gtest_build.abspath()],
+        target="f3kdb-test",
+    )

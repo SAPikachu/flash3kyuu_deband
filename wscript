@@ -29,6 +29,8 @@ def options(opt):
     opt.add_option("--no-static", action="store_false", dest="static",
                    help="do not build static libraries (default)")
 
+    opt.recurse("test")
+
 
 def _check_cxx(conf, feature, fragment, mandatory=False):
     conf.check_cxx(
@@ -58,6 +60,8 @@ def configure(conf):
         conf.env[u] = Utils.subst_vars(conf.options.__dict__[dir], conf.env)
         conf.msg("Setting {0} to".format(u), conf.env[u])
 
+    conf.env.VENDORLIBS = conf.path.find_node("lib").abspath()
+
     conf.load("compiler_cxx")
     add_options(["CFLAGS", "CXXFLAGS"],
                 ["-fPIC", "-Wall", "-Wextra", "-Wno-unused-parameter",
@@ -85,6 +89,8 @@ def configure(conf):
     )
 
     conf.find_program("python3", var="PYTHON3")
+
+    conf.recurse("test")
 
 
 def build(bld):
@@ -142,3 +148,5 @@ def build(bld):
                 install_path="${LIBDIR}")
 
     bld.install_files("${INCLUDEDIR}", bld.path.ant_glob(["include/*.h"]))
+
+    bld.recurse("test")
