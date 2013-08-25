@@ -11,6 +11,6 @@ script: >
     ./waf configure --test &&
     ./waf build &&
     build/test/f3kdb-test --gtest_filter='-Core/*' &&
-    build/test/f3kdb-test --gtest_filter='Core/*/?:Core/*/??'' &&
+    build/test/f3kdb-test --gtest_filter='Core/*/?:Core/*/??' &&
     build/test/f3kdb-test --gtest_filter='Core/*/?4?:Core/*/?7?' &&
     build/test/f3kdb-test --gtest_filter='Core/*/??3?:Core/*/??6?'
