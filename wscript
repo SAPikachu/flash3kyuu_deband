@@ -12,22 +12,24 @@ top = "."
 def options(opt):
     opt.load("compiler_cxx")
 
-    opt.add_option("--libdir", action="store", default="${PREFIX}/lib",
-                   help="library installation directory")
-    opt.add_option("--includedir", action="store",
-                   default="${PREFIX}/include/f3kdb",
-                   help="header installation directory")
+    conf_opt = opt.get_option_group("configure options")
 
-    opt.add_option("--mode", action="store", default="release",
-                   help="the mode to compile in (debug/release)")
-    opt.add_option("--shared", action="store_true", default=True,
-                   help="build shared libraries (default)")
-    opt.add_option("--no-shared", action="store_false", dest="shared",
-                   help="do not build shared libraries")
-    opt.add_option("--static", action="store_true", default=False,
-                   help="build static libraries")
-    opt.add_option("--no-static", action="store_false", dest="static",
-                   help="do not build static libraries (default)")
+    conf_opt.add_option("--libdir", action="store", default="${PREFIX}/lib",
+                        help="library installation directory")
+    conf_opt.add_option("--includedir", action="store",
+                        default="${PREFIX}/include/f3kdb",
+                        help="header installation directory")
+
+    conf_opt.add_option("--mode", action="store", default="release",
+                        help="the mode to compile in (debug/release)")
+    conf_opt.add_option("--shared", action="store_true", default=True,
+                        help="build shared libraries (default)")
+    conf_opt.add_option("--no-shared", action="store_false", dest="shared",
+                        help="do not build shared libraries")
+    conf_opt.add_option("--static", action="store_true", default=False,
+                        help="build static libraries")
+    conf_opt.add_option("--no-static", action="store_false", dest="static",
+                        help="do not build static libraries (default)")
 
     opt.recurse("test")
 
