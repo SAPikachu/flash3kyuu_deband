@@ -4,6 +4,7 @@ from waflib import Utils
 
 
 def options(opt):
+    opt.load("compiler_c")
     opt.add_option("--test", action="store_true", default=False,
                    help="build unit test")
 
@@ -13,6 +14,7 @@ def configure(conf):
         return
 
     conf.env.BUILD_TEST = True
+    conf.load("compiler_c")
     conf.find_program("cmake", var="CMAKE")
     conf.find_program("make", var="MAKE")
 
@@ -37,7 +39,7 @@ def build(bld):
     makefile = gtest_build.make_node("Makefile")
     cmakelists = bld.root.find_node(bld.env.GTEST_ROOT + "/CMakeLists.txt")
     bld(
-        rule="CXX=${CXX} ${CMAKE} ${GTEST_ROOT}",
+        rule="CXX=${CXX} CC=${CC} ${CMAKE} ${GTEST_ROOT}",
         source=cmakelists,
         target=makefile,
         cwd=gtest_build.abspath(),

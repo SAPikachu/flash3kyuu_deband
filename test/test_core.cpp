@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 #include <memory>
-#include <gtest/gtest.h>
+#include "gtest_stub.h"
 #include "../include/f3kdb.h"
 #include "../compiler_compat.h"
 

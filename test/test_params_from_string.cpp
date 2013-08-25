@@ -2,7 +2,7 @@
 
 #include <type_traits>
 
-#include <gtest/gtest.h>
+#include "gtest_stub.h"
 
 #include "../include/f3kdb.h"
 
