@@ -1,7 +1,8 @@
 import re
+import os
 
 import waflib
-from waflib import Utils
+from waflib import Utils, Logs
 
 APPNAME = "f3kdb"
 VERSION = "2.0pre"
@@ -30,6 +31,11 @@ def options(opt):
                         help="build static libraries")
     conf_opt.add_option("--no-static", action="store_false", dest="static",
                         help="do not build static libraries (default)")
+
+    inst_opt = opt.get_option_group("install/uninstall options")
+    inst_opt.add_option("--no-ldconfig", action="store_false",
+                        dest="ldconfig", default=True,
+                        help="don't run ldconfig after install (default: run)")
 
     opt.recurse("test")
 
@@ -96,7 +102,14 @@ def configure(conf):
 
 
 def post_install(ctx):
-    ctx.exec_command("/sbin/ldconfig")
+    if not ctx.options.ldconfig:
+        return
+
+    if not os.path.isfile("/sbin/ldconfig"):
+        return
+
+    Logs.info("- ldconfig")
+    ctx.exec_command(Utils.subst_vars("/sbin/ldconfig ${LIBDIR}", ctx.env))
 
 
 def build(bld):
