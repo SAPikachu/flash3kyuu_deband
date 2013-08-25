@@ -7,6 +7,10 @@ branches:
   only:
     - master
 
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq python3
+
 script: >
     ./waf configure --test &&
     ./waf build &&
