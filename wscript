@@ -93,6 +93,10 @@ def configure(conf):
     conf.recurse("test")
 
 
+def post_install(ctx):
+    ctx.exec_command("/sbin/ldconfig")
+
+
 def build(bld):
     gen_output = bld.cmd_and_log(
         [bld.env["PYTHON3"], "gen_filter_def.py", "--list-outputs"],
@@ -148,5 +152,8 @@ def build(bld):
                 install_path="${LIBDIR}")
 
     bld.install_files("${INCLUDEDIR}", bld.path.ant_glob(["include/*.h"]))
+
+    if bld.cmd == "install":
+        bld.add_post_fun(post_install)
 
     bld.recurse("test")

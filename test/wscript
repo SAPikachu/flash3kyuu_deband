@@ -70,5 +70,8 @@ def build(bld):
         uselib=["PTHREAD"],
         lib=["gtest", "gtest_main"],
         libpath=[gtest_build.abspath()],
+        linkflags="-Wl,-rpath={}:.:..".format(
+            bld.path.get_bld().parent.abspath()
+        ),
         target="f3kdb-test",
     )
