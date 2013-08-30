@@ -100,7 +100,7 @@ F3KDB_API(int) f3kdb_params_fill_preset(f3kdb_params_t* params, const char* pres
     {
         return F3KDB_ERROR_INVALID_ARGUMENT;
     }
-    return parse_param_string(preset, false, [params](const char*, const char* preset_item) {
+    return parse_param_string(preset, false, [params](const char*, const char* preset_item) -> int {
         for (size_t i = 0; i < sizeof(PRESETS) / sizeof(PRESETS[0]) - 2; i += 2)
         {
             if (!_stricmp(preset_item, PRESETS[i]))
