@@ -35,9 +35,6 @@
     <ClInclude Include="sse_compat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="asmlib.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="process_plane_context.h">
       <Filter>Header Files</Filter>
     </ClInclude>
