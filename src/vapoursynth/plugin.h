@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <memory.h>
 
-#include "../include/f3kdb.h"
+#include <f3kdb.h>
 #include "VapourSynth.h"
 #include "../compiler_compat.h"
 

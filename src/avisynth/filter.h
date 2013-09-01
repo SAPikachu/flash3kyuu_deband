@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../include/f3kdb.h"
+#include <f3kdb.h>
 #include "avisynth.h"
 #include "flash3kyuu_deband.def.h"
 

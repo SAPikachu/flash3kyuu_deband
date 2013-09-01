@@ -66,7 +66,7 @@ def generate_output():
         "vapoursynth",
     )
     _generate(
-        ["include", "f3kdb_params.h"],
+        ["../", "include", "f3kdb_params.h"],
         OUTPUT_TEMPLATE_PUBLIC_PARAMS,
         "public_params",
     )
@@ -164,7 +164,7 @@ OUTPUT_TEMPLATE_AVISYNTH = """
 #include <stddef.h>
 
 #include "avisynth.h"
-#include "../include/f3kdb.h"
+#include <f3kdb.h>
 
 static const char* {filter_name_u}_AVS_PARAMS = "{avs_params}";
 
@@ -199,7 +199,7 @@ static void f3kdb_params_from_avs(AVSValue args, f3kdb_params_t* f3kdb_params)
 OUTPUT_TEMPLATE_VAPOURSYNTH = """
 #pragma once
 
-#include "../include/f3kdb.h"
+#include <f3kdb.h>
 #include "plugin.h"
 #include "VapourSynth.h"
 

@@ -1,7 +1,5 @@
-import re
 import os
 
-import waflib
 from waflib import Utils, Logs
 
 APPNAME = "f3kdb"
@@ -70,6 +68,8 @@ def configure(conf):
 
     conf.env.VENDORLIBS = conf.path.find_node("lib").abspath()
 
+    conf.env.append_value("INCLUDES", conf.path.find_node("include").abspath())
+
     conf.load("compiler_cxx")
     add_options(["CFLAGS", "CXXFLAGS"],
                 ["-fPIC", "-Wall", "-Wextra", "-Wno-unused-parameter",
@@ -113,56 +113,16 @@ def post_install(ctx):
 
 
 def build(bld):
-    gen_output = bld.cmd_and_log(
-        [bld.env["PYTHON3"], "gen_filter_def.py", "--list-outputs"],
-        quiet=waflib.Context.BOTH,
-    )
-    gen_output_list = re.split(r"\s+", gen_output.strip(), flags=re.S)
-
-    bld(
-        rule="${PYTHON3} ${SRC[0].abspath()}",
-        source="gen_filter_def.py",
-        target=[bld.path.find_node(x) for x in gen_output_list],
-        cwd=bld.path.abspath(),
-    )
-    bld(
-        features="cxx",
-        source=bld.path.ant_glob(
-            ["*.cpp", "vapoursynth/*.cpp"],
-            excl=[
-                "dllmain.cpp",
-                "icc_override.cpp",
-                "stdafx.cpp",
-                "debug_dump.cpp",
-                "flash3kyuu_deband_impl_ssse3.cpp",
-                "flash3kyuu_deband_impl_sse2.cpp",
-                "flash3kyuu_deband_impl_sse4.cpp",
-            ],
-        ),
-        target="objs",
-    )
-    bld(
-        features="cxx",
-        source="flash3kyuu_deband_impl_sse2.cpp",
-        target="impl-sse2",
-        cxxflags=["-msse2"],
-    )
-    bld(
-        features="cxx",
-        source="flash3kyuu_deband_impl_ssse3.cpp",
-        target="impl-ssse3",
-        cxxflags=["-mssse3"],
-    )
-    bld(
-        features="cxx",
-        source="flash3kyuu_deband_impl_sse4.cpp",
-        target="impl-sse4",
-        cxxflags=["-msse4.1"],
-    )
+    bld.recurse("src")
     for var, feature in [("SHARED", "cxxshlib"), ("STATIC", "cxxstlib")]:
         if bld.env[var]:
             bld(features="cxx " + feature,
-                use=["objs", "impl-sse2", "impl-ssse3", "impl-sse4"],
+                use=[
+                    "f3kdb-objs",
+                    "f3kdb-impl-sse2",
+                    "f3kdb-impl-ssse3",
+                    "f3kdb-impl-sse4",
+                ],
                 target="f3kdb",
                 install_path="${LIBDIR}")
 

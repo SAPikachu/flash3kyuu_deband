@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "../include/f3kdb.h"
+#include <f3kdb.h>
 #include "plugin.h"
 #include "VapourSynth.h"
 

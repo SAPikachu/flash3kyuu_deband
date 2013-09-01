@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-#include "include/f3kdb.h"
+#include <f3kdb.h>
 
 using namespace std;
 

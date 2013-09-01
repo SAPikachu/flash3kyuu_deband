@@ -9,7 +9,7 @@
 #include <stddef.h>
 
 #include "avisynth.h"
-#include "../include/f3kdb.h"
+#include <f3kdb.h>
 
 static const char* F3KDB_AVS_PARAMS = "c[range]i[Y]i[Cb]i[Cr]i[grainY]i[grainC]i[sample_mode]i[seed]i[blur_first]b[dynamic_grain]b[opt]i[mt]b[dither_algo]i[keep_tv_range]b[input_mode]i[input_depth]i[output_mode]i[output_depth]i[random_algo_ref]i[random_algo_grain]i[random_param_ref]f[random_param_grain]f";
 

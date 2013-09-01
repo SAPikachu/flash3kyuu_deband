@@ -2,8 +2,8 @@
 
 #include <memory>
 #include "gtest_stub.h"
-#include "../include/f3kdb.h"
-#include "../compiler_compat.h"
+#include <f3kdb.h>
+#include "../src/compiler_compat.h"
 
 using namespace testing;
 using namespace std;
