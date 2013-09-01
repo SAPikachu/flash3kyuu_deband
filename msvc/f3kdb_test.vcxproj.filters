@@ -8,5 +8,7 @@
     <ClCompile Include="..\test\stdafx.cpp" />
     <ClCompile Include="..\test\test_params_from_string.cpp" />
     <ClCompile Include="..\test\test_core.cpp" />
+    <ClCompile Include="..\lib\googletest\src\gtest_main.cc" />
+    <ClCompile Include="..\lib\googletest\src\gtest-all.cc" />
   </ItemGroup>
 </Project>
