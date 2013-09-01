@@ -1,10 +1,29 @@
-#include "stdafx.h"
+#pragma once
 
-#include "mt_info.h"
+#include <Windows.h>
+
+#include "avisynth.h"
 
 #include <assert.h>
+#include <stdlib.h>
 
-mt_info* mt_info_create(void) {
+typedef struct _mt_info
+{
+    int n;
+	PVideoFrame src;
+	PVideoFrame dst;
+	unsigned char *dstp_u;
+	unsigned char *dstp_v;
+	IScriptEnvironment* env;
+
+	bool exit;
+
+	HANDLE thread_handle;
+	HANDLE work_event;
+	HANDLE work_complete_event;
+} mt_info;
+
+static mt_info* mt_info_create(void) {
 	mt_info* ret = (mt_info*)malloc(sizeof(mt_info));
 	if (ret) {
 		memset(ret, 0, sizeof(mt_info));
@@ -20,17 +39,16 @@ mt_info* mt_info_create(void) {
 	return ret;
 }
 
-
-void mt_info_reset_pointers(volatile mt_info* info) {
+static void mt_info_reset_pointers(volatile mt_info* info) {
 	assert(info);
 
-	info->src = NULL;
 	info->dstp_u = NULL;
 	info->dstp_v = NULL;
+	info->src = NULL;
 	info->dst = NULL;
 }
 
-void mt_info_destroy(volatile mt_info* info) {
+static void mt_info_destroy(volatile mt_info* info) {
 	if (!info) {
 		return;
 	}

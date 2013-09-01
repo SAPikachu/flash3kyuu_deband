@@ -86,12 +86,6 @@
     <ClInclude Include="..\src\avisynth\avisynth.h">
       <Filter>avisynth</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\avisynth\avisynth_videoinfo_26.h">
-      <Filter>avisynth</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\avisynth\mt_info.h">
-      <Filter>avisynth</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\avisynth\stdafx.h">
       <Filter>avisynth</Filter>
     </ClInclude>
@@ -110,12 +104,6 @@
     <ClInclude Include="..\src\core.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\avisynth\check.h">
-      <Filter>avisynth</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\avisynth\filter.h">
-      <Filter>avisynth</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\auto_utils_helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -133,6 +121,18 @@
     </ClInclude>
     <ClInclude Include="..\src\vapoursynth\plugin.def.h">
       <Filter>vapoursynth</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\avisynth\filter_impl.hpp">
+      <Filter>avisynth</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\avisynth\avisynth_plugin.hpp">
+      <Filter>avisynth</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\avisynth\mt_info.hpp">
+      <Filter>avisynth</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\avisynth\check.hpp">
+      <Filter>avisynth</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -169,15 +169,6 @@
     <ClCompile Include="..\src\random.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\avisynth\avisynth_init.cpp">
-      <Filter>avisynth</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\avisynth\avisynth_videoinfo_26.cpp">
-      <Filter>avisynth</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\avisynth\mt_info.cpp">
-      <Filter>avisynth</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\auto_utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -187,14 +178,14 @@
     <ClCompile Include="..\src\public_interface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\avisynth\check.cpp">
-      <Filter>avisynth</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\avisynth\filter.cpp">
-      <Filter>avisynth</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\vapoursynth\plugin.cpp">
       <Filter>vapoursynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\avisynth\avisynth_plugin_v5.cpp">
+      <Filter>avisynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\avisynth\avisynth_plugin_legacy_26.cpp">
+      <Filter>avisynth</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

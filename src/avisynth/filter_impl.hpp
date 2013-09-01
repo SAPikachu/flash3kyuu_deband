@@ -9,7 +9,7 @@
 #define F3KDB_SIMPLE_MACRO_NAME
 
 #include "filter.h"
-#include "check.h"
+#include "check.hpp"
 
 AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScriptEnvironment* env){
     PClip child = ARG(child).AsClip();
@@ -138,7 +138,7 @@ void f3kdb_avisynth::mt_proc(void)
     }
 }
 
-unsigned int __stdcall mt_proc_wrapper(void* filter_instance) 
+static unsigned int __stdcall mt_proc_wrapper(void* filter_instance) 
 {
     assert(filter_instance);
     ((f3kdb_avisynth*)filter_instance)->mt_proc();

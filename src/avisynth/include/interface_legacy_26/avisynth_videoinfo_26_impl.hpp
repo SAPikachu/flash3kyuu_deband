@@ -8,58 +8,58 @@
 // struct VideoInfo
 
 // useful functions of the above
-bool VideoInfo::HasVideo() const { return (width!=0); }
-bool VideoInfo::HasAudio() const { return (audio_samples_per_second!=0); }
-bool VideoInfo::IsRGB() const { return !!(pixel_type&CS_BGR); }
-bool VideoInfo::IsRGB24() const { return (pixel_type&CS_BGR24)==CS_BGR24; } // Clear out additional properties
-bool VideoInfo::IsRGB32() const { return (pixel_type & CS_BGR32) == CS_BGR32 ; }
-bool VideoInfo::IsYUV() const { return !!(pixel_type&CS_YUV ); }
-bool VideoInfo::IsYUY2() const { return (pixel_type & CS_YUY2) == CS_YUY2; }
+inline bool VideoInfo::HasVideo() const { return (width!=0); }
+inline bool VideoInfo::HasAudio() const { return (audio_samples_per_second!=0); }
+inline bool VideoInfo::IsRGB() const { return !!(pixel_type&CS_BGR); }
+inline bool VideoInfo::IsRGB24() const { return (pixel_type&CS_BGR24)==CS_BGR24; } // Clear out additional properties
+inline bool VideoInfo::IsRGB32() const { return (pixel_type & CS_BGR32) == CS_BGR32 ; }
+inline bool VideoInfo::IsYUV() const { return !!(pixel_type&CS_YUV ); }
+inline bool VideoInfo::IsYUY2() const { return (pixel_type & CS_YUY2) == CS_YUY2; }
 
-bool VideoInfo::IsYV24()  const { return (pixel_type & CS_PLANAR_MASK) == (CS_YV24  & CS_PLANAR_FILTER); }
-bool VideoInfo::IsYV16()  const { return (pixel_type & CS_PLANAR_MASK) == (CS_YV16  & CS_PLANAR_FILTER); }
-bool VideoInfo::IsYV12()  const { return (pixel_type & CS_PLANAR_MASK) == (CS_YV12  & CS_PLANAR_FILTER); }
-bool VideoInfo::IsY8()    const { return (pixel_type & CS_PLANAR_MASK) == (CS_Y8    & CS_PLANAR_FILTER); }
+inline bool VideoInfo::IsYV24()  const { return (pixel_type & CS_PLANAR_MASK) == (CS_YV24  & CS_PLANAR_FILTER); }
+inline bool VideoInfo::IsYV16()  const { return (pixel_type & CS_PLANAR_MASK) == (CS_YV16  & CS_PLANAR_FILTER); }
+inline bool VideoInfo::IsYV12()  const { return (pixel_type & CS_PLANAR_MASK) == (CS_YV12  & CS_PLANAR_FILTER); }
+inline bool VideoInfo::IsY8()    const { return (pixel_type & CS_PLANAR_MASK) == (CS_Y8    & CS_PLANAR_FILTER); }
 
-bool VideoInfo::IsYV411() const { return (pixel_type & CS_PLANAR_MASK) == (CS_YV411 & CS_PLANAR_FILTER); }
+inline bool VideoInfo::IsYV411() const { return (pixel_type & CS_PLANAR_MASK) == (CS_YV411 & CS_PLANAR_FILTER); }
 //bool VideoInfo::IsYUV9()  const { return (pixel_type & CS_PLANAR_MASK) == (CS_YUV9  & CS_PLANAR_FILTER); }
 
 /* Baked ********************
-bool VideoInfo::IsColorSpace(int c_space) const { return ((pixel_type & c_space) == c_space); }
+inline bool VideoInfo::IsColorSpace(int c_space) const { return ((pixel_type & c_space) == c_space); }
    Baked ********************/
-bool VideoInfo::IsColorSpace(int c_space) const {
+inline bool VideoInfo::IsColorSpace(int c_space) const {
   return IsPlanar() ? ((pixel_type & CS_PLANAR_MASK) == (c_space & CS_PLANAR_FILTER)) : ((pixel_type & c_space) == c_space);
 }
 
-bool VideoInfo::Is(int property) const { return ((pixel_type & property)==property ); }
-bool VideoInfo::IsPlanar() const { return !!(pixel_type & CS_PLANAR); }
-bool VideoInfo::IsFieldBased() const { return !!(image_type & IT_FIELDBASED); }
-bool VideoInfo::IsParityKnown() const { return ((image_type & IT_FIELDBASED)&&(image_type & (IT_BFF|IT_TFF))); }
-bool VideoInfo::IsBFF() const { return !!(image_type & IT_BFF); }
-bool VideoInfo::IsTFF() const { return !!(image_type & IT_TFF); }
+inline bool VideoInfo::Is(int property) const { return ((pixel_type & property)==property ); }
+inline bool VideoInfo::IsPlanar() const { return !!(pixel_type & CS_PLANAR); }
+inline bool VideoInfo::IsFieldBased() const { return !!(image_type & IT_FIELDBASED); }
+inline bool VideoInfo::IsParityKnown() const { return ((image_type & IT_FIELDBASED)&&(image_type & (IT_BFF|IT_TFF))); }
+inline bool VideoInfo::IsBFF() const { return !!(image_type & IT_BFF); }
+inline bool VideoInfo::IsTFF() const { return !!(image_type & IT_TFF); }
 
 /* Baked ********************
-bool VideoInfo::IsVPlaneFirst() const {return ((pixel_type & CS_YV12) == CS_YV12); }  // Don't use this
-int VideoInfo::BytesFromPixels(int pixels) const { return pixels * (BitsPerPixel()>>3); }   // Will not work on planar images, but will return only luma planes
-int VideoInfo::RowSize() const { return BytesFromPixels(width); }  // Also only returns first plane on planar images
-int VideoInfo::BMPSize() const { if (IsPlanar()) {int p = height * ((RowSize()+3) & ~3); p+=p>>1; return p;  } return height * ((RowSize()+3) & ~3); }
-__int64 VideoInfo::AudioSamplesFromFrames(__int64 frames) const { return (fps_numerator && HasVideo()) ? ((__int64)(frames) * audio_samples_per_second * fps_denominator / fps_numerator) : 0; }
+inline bool VideoInfo::IsVPlaneFirst() const {return ((pixel_type & CS_YV12) == CS_YV12); }  // Don't use this
+inline int VideoInfo::BytesFromPixels(int pixels) const { return pixels * (BitsPerPixel()>>3); }   // Will not work on planar images, but will return only luma planes
+inline int VideoInfo::RowSize() const { return BytesFromPixels(width); }  // Also only returns first plane on planar images
+inline int VideoInfo::BMPSize() const { if (IsPlanar()) {int p = height * ((RowSize()+3) & ~3); p+=p>>1; return p;  } return height * ((RowSize()+3) & ~3); }
+inline __int64 VideoInfo::AudioSamplesFromFrames(__int64 frames) const { return (fps_numerator && HasVideo()) ? ((__int64)(frames) * audio_samples_per_second * fps_denominator / fps_numerator) : 0; }
    Baked ********************/
-__int64 VideoInfo::AudioSamplesFromFrames(int frames) const { return (fps_numerator && HasVideo()) ? ((__int64)(frames) * audio_samples_per_second * fps_denominator / fps_numerator) : 0; }
-int VideoInfo::FramesFromAudioSamples(__int64 samples) const { return (fps_denominator && HasAudio()) ? (int)((samples * (__int64)fps_numerator)/((__int64)fps_denominator * (__int64)audio_samples_per_second)) : 0; }
-__int64 VideoInfo::AudioSamplesFromBytes(__int64 bytes) const { return HasAudio() ? bytes / BytesPerAudioSample() : 0; }
-__int64 VideoInfo::BytesFromAudioSamples(__int64 samples) const { return samples * BytesPerAudioSample(); }
-int VideoInfo::AudioChannels() const { return HasAudio() ? nchannels : 0; }
-int VideoInfo::SampleType() const{ return sample_type;}
-bool VideoInfo::IsSampleType(int testtype) const{ return !!(sample_type&testtype);}
-int VideoInfo::SamplesPerSecond() const { return audio_samples_per_second; }
-int VideoInfo::BytesPerAudioSample() const { return nchannels*BytesPerChannelSample();}
-void VideoInfo::SetFieldBased(bool isfieldbased)  { if (isfieldbased) image_type|=IT_FIELDBASED; else  image_type&=~IT_FIELDBASED; }
-void VideoInfo::Set(int property)  { image_type|=property; }
-void VideoInfo::Clear(int property)  { image_type&=~property; }
+inline __int64 VideoInfo::AudioSamplesFromFrames(int frames) const { return (fps_numerator && HasVideo()) ? ((__int64)(frames) * audio_samples_per_second * fps_denominator / fps_numerator) : 0; }
+inline int VideoInfo::FramesFromAudioSamples(__int64 samples) const { return (fps_denominator && HasAudio()) ? (int)((samples * (__int64)fps_numerator)/((__int64)fps_denominator * (__int64)audio_samples_per_second)) : 0; }
+inline __int64 VideoInfo::AudioSamplesFromBytes(__int64 bytes) const { return HasAudio() ? bytes / BytesPerAudioSample() : 0; }
+inline __int64 VideoInfo::BytesFromAudioSamples(__int64 samples) const { return samples * BytesPerAudioSample(); }
+inline int VideoInfo::AudioChannels() const { return HasAudio() ? nchannels : 0; }
+inline int VideoInfo::SampleType() const{ return sample_type;}
+inline bool VideoInfo::IsSampleType(int testtype) const{ return !!(sample_type&testtype);}
+inline int VideoInfo::SamplesPerSecond() const { return audio_samples_per_second; }
+inline int VideoInfo::BytesPerAudioSample() const { return nchannels*BytesPerChannelSample();}
+inline void VideoInfo::SetFieldBased(bool isfieldbased)  { if (isfieldbased) image_type|=IT_FIELDBASED; else  image_type&=~IT_FIELDBASED; }
+inline void VideoInfo::Set(int property)  { image_type|=property; }
+inline void VideoInfo::Clear(int property)  { image_type&=~property; }
 
 /* Baked ********************
-int VideoInfo::BitsPerPixel() const {
+inline int VideoInfo::BitsPerPixel() const {
   switch (pixel_type) {
     case CS_BGR24:
       return 24;
@@ -76,7 +76,7 @@ int VideoInfo::BitsPerPixel() const {
 }
    Baked ********************/
 
-int VideoInfo::BytesPerChannelSample() const {
+inline int VideoInfo::BytesPerChannelSample() const {
   switch (sample_type) {
   case SAMPLE_INT8:
     return sizeof(unsigned char);
@@ -94,15 +94,15 @@ int VideoInfo::BytesPerChannelSample() const {
   }
 }
 
-bool VideoInfo::IsVPlaneFirst() const {
+inline bool VideoInfo::IsVPlaneFirst() const {
   return !IsY8() && IsPlanar() && (pixel_type & (CS_VPlaneFirst | CS_UPlaneFirst)) == CS_VPlaneFirst;   // Shouldn't use this
 }
 
-int VideoInfo::BytesFromPixels(int pixels) const {
+inline int VideoInfo::BytesFromPixels(int pixels) const {
   return !IsY8() && IsPlanar() ? pixels << ((pixel_type>>CS_Shift_Sample_Bits) & 3) : pixels * (BitsPerPixel()>>3);   // For planar images, will return luma plane
 }
 
-int VideoInfo::RowSize(int plane) const {
+inline int VideoInfo::RowSize(int plane) const {
   const int rowsize = BytesFromPixels(width);
 
   switch (plane) {
@@ -118,7 +118,7 @@ int VideoInfo::RowSize(int plane) const {
   return rowsize;
 }
 
-int VideoInfo::BMPSize() const {
+inline int VideoInfo::BMPSize() const {
   if (!IsY8() && IsPlanar()) {
     // Y plane
     const int Ybytes  = ((RowSize(PLANAR_Y)+3) & ~3) * height;
@@ -128,7 +128,7 @@ int VideoInfo::BMPSize() const {
   return height * ((RowSize()+3) & ~3);
 }
 
-int VideoInfo::GetPlaneWidthSubsampling(int plane) const {  // Subsampling in bitshifts!
+inline int VideoInfo::GetPlaneWidthSubsampling(int plane) const {  // Subsampling in bitshifts!
   if (plane == PLANAR_Y)  // No subsampling
     return 0;
   if (IsY8())
@@ -144,7 +144,7 @@ int VideoInfo::GetPlaneWidthSubsampling(int plane) const {  // Subsampling in bi
   throw AvisynthError("Filter error: GetPlaneWidthSubsampling called with unsupported plane.");
 }
 
-int VideoInfo::GetPlaneHeightSubsampling(int plane) const {  // Subsampling in bitshifts!
+inline int VideoInfo::GetPlaneHeightSubsampling(int plane) const {  // Subsampling in bitshifts!
   if (plane == PLANAR_Y)  // No subsampling
     return 0;
   if (IsY8())
@@ -160,7 +160,7 @@ int VideoInfo::GetPlaneHeightSubsampling(int plane) const {  // Subsampling in b
   throw AvisynthError("Filter error: GetPlaneHeightSubsampling called with supported plane.");
 }
 
-int VideoInfo::BitsPerPixel() const {
+inline int VideoInfo::BitsPerPixel() const {
 // Lookup Interleaved, calculate PLANAR's
     switch (pixel_type) {
       case CS_BGR24:
@@ -184,7 +184,7 @@ int VideoInfo::BitsPerPixel() const {
 }
 
 // useful mutator
-void VideoInfo::SetFPS(unsigned numerator, unsigned denominator) {
+inline void VideoInfo::SetFPS(unsigned numerator, unsigned denominator) {
   if ((numerator == 0) || (denominator == 0)) {
     fps_numerator = 0;
     fps_denominator = 1;
@@ -200,7 +200,7 @@ void VideoInfo::SetFPS(unsigned numerator, unsigned denominator) {
 }
 
 // Range protected multiply-divide of FPS
-void VideoInfo::MulDivFPS(unsigned multiplier, unsigned divisor) {
+inline void VideoInfo::MulDivFPS(unsigned multiplier, unsigned divisor) {
   unsigned __int64 numerator   = UInt32x32To64(fps_numerator,   multiplier);
   unsigned __int64 denominator = UInt32x32To64(fps_denominator, divisor);
 
@@ -229,7 +229,7 @@ void VideoInfo::MulDivFPS(unsigned multiplier, unsigned divisor) {
 }
 
 // Test for same colorspace
-bool VideoInfo::IsSameColorspace(const VideoInfo& vi) const {
+inline bool VideoInfo::IsSameColorspace(const VideoInfo& vi) const {
   if (vi.pixel_type == pixel_type) return TRUE;
   if (IsYV12() && vi.IsYV12()) return TRUE;
   return FALSE;

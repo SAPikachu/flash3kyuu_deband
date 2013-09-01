@@ -1,8 +1,10 @@
-#include "stdafx.h"
-#include "check.h"
+#pragma once
+
+#include "avisynth.h"
+
 #include <stdio.h>
 
-void check_parameter_range(const char* name, int value, int lower_bound, int upper_bound, char* param_name, IScriptEnvironment* env) {
+static void check_parameter_range(const char* name, int value, int lower_bound, int upper_bound, char* param_name, IScriptEnvironment* env) {
     if (value < lower_bound || value > upper_bound) {
         char msg[1024];
         sprintf_s(msg, "%s: Invalid value for parameter %s: %d, must be %d ~ %d.",
@@ -11,7 +13,7 @@ void check_parameter_range(const char* name, int value, int lower_bound, int upp
     }
 }
 
-void check_video_format(const char* name, const VideoInfo& vi, IScriptEnvironment* env)
+static void check_video_format(const char* name, const VideoInfo& vi, IScriptEnvironment* env)
 {
     char name_buffer[256];
     if (!vi.IsYUV() || !vi.IsPlanar()) {

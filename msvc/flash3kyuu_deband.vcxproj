@@ -381,10 +381,10 @@
     <ClInclude Include="..\src\auto_utils.h" />
     <ClInclude Include="..\src\auto_utils_helper.h" />
     <ClInclude Include="..\src\avisynth\avisynth.h" />
-    <ClInclude Include="..\src\avisynth\avisynth_videoinfo_26.h" />
-    <ClInclude Include="..\src\avisynth\check.h" />
-    <ClInclude Include="..\src\avisynth\filter.h" />
-    <ClInclude Include="..\src\avisynth\mt_info.h" />
+    <ClInclude Include="..\src\avisynth\avisynth_plugin.hpp" />
+    <ClInclude Include="..\src\avisynth\check.hpp" />
+    <ClInclude Include="..\src\avisynth\filter_impl.hpp" />
+    <ClInclude Include="..\src\avisynth\mt_info.hpp" />
     <ClInclude Include="..\src\avisynth\stdafx.h" />
     <ClInclude Include="..\src\compiler_compat.h" />
     <ClInclude Include="..\src\constants.h" />
@@ -419,11 +419,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\auto_utils.cpp" />
-    <ClCompile Include="..\src\avisynth\avisynth_init.cpp" />
-    <ClCompile Include="..\src\avisynth\avisynth_videoinfo_26.cpp" />
-    <ClCompile Include="..\src\avisynth\check.cpp" />
-    <ClCompile Include="..\src\avisynth\filter.cpp" />
-    <ClCompile Include="..\src\avisynth\mt_info.cpp" />
+    <ClCompile Include="..\src\avisynth\avisynth_plugin_legacy_26.cpp" />
+    <ClCompile Include="..\src\avisynth\avisynth_plugin_v5.cpp" />
     <ClCompile Include="..\src\core.cpp" />
     <ClCompile Include="..\src\debug_dump.cpp" />
     <ClCompile Include="..\src\dllmain.cpp">

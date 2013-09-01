@@ -148,6 +148,7 @@ Planar filter mask 1111.1111.1111.1111.1111.1111.1100.1111
     CS_TOPLEFT_CHROMA_PLACEMENT = 4 << 20
   };
 
+
   // useful functions of the above
   bool HasVideo() const;
   bool HasAudio() const;

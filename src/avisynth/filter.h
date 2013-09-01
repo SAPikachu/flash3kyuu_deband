@@ -4,10 +4,9 @@
 #include "avisynth.h"
 #include "flash3kyuu_deband.def.h"
 
-#include "mt_info.h"
+#include "mt_info.hpp"
 
 AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScriptEnvironment* env);
-extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit2(IScriptEnvironment* env);
 
 class f3kdb_avisynth : public GenericVideoFilter {
 private:
