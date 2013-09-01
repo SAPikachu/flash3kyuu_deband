@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="..\test\stdafx.h" />
+    <ClInclude Include="..\test\targetver.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\test\stdafx.cpp" />
+    <ClCompile Include="..\test\test_params_from_string.cpp" />
+    <ClCompile Include="..\test\test_core.cpp" />
+  </ItemGroup>
+</Project>

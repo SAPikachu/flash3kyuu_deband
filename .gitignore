@@ -18,3 +18,5 @@ test/x64
 build
 .waf3-*
 sandbox
+msvc/Debug
+msvc/Release*

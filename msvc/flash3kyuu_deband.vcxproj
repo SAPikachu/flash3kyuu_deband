@@ -162,6 +162,7 @@
       <UseMSVC>true</UseMSVC>
       <PreprocessToFile>false</PreprocessToFile>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalIncludeDirectories>..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -172,7 +173,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PreBuildEvent>
-      <Command>gen_filter_def.py</Command>
+      <Command>cd ..\src &amp; gen_filter_def.py</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug with dump|Win32'">
@@ -185,6 +186,7 @@
       <UseMSVC>true</UseMSVC>
       <PreprocessToFile>false</PreprocessToFile>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalIncludeDirectories>..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -195,7 +197,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PreBuildEvent>
-      <Command>gen_filter_def.py</Command>
+      <Command>cd ..\src &amp; gen_filter_def.py</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -208,6 +210,7 @@
       <UseMSVC>true</UseMSVC>
       <PreprocessToFile>false</PreprocessToFile>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalIncludeDirectories>..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -218,7 +221,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PreBuildEvent>
-      <Command>gen_filter_def.py</Command>
+      <Command>cd ..\src &amp; gen_filter_def.py</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug with dump|x64'">
@@ -231,6 +234,7 @@
       <UseMSVC>true</UseMSVC>
       <PreprocessToFile>false</PreprocessToFile>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalIncludeDirectories>..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -241,7 +245,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PreBuildEvent>
-      <Command>gen_filter_def.py</Command>
+      <Command>cd ..\src &amp; gen_filter_def.py</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -260,6 +264,7 @@
       <UseProcessorExtensions>None</UseProcessorExtensions>
       <UseMSVC>false</UseMSVC>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalIncludeDirectories>..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -273,7 +278,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PreBuildEvent>
-      <Command>gen_filter_def.py</Command>
+      <Command>cd ..\src &amp; gen_filter_def.py</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_MSVC|Win32'">
@@ -292,6 +297,7 @@
       <UseProcessorExtensions>None</UseProcessorExtensions>
       <UseMSVC>true</UseMSVC>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalIncludeDirectories>..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -304,7 +310,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PreBuildEvent>
-      <Command>gen_filter_def.py</Command>
+      <Command>cd ..\src &amp; gen_filter_def.py</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -323,6 +329,7 @@
       <UseProcessorExtensions>None</UseProcessorExtensions>
       <UseMSVC>false</UseMSVC>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalIncludeDirectories>..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -335,7 +342,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PreBuildEvent>
-      <Command>gen_filter_def.py</Command>
+      <Command>cd ..\src &amp; gen_filter_def.py</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_MSVC|x64'">
@@ -354,6 +361,7 @@
       <UseProcessorExtensions>None</UseProcessorExtensions>
       <UseMSVC>false</UseMSVC>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalIncludeDirectories>..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -366,61 +374,61 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PreBuildEvent>
-      <Command>gen_filter_def.py</Command>
+      <Command>cd ..\src &amp; gen_filter_def.py</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="auto_utils.h" />
-    <ClInclude Include="auto_utils_helper.h" />
-    <ClInclude Include="avisynth\avisynth.h" />
-    <ClInclude Include="avisynth\avisynth_videoinfo_26.h" />
-    <ClInclude Include="avisynth\check.h" />
-    <ClInclude Include="avisynth\dither_avs.h" />
-    <ClInclude Include="avisynth\filter.h" />
-    <ClInclude Include="avisynth\mt_info.h" />
-    <ClInclude Include="avisynth\stdafx.h" />
-    <ClInclude Include="compiler_compat.h" />
-    <ClInclude Include="constants.h" />
-    <ClInclude Include="core.h" />
-    <ClInclude Include="debug_dump.h" />
-    <ClInclude Include="dither_high.h" />
-    <ClInclude Include="flash3kyuu_deband_sse_base.h" />
-    <ClInclude Include="icc_override.h" />
-    <ClInclude Include="impl_dispatch.h" />
-    <ClInclude Include="impl_dispatch_decl.h" />
-    <ClInclude Include="include\f3kdb.h" />
-    <ClInclude Include="include\f3kdb_enums.h" />
-    <ClInclude Include="include\f3kdb_params.h" />
-    <ClInclude Include="pixel_proc_c_16bit.h" />
-    <ClInclude Include="pixel_proc_c_high_f_s_dithering.h" />
-    <ClInclude Include="pixel_proc_c_high_ordered_dithering.h" />
-    <ClInclude Include="pixel_proc_c.h" />
-    <ClInclude Include="pixel_proc_c_high_bit_depth_common.h" />
-    <ClInclude Include="pixel_proc_c_high_no_dithering.h" />
-    <ClInclude Include="process_plane_context.h" />
-    <ClInclude Include="random.h" />
-    <ClInclude Include="sse_compat.h" />
-    <ClInclude Include="sse_utils.h" />
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="targetver.h" />
-    <ClInclude Include="utils.h" />
-    <ClInclude Include="vapoursynth\plugin.def.h" />
-    <ClInclude Include="vapoursynth\plugin.h" />
-    <ClInclude Include="vapoursynth\VapourSynth.h" />
-    <ClInclude Include="vapoursynth\VSHelper.h" />
-    <ClInclude Include="x64_compat.h" />
+    <ClInclude Include="..\src\auto_utils.h" />
+    <ClInclude Include="..\src\auto_utils_helper.h" />
+    <ClInclude Include="..\src\avisynth\avisynth.h" />
+    <ClInclude Include="..\src\avisynth\avisynth_videoinfo_26.h" />
+    <ClInclude Include="..\src\avisynth\check.h" />
+    <ClInclude Include="..\src\avisynth\dither_avs.h" />
+    <ClInclude Include="..\src\avisynth\filter.h" />
+    <ClInclude Include="..\src\avisynth\mt_info.h" />
+    <ClInclude Include="..\src\avisynth\stdafx.h" />
+    <ClInclude Include="..\src\compiler_compat.h" />
+    <ClInclude Include="..\src\constants.h" />
+    <ClInclude Include="..\src\core.h" />
+    <ClInclude Include="..\src\debug_dump.h" />
+    <ClInclude Include="..\src\dither_high.h" />
+    <ClInclude Include="..\src\flash3kyuu_deband_sse_base.h" />
+    <ClInclude Include="..\src\icc_override.h" />
+    <ClInclude Include="..\src\impl_dispatch.h" />
+    <ClInclude Include="..\src\impl_dispatch_decl.h" />
+    <ClInclude Include="..\include\f3kdb.h" />
+    <ClInclude Include="..\include\f3kdb_enums.h" />
+    <ClInclude Include="..\include\f3kdb_params.h" />
+    <ClInclude Include="..\src\pixel_proc_c_16bit.h" />
+    <ClInclude Include="..\src\pixel_proc_c_high_f_s_dithering.h" />
+    <ClInclude Include="..\src\pixel_proc_c_high_ordered_dithering.h" />
+    <ClInclude Include="..\src\pixel_proc_c.h" />
+    <ClInclude Include="..\src\pixel_proc_c_high_bit_depth_common.h" />
+    <ClInclude Include="..\src\pixel_proc_c_high_no_dithering.h" />
+    <ClInclude Include="..\src\process_plane_context.h" />
+    <ClInclude Include="..\src\random.h" />
+    <ClInclude Include="..\src\sse_compat.h" />
+    <ClInclude Include="..\src\sse_utils.h" />
+    <ClInclude Include="..\src\stdafx.h" />
+    <ClInclude Include="..\src\targetver.h" />
+    <ClInclude Include="..\src\utils.h" />
+    <ClInclude Include="..\src\vapoursynth\plugin.def.h" />
+    <ClInclude Include="..\src\vapoursynth\plugin.h" />
+    <ClInclude Include="..\src\vapoursynth\VapourSynth.h" />
+    <ClInclude Include="..\src\vapoursynth\VSHelper.h" />
+    <ClInclude Include="..\src\x64_compat.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="auto_utils.cpp" />
-    <ClCompile Include="avisynth\avisynth_init.cpp" />
-    <ClCompile Include="avisynth\avisynth_videoinfo_26.cpp" />
-    <ClCompile Include="avisynth\check.cpp" />
-    <ClCompile Include="avisynth\dither_avs.cpp" />
-    <ClCompile Include="avisynth\filter.cpp" />
-    <ClCompile Include="avisynth\mt_info.cpp" />
-    <ClCompile Include="core.cpp" />
-    <ClCompile Include="debug_dump.cpp" />
-    <ClCompile Include="dllmain.cpp">
+    <ClCompile Include="..\src\auto_utils.cpp" />
+    <ClCompile Include="..\src\avisynth\avisynth_init.cpp" />
+    <ClCompile Include="..\src\avisynth\avisynth_videoinfo_26.cpp" />
+    <ClCompile Include="..\src\avisynth\check.cpp" />
+    <ClCompile Include="..\src\avisynth\dither_avs.cpp" />
+    <ClCompile Include="..\src\avisynth\filter.cpp" />
+    <ClCompile Include="..\src\avisynth\mt_info.cpp" />
+    <ClCompile Include="..\src\core.cpp" />
+    <ClCompile Include="..\src\debug_dump.cpp" />
+    <ClCompile Include="..\src\dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug with dump|Win32'">false</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>
@@ -446,16 +454,16 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_MSVC|x64'">
       </PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="public_interface.cpp" />
-    <ClCompile Include="flash3kyuu_deband_impl_c.cpp" />
-    <ClCompile Include="flash3kyuu_deband_impl_sse2.cpp" />
-    <ClCompile Include="flash3kyuu_deband_impl_sse4.cpp" />
-    <ClCompile Include="flash3kyuu_deband_impl_ssse3.cpp" />
-    <ClCompile Include="icc_override.cpp" />
-    <ClCompile Include="impl_dispatch.cpp" />
-    <ClCompile Include="process_plane_context.cpp" />
-    <ClCompile Include="random.cpp" />
-    <ClCompile Include="stdafx.cpp">
+    <ClCompile Include="..\src\public_interface.cpp" />
+    <ClCompile Include="..\src\flash3kyuu_deband_impl_c.cpp" />
+    <ClCompile Include="..\src\flash3kyuu_deband_impl_sse2.cpp" />
+    <ClCompile Include="..\src\flash3kyuu_deband_impl_sse4.cpp" />
+    <ClCompile Include="..\src\flash3kyuu_deband_impl_ssse3.cpp" />
+    <ClCompile Include="..\src\icc_override.cpp" />
+    <ClCompile Include="..\src\impl_dispatch.cpp" />
+    <ClCompile Include="..\src\process_plane_context.cpp" />
+    <ClCompile Include="..\src\random.cpp" />
+    <ClCompile Include="..\src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug with dump|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -465,7 +473,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_MSVC|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="vapoursynth\plugin.cpp" />
+    <ClCompile Include="..\src\vapoursynth\plugin.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

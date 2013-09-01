@@ -20,186 +20,186 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
+    <ClInclude Include="..\src\stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="targetver.h">
+    <ClInclude Include="..\src\targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="impl_dispatch.h">
+    <ClInclude Include="..\src\impl_dispatch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="flash3kyuu_deband_sse_base.h">
+    <ClInclude Include="..\src\flash3kyuu_deband_sse_base.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sse_compat.h">
+    <ClInclude Include="..\src\sse_compat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="process_plane_context.h">
+    <ClInclude Include="..\src\process_plane_context.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="icc_override.h">
+    <ClInclude Include="..\src\icc_override.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pixel_proc_c.h">
+    <ClInclude Include="..\src\pixel_proc_c.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pixel_proc_c_high_bit_depth_common.h">
+    <ClInclude Include="..\src\pixel_proc_c_high_bit_depth_common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pixel_proc_c_high_f_s_dithering.h">
+    <ClInclude Include="..\src\pixel_proc_c_high_f_s_dithering.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pixel_proc_c_high_ordered_dithering.h">
+    <ClInclude Include="..\src\pixel_proc_c_high_ordered_dithering.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pixel_proc_c_high_no_dithering.h">
+    <ClInclude Include="..\src\pixel_proc_c_high_no_dithering.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="impl_dispatch_decl.h">
+    <ClInclude Include="..\src\impl_dispatch_decl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dither_high.h">
+    <ClInclude Include="..\src\dither_high.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pixel_proc_c_16bit.h">
+    <ClInclude Include="..\src\pixel_proc_c_16bit.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils.h">
+    <ClInclude Include="..\src\utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="constants.h">
+    <ClInclude Include="..\src\constants.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sse_utils.h">
+    <ClInclude Include="..\src\sse_utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="x64_compat.h">
+    <ClInclude Include="..\src\x64_compat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="debug_dump.h">
+    <ClInclude Include="..\src\debug_dump.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="random.h">
+    <ClInclude Include="..\src\random.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="avisynth\avisynth.h">
+    <ClInclude Include="..\src\avisynth\avisynth.h">
       <Filter>avisynth</Filter>
     </ClInclude>
-    <ClInclude Include="avisynth\avisynth_videoinfo_26.h">
+    <ClInclude Include="..\src\avisynth\avisynth_videoinfo_26.h">
       <Filter>avisynth</Filter>
     </ClInclude>
-    <ClInclude Include="avisynth\mt_info.h">
+    <ClInclude Include="..\src\avisynth\mt_info.h">
       <Filter>avisynth</Filter>
     </ClInclude>
-    <ClInclude Include="avisynth\dither_avs.h">
+    <ClInclude Include="..\src\avisynth\dither_avs.h">
       <Filter>avisynth</Filter>
     </ClInclude>
-    <ClInclude Include="avisynth\stdafx.h">
+    <ClInclude Include="..\src\avisynth\stdafx.h">
       <Filter>avisynth</Filter>
     </ClInclude>
-    <ClInclude Include="include\f3kdb_enums.h">
+    <ClInclude Include="..\include\f3kdb_enums.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\f3kdb.h">
+    <ClInclude Include="..\include\f3kdb.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\f3kdb_params.h">
+    <ClInclude Include="..\include\f3kdb_params.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="auto_utils.h">
+    <ClInclude Include="..\src\auto_utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="core.h">
+    <ClInclude Include="..\src\core.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="avisynth\check.h">
+    <ClInclude Include="..\src\avisynth\check.h">
       <Filter>avisynth</Filter>
     </ClInclude>
-    <ClInclude Include="avisynth\filter.h">
+    <ClInclude Include="..\src\avisynth\filter.h">
       <Filter>avisynth</Filter>
     </ClInclude>
-    <ClInclude Include="auto_utils_helper.h">
+    <ClInclude Include="..\src\auto_utils_helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="vapoursynth\VapourSynth.h">
+    <ClInclude Include="..\src\vapoursynth\VapourSynth.h">
       <Filter>vapoursynth</Filter>
     </ClInclude>
-    <ClInclude Include="compiler_compat.h">
+    <ClInclude Include="..\src\compiler_compat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="vapoursynth\VSHelper.h">
+    <ClInclude Include="..\src\vapoursynth\VSHelper.h">
       <Filter>vapoursynth</Filter>
     </ClInclude>
-    <ClInclude Include="vapoursynth\plugin.h">
+    <ClInclude Include="..\src\vapoursynth\plugin.h">
       <Filter>vapoursynth</Filter>
     </ClInclude>
-    <ClInclude Include="vapoursynth\plugin.def.h">
+    <ClInclude Include="..\src\vapoursynth\plugin.def.h">
       <Filter>vapoursynth</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
+    <ClCompile Include="..\src\stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dllmain.cpp">
+    <ClCompile Include="..\src\dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="flash3kyuu_deband_impl_c.cpp">
+    <ClCompile Include="..\src\flash3kyuu_deband_impl_c.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="flash3kyuu_deband_impl_sse4.cpp">
+    <ClCompile Include="..\src\flash3kyuu_deband_impl_sse4.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="flash3kyuu_deband_impl_ssse3.cpp">
+    <ClCompile Include="..\src\flash3kyuu_deband_impl_ssse3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="flash3kyuu_deband_impl_sse2.cpp">
+    <ClCompile Include="..\src\flash3kyuu_deband_impl_sse2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="icc_override.cpp">
+    <ClCompile Include="..\src\icc_override.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="process_plane_context.cpp">
+    <ClCompile Include="..\src\process_plane_context.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="impl_dispatch.cpp">
+    <ClCompile Include="..\src\impl_dispatch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="debug_dump.cpp">
+    <ClCompile Include="..\src\debug_dump.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="random.cpp">
+    <ClCompile Include="..\src\random.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="avisynth\avisynth_init.cpp">
+    <ClCompile Include="..\src\avisynth\avisynth_init.cpp">
       <Filter>avisynth</Filter>
     </ClCompile>
-    <ClCompile Include="avisynth\avisynth_videoinfo_26.cpp">
+    <ClCompile Include="..\src\avisynth\avisynth_videoinfo_26.cpp">
       <Filter>avisynth</Filter>
     </ClCompile>
-    <ClCompile Include="avisynth\mt_info.cpp">
+    <ClCompile Include="..\src\avisynth\mt_info.cpp">
       <Filter>avisynth</Filter>
     </ClCompile>
-    <ClCompile Include="avisynth\dither_avs.cpp">
+    <ClCompile Include="..\src\avisynth\dither_avs.cpp">
       <Filter>avisynth</Filter>
     </ClCompile>
-    <ClCompile Include="auto_utils.cpp">
+    <ClCompile Include="..\src\auto_utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="core.cpp">
+    <ClCompile Include="..\src\core.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="public_interface.cpp">
+    <ClCompile Include="..\src\public_interface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="avisynth\check.cpp">
+    <ClCompile Include="..\src\avisynth\check.cpp">
       <Filter>avisynth</Filter>
     </ClCompile>
-    <ClCompile Include="avisynth\filter.cpp">
+    <ClCompile Include="..\src\avisynth\filter.cpp">
       <Filter>avisynth</Filter>
     </ClCompile>
-    <ClCompile Include="vapoursynth\plugin.cpp">
+    <ClCompile Include="..\src\vapoursynth\plugin.cpp">
       <Filter>vapoursynth</Filter>
     </ClCompile>
   </ItemGroup>
