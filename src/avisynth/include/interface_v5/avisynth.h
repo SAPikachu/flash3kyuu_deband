@@ -34,8 +34,18 @@ Please NOTE! This version of avisynth.h DOES NOT have any special exemption!
     Normal licence conditions will be reapplied in a future version.
 */
 
+// Note: This header file has been hacked to support volatile PVideoFrame
 
+#ifdef __INTEL_COMPILER
+#pragma warning( push )
+#pragma warning( disable: 693 )
+#endif
 
+#ifdef _MSC_VER
+#pragma warning( push )
+#pragma warning( disable: 4521 )
+#pragma warning( disable: 4522 )
+#endif
 
 #ifndef __AVISYNTH_H__
 #define __AVISYNTH_H__
@@ -1028,3 +1038,7 @@ IScriptEnvironment* __stdcall CreateScriptEnvironment(int version = AVISYNTH_INT
 #pragma pack(pop)
 
 #endif //__AVISYNTH_H__
+
+#if defined(__INTEL_COMPILER) || defined(_MSC_VER)
+#pragma warning( pop )
+#endif
