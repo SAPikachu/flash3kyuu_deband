@@ -92,9 +92,6 @@
     <ClInclude Include="..\src\avisynth\mt_info.h">
       <Filter>avisynth</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\avisynth\dither_avs.h">
-      <Filter>avisynth</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\avisynth\stdafx.h">
       <Filter>avisynth</Filter>
     </ClInclude>
@@ -179,9 +176,6 @@
       <Filter>avisynth</Filter>
     </ClCompile>
     <ClCompile Include="..\src\avisynth\mt_info.cpp">
-      <Filter>avisynth</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\avisynth\dither_avs.cpp">
       <Filter>avisynth</Filter>
     </ClCompile>
     <ClCompile Include="..\src\auto_utils.cpp">

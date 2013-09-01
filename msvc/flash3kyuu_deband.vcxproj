@@ -383,7 +383,6 @@
     <ClInclude Include="..\src\avisynth\avisynth.h" />
     <ClInclude Include="..\src\avisynth\avisynth_videoinfo_26.h" />
     <ClInclude Include="..\src\avisynth\check.h" />
-    <ClInclude Include="..\src\avisynth\dither_avs.h" />
     <ClInclude Include="..\src\avisynth\filter.h" />
     <ClInclude Include="..\src\avisynth\mt_info.h" />
     <ClInclude Include="..\src\avisynth\stdafx.h" />
@@ -423,7 +422,6 @@
     <ClCompile Include="..\src\avisynth\avisynth_init.cpp" />
     <ClCompile Include="..\src\avisynth\avisynth_videoinfo_26.cpp" />
     <ClCompile Include="..\src\avisynth\check.cpp" />
-    <ClCompile Include="..\src\avisynth\dither_avs.cpp" />
     <ClCompile Include="..\src\avisynth\filter.cpp" />
     <ClCompile Include="..\src\avisynth\mt_info.cpp" />
     <ClCompile Include="..\src\core.cpp" />
