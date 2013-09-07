@@ -47,19 +47,12 @@ def _check_cxx(conf, feature, fragment, mandatory=False):
     )
 
 
-def configure(conf):
+def configure_gcc(conf):
     def add_options(flags, options):
         for flag in flags:
             conf.env.append_unique(flag, options)
 
-    for x in ["shared", "static"]:
-        val = conf.options.__dict__[x]
-        conf.env[x.upper()] = val
-        conf.msg(x.title() + " library", "yes" if val else "no")
-
-    if (conf.env.SHARED, conf.env.STATIC) == (False, False):
-        conf.fatal("Either shared or static library need to be selected.")
-
+    # clang is also configured here, since their configurations are the same
     for dir in ["libdir", "includedir"]:
         u = dir.upper()
 
@@ -70,7 +63,6 @@ def configure(conf):
 
     conf.env.append_value("INCLUDES", conf.path.find_node("include").abspath())
 
-    conf.load("compiler_cxx")
     add_options(["CFLAGS", "CXXFLAGS"],
                 ["-fPIC", "-Wall", "-Wextra", "-Wno-unused-parameter",
                  "-Werror", "-std=c++11"])
@@ -89,6 +81,8 @@ def configure(conf):
     else:
         conf.fatal("--mode must be either debug or release.")
 
+    conf.find_program("python3", var="PYTHON3")
+
     _check_cxx(
         conf,
         "alignas",
@@ -96,9 +90,33 @@ def configure(conf):
         mandatory=True,
     )
 
-    conf.find_program("python3", var="PYTHON3")
 
-    conf.recurse("test")
+def configure(conf):
+    for x in ["shared", "static"]:
+        val = conf.options.__dict__[x]
+        conf.env[x.upper()] = val
+        conf.msg(x.title() + " library", "yes" if val else "no")
+
+    if (conf.env.SHARED, conf.env.STATIC) == (False, False):
+        conf.fatal("Either shared or static library need to be selected.")
+
+    if "MSVC_VERSIONS" not in conf.env:
+        conf.env["MSVC_VERSIONS"] = ["msvc 11.0"]
+
+    conf.load("compiler_cxx")
+    dest_os = (
+        "windows" if conf.env.DEST_OS in ["win32", "cygwin", "msys", "uwin"]
+        else conf.env.DEST_OS
+    )
+
+    conf.env.USE_MSBUILD = dest_os == "windows" and conf.env.CXX_NAME != "gcc"
+    if conf.env.USE_MSBUILD:
+        conf.recurse("msvc")
+    else:
+        configure_gcc(conf)
+        conf.recurse("test")
+
+    conf.msg("Build mode", conf.options.mode)
 
 
 def post_install(ctx):
@@ -113,6 +131,10 @@ def post_install(ctx):
 
 
 def build(bld):
+    if bld.env.USE_MSBUILD:
+        bld.recurse("msvc")
+        return
+
     bld.recurse("src")
     for var, feature in [("SHARED", "cxxshlib"), ("STATIC", "cxxstlib")]:
         if bld.env[var]:

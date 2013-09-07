@@ -1,0 +1,48 @@
+from waflib import Logs
+
+def configure(conf):
+    conf.load("python")
+    conf.check_python_version((3, 0, 0))
+
+    Logs.info("Will use msbuild to compile")
+    conf.find_program("msbuild", path_list=conf.env.PATH, var="MSBUILD")
+
+    if conf.options.mode not in ("debug", "release", "release_msvc"):
+        conf.fatal("--mode must be either debug, release or release_msvc.")
+
+    conf.env.BUILD_CONFIGURATION = conf.options.mode
+    if conf.env.DEST_CPU == "x86":
+        conf.env.TARGET_PLATFORM = "Win32"
+    elif conf.env.DEST_CPU == "amd64":
+        conf.env.TARGET_PLATFORM = "x64"
+    else:
+        conf.fatal("Unsupported target CPU: conf.env.DEST_CPU")
+
+    conf.msg("Target platform", conf.env.TARGET_PLATFORM)
+
+
+def build(bld):
+    int_dir = bld.path.get_bld().make_node(r"tmp")
+    final_output_dir = bld.path.get_bld().parent
+    bld.env.INTDIR = int_dir.abspath()
+    f3kdb_file_name = "flash3kyuu_deband.dll"
+    int_output = int_dir.find_or_declare(r"out\\" + f3kdb_file_name)
+    bld(
+        rule=(
+            "${MSBUILD} ${SRC[0].abspath()} "
+            r"/t:Build "
+            r"/p:IntDir=${INTDIR}\obj\ "
+            r"/p:OutDir=${INTDIR}\out\ "
+            r"/p:Configuration=${BUILD_CONFIGURATION} "
+            r"/p:Platform=${TARGET_PLATFORM} "
+        ),
+        source=bld.path.find_resource("flash3kyuu_deband.vcxproj"),
+        target=int_output,
+        always=True,
+        update_outputs=True,
+    )
+    bld(
+        rule="copy ${SRC} ${TGT}",
+        source=int_output,
+        target=final_output_dir.find_or_declare(f3kdb_file_name),
+    )
