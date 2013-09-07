@@ -10,7 +10,7 @@
 #include "plugin.h"
 #include "VapourSynth.h"
 
-static const char* F3KDB_VAPOURSYNTH_PARAMS = "clip:clip;range:int:opt;y:int:opt;cb:int:opt;cr:int:opt;grainy:int:opt;grainc:int:opt;sample_mode:int:opt;seed:int:opt;blur_first:int:opt;dynamic_grain:int:opt;opt:int:opt;dither_algo:int:opt;keep_tv_range:int:opt;output_depth:int:opt;random_algo_ref:int:opt;random_algo_grain:int:opt;random_param_ref:float:opt;random_param_grain:float:opt;";
+static const char* F3KDB_VAPOURSYNTH_PARAMS = "clip:clip;range:int:opt;y:int:opt;cb:int:opt;cr:int:opt;grainy:int:opt;grainc:int:opt;sample_mode:int:opt;seed:int:opt;blur_first:int:opt;dynamic_grain:int:opt;opt:int:opt;dither_algo:int:opt;keep_tv_range:int:opt;output_depth:int:opt;random_algo_ref:int:opt;random_algo_grain:int:opt;random_param_ref:float:opt;random_param_grain:float:opt;preset:data:opt;";
 
 static bool f3kdb_params_from_vs(f3kdb_params_t* f3kdb_params, const VSMap* in, VSMap* out, const VSAPI* vsapi)
 {

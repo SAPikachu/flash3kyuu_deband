@@ -82,6 +82,30 @@ static void VS_CC f3kdbCreate(const VSMap *in, VSMap *out, void *userData, VSCor
 
     f3kdb_params_t params;
     f3kdb_params_init_defaults(&params);
+
+    int error;
+    const char* preset = vsapi->propGetData(in, "preset", 0, &error);
+    if (error != peUnset)
+    {
+        if (error == peType)
+        {
+            vsapi->setError(out, "f3kdb: preset must be a string");
+            vsapi->freeNode(node);
+            return;
+        } else if (error != _peNoError) {
+            vsapi->setError(out, "f3kdb: Unknown preset error");
+            vsapi->freeNode(node);
+            return;
+        }
+        int result = f3kdb_params_fill_preset(&params, preset);
+        if (result != F3KDB_SUCCESS)
+        {
+            vsapi->setError(out, "f3kdb: Invalid preset");
+            vsapi->freeNode(node);
+            return;
+        }
+    }
+
     bool success = f3kdb_params_from_vs(&params, in, out, vsapi);
     if (!success)
     {

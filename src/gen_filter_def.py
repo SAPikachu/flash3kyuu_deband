@@ -6,7 +6,8 @@ import sys
 def generate_output():
     p = FilterParam
     params = (
-        p("c", "child", optional=False, has_field=False),
+        p("c", "child", optional=False, has_field=False,
+          scope_exclude=["vapoursynth"]),
         p("i", "range", default_value=15),
         p("i", "Y", c_type="unsigned short", default_value=64),
         p("i", "Cb", c_type="unsigned short", default_value=64),
@@ -19,13 +20,14 @@ def generate_output():
         p("b", "dynamic_grain", default_value="false"),
         p("i", "opt", c_type="OPTIMIZATION_MODE",
           default_value="IMPL_AUTO_DETECT"),
-        p("b", "mt", scope=["avisynth"]),
+        p("b", "mt", scope=["avisynth"], has_field=False),
         p("i", "dither_algo", c_type="DITHER_ALGORITHM", 
           default_value="DA_HIGH_FLOYD_STEINBERG_DITHERING"),
         p("b", "keep_tv_range", default_value="false"),
-        p("i", "input_mode", c_type="PIXEL_MODE", scope=["avisynth"],
-          default_value="DEFAULT_PIXEL_MODE"),
-        p("i", "input_depth", default_value=-1, scope=["avisynth"]),
+        p("i", "input_mode", c_type="PIXEL_MODE", has_field=False,
+          scope=["avisynth"], default_value="DEFAULT_PIXEL_MODE"),
+        p("i", "input_depth", default_value=-1, has_field=False,
+          scope=["avisynth"]),
         p("i", "output_mode", c_type="PIXEL_MODE", 
           scope_exclude=["vapoursynth"], default_value="DEFAULT_PIXEL_MODE"),
         p("i", "output_depth", default_value=-1),
@@ -37,6 +39,8 @@ def generate_output():
           default_value="DEFAULT_RANDOM_PARAM"),
         p("f", "random_param_grain",
           default_value="DEFAULT_RANDOM_PARAM"),
+        p("s", "preset", optional=True, has_field=False,
+          scope=["avisynth", "vapoursynth"]),
     )
 
     def _generate(file_name, template, scope):
@@ -116,8 +120,8 @@ class FilterParam:
         self.vs_type = PARAM_TYPES[type][2]
         self.optional = optional
         self.has_field = has_field
-        self.scope = scope
-        self.scope_exclude = scope_exclude
+        self.scope = scope or []
+        self.scope_exclude = scope_exclude or []
         self.default_value = default_value
 
 OUTPUT_HEADER = """
@@ -248,7 +252,7 @@ def build_params_set_by_string(params):
         for x in params if x.has_field])
 
 def build_f3kdb_params_from_avs(filter_name, params):
-    params = [x for x in params if not x.scope]
+    params = [x for x in params if x.has_field]
     return "\n    ".join([
         "if ({filter_name_u}_ARG({field_name}).Defined()) {{ f3kdb_params->{field_name} = {type_conversion}{filter_name_u}_ARG({field_name}).{converter}(); }}".
         format(
@@ -265,17 +269,17 @@ def build_vapoursynth_params(params):
                         x.vs_type,
                         ":opt" if x.optional else "",
                     )
-                    for x in params if x.has_field])
+                    for x in params])
 
 def build_f3kdb_params_from_vs(params):
-    params = [x for x in params if not x.scope]
+    params = [x for x in params if x.has_field]
     return "\n    ".join([
         """if (!param_from_vsmap(&f3kdb_params->{field_name}, "{field_name_l}", in, out, vsapi)) {{ return false; }}""".
         format(
             field_name=x.field_name,
             field_name_l=x.field_name.lower(),
         ) 
-        for x in params if x.has_field])
+        for x in params])
 
 def generate_definition(filter_name, template, scope, *params):
     params = [x for x in params 

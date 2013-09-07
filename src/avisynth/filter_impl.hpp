@@ -23,6 +23,14 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 
     f3kdb_params_t params;
     f3kdb_params_init_defaults(&params);
+
+    if (F3KDB_ARG(preset).Defined()) {
+        int result = f3kdb_params_fill_preset(&params, F3KDB_ARG(preset).AsString());
+        if (result != F3KDB_SUCCESS) {
+            env->ThrowError("f3kdb: Invalid preset (code: %d)", result);
+        }
+    }
+
     f3kdb_params_from_avs(args, &params);
     f3kdb_params_sanitize(&params);
 
