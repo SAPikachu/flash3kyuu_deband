@@ -404,6 +404,7 @@
     <ClInclude Include="..\src\pixel_proc_c.h" />
     <ClInclude Include="..\src\pixel_proc_c_high_bit_depth_common.h" />
     <ClInclude Include="..\src\pixel_proc_c_high_no_dithering.h" />
+    <ClInclude Include="..\src\presets.h" />
     <ClInclude Include="..\src\process_plane_context.h" />
     <ClInclude Include="..\src\random.h" />
     <ClInclude Include="..\src\sse_compat.h" />
