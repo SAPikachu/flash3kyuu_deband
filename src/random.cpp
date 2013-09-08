@@ -22,7 +22,7 @@ static const rand_impl_t rand_algorithms[] = {
     rand_gaussian
 };
 
-double round(double r) {
+inline double round(double r) {
     return (r > 0.0) ? floor(r + 0.5) : ceil(r - 0.5);
 }
 
