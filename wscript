@@ -62,6 +62,7 @@ def configure_gcc(conf):
 
     add_options(["CFLAGS", "CXXFLAGS"],
                 ["-fPIC", "-Wall", "-Wextra", "-Wno-unused-parameter",
+                 "-fvisibility=hidden", "-fvisibility-inlines-hidden",
                  "-Werror", "-std=c++11"])
     add_options(["LINKFLAGS_cshlib",
                  "LINKFLAGS_cprogram",
