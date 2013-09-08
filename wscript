@@ -48,20 +48,10 @@ def _check_cxx(conf, feature, fragment, mandatory=False):
 
 
 def configure_gcc(conf):
+    # clang is also configured here, since their configurations are the same
     def add_options(flags, options):
         for flag in flags:
             conf.env.append_unique(flag, options)
-
-    # clang is also configured here, since their configurations are the same
-    for dir in ["libdir", "includedir"]:
-        u = dir.upper()
-
-        conf.env[u] = Utils.subst_vars(conf.options.__dict__[dir], conf.env)
-        conf.msg("Setting {0} to".format(u), conf.env[u])
-
-    conf.env.VENDORLIBS = conf.path.find_node("lib").abspath()
-
-    conf.env.append_value("INCLUDES", conf.path.find_node("include").abspath())
 
     add_options(["CFLAGS", "CXXFLAGS"],
                 ["-fPIC", "-Wall", "-Wextra", "-Wno-unused-parameter",
@@ -81,14 +71,23 @@ def configure_gcc(conf):
     else:
         conf.fatal("--mode must be either debug or release.")
 
-    conf.find_program("python3", var="PYTHON3")
-
     _check_cxx(
         conf,
         "alignas",
         "int main() { alignas(8) int x = 0; return x; }",
         mandatory=True,
     )
+
+    for dir in ["libdir", "includedir"]:
+        u = dir.upper()
+
+        conf.env[u] = Utils.subst_vars(conf.options.__dict__[dir], conf.env)
+        conf.msg("Setting {0} to".format(u), conf.env[u])
+
+    conf.env.VENDORLIBS = conf.path.find_node("lib").abspath()
+    conf.env.append_value("INCLUDES", conf.path.find_node("include").abspath())
+
+    conf.find_program("python3", var="PYTHON3")
 
 
 def configure(conf):
