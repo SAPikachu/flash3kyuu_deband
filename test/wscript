@@ -5,11 +5,14 @@ from waflib import Utils
 
 def options(opt):
     opt.load("compiler_c")
-    opt.add_option("--test", action="store_true", default=False,
-                   help="build unit test")
+    opt.add_option("--enable-test", action="store_true", default=False,
+                   dest="test", help="build tests")
+    opt.add_option("--disable-test", action="store_false",
+                   dest="test", help="do not build tests (default)")
 
 
 def configure(conf):
+    conf.msg("Build tests", "yes" if conf.options.test else "no")
     if not conf.options.test:
         return
 

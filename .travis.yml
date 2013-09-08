@@ -12,7 +12,7 @@ before_install:
   - sudo apt-get install -qq python3
 
 script: >
-    ./waf configure --test &&
+    ./waf configure --enable-test &&
     ./waf build &&
     build/test/f3kdb-test --gtest_filter='-Core/*' &&
     build/test/f3kdb-test --gtest_filter='Core/*/?:Core/*/??' &&

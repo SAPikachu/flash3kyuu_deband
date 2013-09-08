@@ -22,7 +22,7 @@ If you need to use a non-default compiler, use this:
 
     CC={your c compiler} CXX={your c++ compiler} ./waf configure
 
-To build test cases, append `--test` after the command line.
+To build test cases, append `--enable-test` after the command line.
 
 ### Compiling
 
