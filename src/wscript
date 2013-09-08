@@ -20,7 +20,8 @@ def build(bld):
     bld(
         features="cxx",
         source=bld.path.ant_glob(
-            ["*.cpp", "vapoursynth/*.cpp"],
+            ["*.cpp"] +
+            (["vapoursynth/*.cpp"] if bld.env.ENABLE_VAPOURSYNTH else []),
             excl=[
                 "dllmain.cpp",
                 "icc_override.cpp",

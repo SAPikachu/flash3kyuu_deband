@@ -30,6 +30,13 @@ def options(opt):
     conf_opt.add_option("--no-static", action="store_false", dest="static",
                         help="do not build static libraries (default)")
 
+    conf_opt.add_option("--enable-vs", "--enable-vapoursynth",
+                        action="store_true", dest="vapoursynth", default=True,
+                        help="enable Vapoursynth support (default)")
+    conf_opt.add_option("--disable-vs", "--disable-vapoursynth",
+                        action="store_false", dest="vapoursynth",
+                        help="disable Vapoursynth support")
+
     inst_opt = opt.get_option_group("install/uninstall options")
     inst_opt.add_option("--no-ldconfig", action="store_false",
                         dest="ldconfig", default=True,
@@ -114,6 +121,11 @@ def configure(conf):
         conf.recurse("msvc")
     else:
         configure_gcc(conf)
+
+    conf.env.ENABLE_VAPOURSYNTH = conf.options.vapoursynth
+    conf.msg_feature("Vapoursynth support", conf.env.ENABLE_VAPOURSYNTH)
+
+    if not conf.env.USE_MSBUILD:
         conf.recurse("test")
 
     conf.msg("Build mode", conf.options.mode)
