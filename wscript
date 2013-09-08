@@ -91,10 +91,11 @@ def configure_gcc(conf):
 
 
 def configure(conf):
+    conf.msg_feature = lambda feature, v: conf.msg(feature, "yes" if v else "no")
     for x in ["shared", "static"]:
         val = conf.options.__dict__[x]
         conf.env[x.upper()] = val
-        conf.msg(x.title() + " library", "yes" if val else "no")
+        conf.msg_feature(x.title() + " library", val)
 
     if (conf.env.SHARED, conf.env.STATIC) == (False, False):
         conf.fatal("Either shared or static library need to be selected.")

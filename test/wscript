@@ -12,7 +12,7 @@ def options(opt):
 
 
 def configure(conf):
-    conf.msg("Build tests", "yes" if conf.options.test else "no")
+    conf.msg_feature("Tests", conf.options.test)
     if not conf.options.test:
         return
 
