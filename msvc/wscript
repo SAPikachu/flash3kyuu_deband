@@ -1,4 +1,6 @@
 from waflib import Logs
+from waflib import Options
+
 
 def configure(conf):
     conf.load("python")
@@ -16,33 +18,43 @@ def configure(conf):
     elif conf.env.DEST_CPU == "amd64":
         conf.env.TARGET_PLATFORM = "x64"
     else:
-        conf.fatal("Unsupported target CPU: conf.env.DEST_CPU")
+        conf.fatal("Unsupported target CPU: " + conf.env.DEST_CPU)
 
     conf.msg("Target platform", conf.env.TARGET_PLATFORM)
 
 
 def build(bld):
+    Options.options.jobs = 1 # Don't run multiple jobs at the same time
     int_dir = bld.path.get_bld().make_node(r"tmp")
     final_output_dir = bld.path.get_bld().parent
     bld.env.INTDIR = int_dir.abspath()
-    f3kdb_file_name = "flash3kyuu_deband.dll"
-    int_output = int_dir.find_or_declare(r"out\\" + f3kdb_file_name)
-    bld(
-        rule=(
-            "${MSBUILD} ${SRC[0].abspath()} "
-            r"/t:Build "
-            r"/p:IntDir=${INTDIR}\obj\ "
-            r"/p:OutDir=${INTDIR}\out\ "
-            r"/p:Configuration=${BUILD_CONFIGURATION} "
-            r"/p:Platform=${TARGET_PLATFORM} "
-        ),
-        source=bld.path.find_resource("flash3kyuu_deband.vcxproj"),
-        target=int_output,
-        always=True,
-        update_outputs=True,
-    )
-    bld(
-        rule="copy ${SRC} ${TGT}",
-        source=int_output,
-        target=final_output_dir.find_or_declare(f3kdb_file_name),
-    )
+    libs = [("SHARED", "DynamicLibrary", ".dll"),
+            ("STATIC", "StaticLibrary", ".lib")]
+    for var, type, ext in libs:
+        if not bld.env[var]:
+            continue
+
+        output_name = bld.env.APPNAME + ext
+        int_output_dir = int_dir.find_or_declare(var.lower())
+        int_output = int_output_dir.find_or_declare(output_name)
+        bld(
+            rule=(
+                "${MSBUILD} ${SRC[0].abspath()} "
+                r"/t:Build "
+                r"/p:TargetName=${APPNAME} "
+                r"/p:IntDir=${INTDIR}\obj\ "
+                r"/p:OutDir=" + int_output_dir.abspath() + r"\ "
+                r"/p:Configuration=${BUILD_CONFIGURATION} "
+                r"/p:Platform=${TARGET_PLATFORM} "
+                r"/p:ConfigurationType=" + type
+            ),
+            source=bld.path.find_resource("flash3kyuu_deband.vcxproj"),
+            target=int_output,
+            always=True,
+            update_outputs=True,
+        )
+        bld(
+            rule="copy \"${SRC}\" \"${TGT}\"",
+            source=int_output,
+            target=final_output_dir.find_or_declare(output_name),
+        )

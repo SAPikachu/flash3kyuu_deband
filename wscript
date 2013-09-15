@@ -131,6 +131,8 @@ def configure(conf):
 
     conf.msg("Build mode", conf.options.mode)
 
+    conf.env.APPNAME = APPNAME
+
 
 def post_install(ctx):
     if not ctx.options.ldconfig:
