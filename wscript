@@ -37,10 +37,18 @@ def options(opt):
                         action="store_false", dest="vapoursynth",
                         help="disable Vapoursynth support")
 
+    conf_opt.add_option("--enable-avs", "--enable-avisynth",
+                        action="store_true", dest="avisynth", default=True,
+                        help="enable Avisynth support (default, Windows only)")
+    conf_opt.add_option("--disable-avs", "--disable-avisynth",
+                        action="store_false", dest="avisynth",
+                        help="disable Avisynth support")
+
     inst_opt = opt.get_option_group("install/uninstall options")
     inst_opt.add_option("--no-ldconfig", action="store_false",
                         dest="ldconfig", default=True,
-                        help="don't run ldconfig after install (default: run)")
+                        help="don't run ldconfig after install "
+                             "(default: run, non-Windows only)")
 
     opt.recurse("test")
 

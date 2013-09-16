@@ -22,6 +22,9 @@ def configure(conf):
 
     conf.msg("Target platform", conf.env.TARGET_PLATFORM)
 
+    conf.env.ENABLE_AVISYNTH = conf.options.avisynth
+    conf.msg_feature("Avisynth support", conf.env.ENABLE_AVISYNTH)
+
 
 def build(bld):
     Options.options.jobs = 1 # Don't run multiple jobs at the same time
@@ -30,6 +33,8 @@ def build(bld):
     bld.env.INTDIR = int_dir.abspath()
     libs = [("SHARED", "DynamicLibrary", ".dll"),
             ("STATIC", "StaticLibrary", ".lib")]
+    bld.env.DISABLE_VAPOURSYNTH = str(not bld.env.ENABLE_VAPOURSYNTH).lower()
+    bld.env.DISABLE_AVISYNTH = str(not bld.env.ENABLE_AVISYNTH).lower()
     for var, type, ext in libs:
         if not bld.env[var]:
             continue
@@ -46,6 +51,8 @@ def build(bld):
                 r"/p:OutDir=" + int_output_dir.abspath() + r"\ "
                 r"/p:Configuration=${BUILD_CONFIGURATION} "
                 r"/p:Platform=${TARGET_PLATFORM} "
+                r"/p:DisableVapoursynth=${DISABLE_VAPOURSYNTH} "
+                r"/p:DisableAvisynth=${DISABLE_AVISYNTH} "
                 r"/p:ConfigurationType=" + type
             ),
             source=bld.path.find_resource("flash3kyuu_deband.vcxproj"),

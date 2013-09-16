@@ -420,8 +420,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\auto_utils.cpp" />
-    <ClCompile Include="..\src\avisynth\avisynth_plugin_legacy_26.cpp" />
-    <ClCompile Include="..\src\avisynth\avisynth_plugin_v5.cpp" />
     <ClCompile Include="..\src\core.cpp" />
     <ClCompile Include="..\src\debug_dump.cpp" />
     <ClCompile Include="..\src\dllmain.cpp">
@@ -469,7 +467,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_MSVC|x64'">Create</PrecompiledHeader>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup Condition="'$(DisableVapoursynth)'!='true'">
     <ClCompile Include="..\src\vapoursynth\plugin.cpp" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(DisableAvisynth)'!='true'">
+    <ClCompile Include="..\src\avisynth\avisynth_plugin_legacy_26.cpp" />
+    <ClCompile Include="..\src\avisynth\avisynth_plugin_v5.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
