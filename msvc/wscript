@@ -22,6 +22,8 @@ def configure(conf):
 
     conf.msg("Target platform", conf.env.TARGET_PLATFORM)
 
+    conf.env.ENABLE_TEST = conf.options.test
+    conf.msg_feature("Tests", conf.env.ENABLE_TEST)
     conf.env.ENABLE_AVISYNTH = conf.options.avisynth
     conf.msg_feature("Avisynth support", conf.env.ENABLE_AVISYNTH)
 
@@ -42,18 +44,23 @@ def build(bld):
         output_name = bld.env.APPNAME + ext
         int_output_dir = int_dir.find_or_declare(var.lower())
         int_output = int_output_dir.find_or_declare(output_name)
+        msbuild_params = (
+            r"/t:Build "
+            r"/p:OutDir=" + int_output_dir.abspath() + r"\ "
+            r"/p:Configuration=${BUILD_CONFIGURATION} "
+            r"/p:Platform=${TARGET_PLATFORM} "
+            r"/p:DisableVapoursynth=${DISABLE_VAPOURSYNTH} "
+            r"/p:DisableAvisynth=${DISABLE_AVISYNTH} "
+            r"/p:BuildProjectReferences=false "
+            r"/p:DisableProjectReferences=true "
+        )
         bld(
             rule=(
                 "${MSBUILD} ${SRC[0].abspath()} "
-                r"/t:Build "
                 r"/p:TargetName=${APPNAME} "
                 r"/p:IntDir=${INTDIR}\obj\ "
-                r"/p:OutDir=" + int_output_dir.abspath() + r"\ "
-                r"/p:Configuration=${BUILD_CONFIGURATION} "
-                r"/p:Platform=${TARGET_PLATFORM} "
-                r"/p:DisableVapoursynth=${DISABLE_VAPOURSYNTH} "
-                r"/p:DisableAvisynth=${DISABLE_AVISYNTH} "
-                r"/p:ConfigurationType=" + type
+                r"/p:ConfigurationType=" + type + " "
+                + msbuild_params
             ),
             source=bld.path.find_resource("flash3kyuu_deband.vcxproj"),
             target=int_output,
@@ -65,3 +72,30 @@ def build(bld):
             source=int_output,
             target=final_output_dir.find_or_declare(output_name),
         )
+
+    if bld.env.ENABLE_TEST:
+        test_output_name = bld.env.APPNAME + "-test.exe"
+        test_int_output = int_output_dir.find_or_declare(test_output_name)
+        bld(
+            rule=(
+                "${MSBUILD} ${SRC[0].abspath()} "
+                r"/p:TargetName=${APPNAME}-test "
+                r"/p:IntDir=${INTDIR}\obj\test\ "
+                r"/p:AdditionalDependencies=${APPNAME}.lib "
+                + ("/p:StaticF3kdb=true " if type == "StaticLibrary" else "")
+                + msbuild_params
+            ),
+            source=[
+                bld.path.find_resource("f3kdb_test.vcxproj"),
+                int_output,
+            ],
+            target=test_int_output,
+            always=True,
+            update_outputs=True,
+        )
+        bld(
+            rule="copy \"${SRC}\" \"${TGT}\"",
+            source=test_int_output,
+            target=final_output_dir.find_or_declare(test_output_name),
+        )
+

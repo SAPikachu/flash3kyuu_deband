@@ -66,28 +66,31 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="Exists('$(ICInstallDirForVC)')">
+    <LibraryPath>$(LibraryPath);$(ICInstallDirForVC)compiler\lib\$(IntelPlatform);$(ICInstallDirForVC)ipp\lib\$(IntelPlatform)</LibraryPath>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>..\lib\googletest\include;..\lib\googletest;$(IncludePath)</IncludePath>
-    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(LibraryPath);$(OutDir)</LibraryPath>
     <IntDir>$(Configuration)\test\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>..\lib\googletest\include;..\lib\googletest;$(IncludePath)</IncludePath>
-    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(LibraryPath);$(OutDir)</LibraryPath>
     <IntDir>$(Configuration)\test\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>..\lib\googletest\include;..\lib\googletest;$(IncludePath)</IncludePath>
-    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(LibraryPath);$(OutDir)</LibraryPath>
     <IntDir>$(Configuration)\test\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>..\lib\googletest\include;..\lib\googletest;$(IncludePath)</IncludePath>
-    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(LibraryPath);$(OutDir)</LibraryPath>
     <IntDir>$(Configuration)\test\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -174,11 +177,16 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;$(AdditionalDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>cd ..\test &amp; build_core_param_set.py &gt; test_core_param_set.h</Command>
     </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(StaticF3kdb)'=='true'">
+    <ClCompile>
+      <PreprocessorDefinitions>F3KDB_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\test\stdafx.h" />
@@ -191,7 +199,7 @@
     <ClCompile Include="..\test\test_params_from_string.cpp" />
     <ClCompile Include="..\test\stdafx.cpp" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(DisableProjectReferences)'!='true'">
     <ProjectReference Include="flash3kyuu_deband.vcxproj">
       <Project>{ff740f9d-9d3d-43b5-ae5a-e5283909419b}</Project>
     </ProjectReference>
