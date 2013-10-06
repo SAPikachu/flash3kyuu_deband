@@ -1,6 +1,21 @@
 Change log
 ----------
 
+git
+***
+
+* Support Vapoursynth natively
+
+* New parameter: preset
+
+* C++ API support
+
+* Dropped YUY2 support, please process in YV16 instead
+
+* Dropped f3kdb_dither, please use ``f3kdb(preset="depth", ...)`` for bitdepth conversion
+
+* Dropped several deprecated parameter values
+
 1.5.1 (2012-04-07)
 ******************
 
