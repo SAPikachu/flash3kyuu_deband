@@ -3,6 +3,8 @@ f3kdb (a.k.a. flash3kyuu_deband)
 
 [![Build Status](https://travis-ci.org/SAPikachu/flash3kyuu_deband.png)](https://travis-ci.org/SAPikachu/flash3kyuu_deband)
 
+[Documentation](https://f3kdb.readthedocs.org/)
+
 How to build (Linux)
 --------------------
 
