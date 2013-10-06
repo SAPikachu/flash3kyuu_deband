@@ -194,4 +194,6 @@ Parameters
 
 .. option:: preset
 
-    Use preset parameters. Preset will be applied before other parameters so that you can easily override individual parameter. :doc:`You can check available presets here <presets>`.
+    Use preset parameters. Preset will be applied before other parameters so that you can easily override individual parameter.
+
+    :doc:`See available presets <presets>`

@@ -5,6 +5,9 @@ f3kdb
 
 It works by replacing banded pixels with average value of referenced pixels, and optionally add grain (random dithering) to them.
 
+Contents
+--------
+
 .. toctree::
    :maxdepth: 2
 
