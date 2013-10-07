@@ -1,3 +1,25 @@
+Basic usage
+-----------
+
+.. highlight:: python
+
+* Avisynth::
+
+    # Note: Only planar YUV colorspaces are supported
+
+    # Load plugins, source video etc...
+    f3kdb(...)
+
+* Vapoursynth::
+
+    import vapoursynth as vs
+
+    core = vs.get_core()
+
+    # Load plugins, source video etc...
+
+    last = core.f3kdb.Deband(last, ...)
+
 Parameters
 ----------
 
