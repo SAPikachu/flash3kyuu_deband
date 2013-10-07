@@ -11,7 +11,7 @@ Contents
 .. toctree::
    :maxdepth: 2
 
-   parameters
+   usage
    presets
    cpp_api_example
    change_log
