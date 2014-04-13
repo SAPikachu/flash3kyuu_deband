@@ -26,8 +26,8 @@ def configure(conf):
         conf.fatal("Can't find pthread.")
 
     googletest_dir = Utils.subst_vars("${VENDORLIBS}/googletest", conf.env)
-    if not os.path.isdir(googletest_dir):
-        conf.fatal("Can't find Google Test, please update git submodules")
+    if not os.path.isfile(os.path.join(googletest_dir, "CMakeLists.txt")):
+        conf.fatal("Can't find Google Test, please run 'git submodule update --init --recursive' to update git submodules")
 
     conf.env.GTEST_ROOT = googletest_dir
 
