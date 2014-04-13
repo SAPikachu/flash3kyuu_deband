@@ -1,6 +1,6 @@
 import os
 
-from waflib import Utils
+from waflib import Utils, Build
 
 
 def options(opt):
@@ -36,6 +36,9 @@ def build(bld):
     if not bld.env.BUILD_TEST:
         return
 
+    bld.post_mode = Build.POST_BOTH
+
+    bld.add_group()
     gtest_build = bld.path.get_bld().make_node("gtest")
     gtest_build.mkdir()
 
@@ -62,6 +65,8 @@ def build(bld):
         target=bld.path.find_node("test_core_param_set.h"),
         cwd=bld.path.abspath(),
     )
+    bld.add_group()
+    test_output = bld.path.get_bld().make_node("f3kdb-test")
     bld(
         features="cxx cxxprogram",
         source=bld.path.ant_glob(
@@ -78,5 +83,7 @@ def build(bld):
         linkflags="-Wl,-rpath={}:.:..".format(
             bld.path.get_bld().parent.abspath()
         ),
-        target="f3kdb-test",
+        target=test_output,
     )
+    [bld.add_manual_dependency(test_output, x) for x in gtest_output]
+
