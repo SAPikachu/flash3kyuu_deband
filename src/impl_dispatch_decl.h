@@ -10,7 +10,7 @@
 					impl_func_mode1_noblur, \
 					impl_func_mode2_blur, \
 					impl_func_mode2_noblur) \
-	extern "C++" const process_plane_impl_t process_plane_impl_##n [];
+	extern const process_plane_impl_t process_plane_impl_##n [];
 
 #else
 
@@ -20,7 +20,7 @@
 					impl_func_mode1_noblur, \
 					impl_func_mode2_blur, \
 					impl_func_mode2_noblur) \
-	extern "C++" const process_plane_impl_t process_plane_impl_##n [] = { \
+	extern const process_plane_impl_t process_plane_impl_##n [] = { \
 					nullptr, \
 					impl_func_mode1_blur, \
 					impl_func_mode1_noblur, \
@@ -76,4 +76,4 @@
 	DEFINE_SSE_IMPL(sse2_16bit_stacked, DA_16BIT_STACKED);
 	DEFINE_SSE_IMPL(sse2_16bit_interleaved, DA_16BIT_INTERLEAVED);
 #endif
-	
+
