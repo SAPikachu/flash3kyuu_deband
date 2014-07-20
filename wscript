@@ -61,6 +61,10 @@ def _check_cxx(conf, feature, fragment, mandatory=False):
         mandatory=mandatory,
     )
 
+def _check_optional(conf, **kwargs):
+    args = {'mandatory': False, 'uselib_store': 'OPTIONAL'}
+    args.update(kwargs)
+    conf.check_cxx(**args)
 
 def configure_gcc(conf):
     # clang is also configured here, since their configurations are the same
@@ -72,12 +76,16 @@ def configure_gcc(conf):
                 ["-fPIC", "-Wall", "-Wextra", "-Wno-unused-parameter",
                  "-fvisibility=hidden", "-fvisibility-inlines-hidden",
                  "-Werror", "-std=c++11"])
+
+    _check_optional(conf, linkflags='-Wl,-Bsymbolic')
+    _check_optional(conf, linkflags='-Wl,-z,noexecstack')
+
     add_options(["LINKFLAGS_cshlib",
                  "LINKFLAGS_cprogram",
                  "LINKFLAGS_cxxshlib",
                  "LINKFLAGS_cxxprogram"],
-                ["-Wl,-Bsymbolic",
-                 "-Wl,-z,noexecstack"])
+                 conf.env.LINKFLAGS_OPTIONAL)
+
     if conf.options.mode == "debug":
         add_options(["CFLAGS", "CXXFLAGS"],
                     ["-g", "-ggdb", "-ftrapv"])
