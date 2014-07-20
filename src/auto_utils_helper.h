@@ -2,6 +2,7 @@
 
 #include <type_traits>
 #include <limits>
+#include <cerrno>
 #include <stdlib.h>
 #include <stdarg.h>
 
