@@ -73,10 +73,16 @@ def configure_gcc(conf):
             conf.env.append_unique(flag, options)
 
     add_options(["CFLAGS", "CXXFLAGS"],
-                ["-fPIC", "-Wall", "-Wextra", "-Wno-unused-parameter",
+                ["-Wall", "-Wextra", "-Wno-unused-parameter",
                  "-fvisibility=hidden", "-fvisibility-inlines-hidden",
-                 "-Werror", "-std=c++11"])
+                 "-Werror",])
 
+    if conf.env.DEST_OS == "cygwin":
+        add_options(["CFLAGS", "CXXFLAGS"], ["-std=gnu++11"])
+    else:
+        add_options(["CFLAGS", "CXXFLAGS"], ["-std=c++11"])
+
+    _check_optional(conf, cflags='-fPIC', cxxflags='-fPIC')
     _check_optional(conf, linkflags='-Wl,-Bsymbolic')
     _check_optional(conf, linkflags='-Wl,-z,noexecstack')
 

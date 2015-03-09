@@ -18,7 +18,9 @@
 
 #ifndef _WIN32
 #define __forceinline inline
+#ifndef __cdecl
 #define __cdecl
+#endif
 #define InterlockedCompareExchangePointer(a,b,c) __sync_val_compare_and_swap(a,c,b)
 
 #include <cstring>
