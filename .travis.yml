@@ -1,6 +1,6 @@
 language: cpp
 compiler:
-  # - gcc # Needs GCC 4.8.1 but Travis CI supports only 4.6 for now
+  - gcc
   - clang
 
 branches:
