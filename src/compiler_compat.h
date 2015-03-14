@@ -28,6 +28,7 @@
 #endif
 
 #ifndef _WIN32
+#include <stdlib.h>
 #define __forceinline inline
 #ifndef __cdecl
 #define __cdecl

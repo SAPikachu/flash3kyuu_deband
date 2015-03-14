@@ -64,7 +64,7 @@ def _check_cxx(conf, feature, fragment, mandatory=False):
 def _check_optional(conf, **kwargs):
     args = {'mandatory': False, 'uselib_store': 'OPTIONAL'}
     args.update(kwargs)
-    conf.check_cxx(**args)
+    return conf.check_cxx(**args)
 
 def configure_gcc(conf):
     # clang is also configured here, since their configurations are the same
@@ -83,9 +83,13 @@ def configure_gcc(conf):
         add_options(["CFLAGS", "CXXFLAGS"], ["-std=c++11"])
 
     _check_optional(conf, cflags='-fPIC', cxxflags='-fPIC')
+    _check_optional(conf, linkflags='-fPIC')
+
     _check_optional(conf, linkflags='-Wl,-Bsymbolic')
     _check_optional(conf, linkflags='-Wl,-z,noexecstack')
 
+    add_options(["CFLAGS"], conf.env.CFLAGS_OPTIONAL)
+    add_options(["CXXFLAGS"], conf.env.CXXFLAGS_OPTIONAL)
     add_options(["LINKFLAGS_cshlib",
                  "LINKFLAGS_cprogram",
                  "LINKFLAGS_cxxshlib",
@@ -138,6 +142,7 @@ def configure(conf):
         "windows" if conf.env.DEST_OS in ["win32", "cygwin", "msys", "uwin"]
         else conf.env.DEST_OS
     )
+    conf.env.DEST_OS_NORMALIZED = dest_os
 
     conf.env.USE_MSBUILD = dest_os == "windows" and conf.env.CXX_NAME != "gcc"
     if conf.env.USE_MSBUILD:
