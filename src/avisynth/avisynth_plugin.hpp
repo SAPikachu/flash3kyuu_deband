@@ -1,8 +1,13 @@
 #include "stdafx.h"
-#include "avisynth.h"
 
 #define CONCAT2(a, b) a##b
 #define CONCAT(a, b) CONCAT2(a, b)
+
+#define AVS_NS CONCAT(avs_if, USE_AVISYNTH_INTERFACE)
+
+#include "avisynth.h"
+
+using namespace AVS_NS;
 
 #define Create_flash3kyuu_deband CONCAT(Create_flash3kyuu_deband_v, USE_AVISYNTH_INTERFACE)
 #define f3kdb_avisynth CONCAT(f3kdb_avisynth_v, USE_AVISYNTH_INTERFACE)
@@ -13,9 +18,10 @@
 #if USE_AVISYNTH_INTERFACE == 3
 F3KDB_API(const char*) AvisynthPluginInit2(IScriptEnvironment* env)
 {
-#elif USE_AVISYNTH_INTERFACE == 5
+#elif USE_AVISYNTH_INTERFACE == 6
+namespace AVS_NS {
 const AVS_Linkage *AVS_linkage;
-
+}
 F3KDB_API(const char*) AvisynthPluginInit3(IScriptEnvironment* env, const AVS_Linkage* const vectors) {
     AVS_linkage = vectors;
 #endif

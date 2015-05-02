@@ -42,10 +42,12 @@ static mt_info* mt_info_create(void) {
 static void mt_info_reset_pointers(volatile mt_info* info) {
 	assert(info);
 
-	info->dstp_u = NULL;
-	info->dstp_v = NULL;
-	info->src = NULL;
-	info->dst = NULL;
+	auto info_nv = const_cast<mt_info*>(info);
+	info_nv->dstp_u = NULL;
+	info_nv->dstp_v = NULL;
+	info_nv->src = NULL;
+	info_nv->dst = NULL;
+	MemoryBarrier();
 }
 
 static void mt_info_destroy(volatile mt_info* info) {

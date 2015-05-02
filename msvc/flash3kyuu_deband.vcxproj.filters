@@ -184,10 +184,10 @@
     <ClCompile Include="..\src\vapoursynth\plugin.cpp">
       <Filter>vapoursynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\avisynth\avisynth_plugin_v5.cpp">
+    <ClCompile Include="..\src\avisynth\avisynth_plugin_legacy_26.cpp">
       <Filter>avisynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\avisynth\avisynth_plugin_legacy_26.cpp">
+    <ClCompile Include="..\src\avisynth\avisynth_plugin_v6.cpp">
       <Filter>avisynth</Filter>
     </ClCompile>
   </ItemGroup>

@@ -136,9 +136,13 @@ void f3kdb_avisynth::mt_proc(void)
 
     while (!info->exit)
     {
-        process_plane(info->n, info->src, info->dst, info->dstp_u, PLANAR_U, info->env);
-        process_plane(info->n, info->src, info->dst, info->dstp_v, PLANAR_V, info->env);
-
+        MemoryBarrier();
+        {
+            auto info_nv = const_cast<mt_info*>(info);
+            process_plane(info_nv->n, info_nv->src, info_nv->dst, info_nv->dstp_u, PLANAR_U, info_nv->env);
+            process_plane(info_nv->n, info_nv->src, info_nv->dst, info_nv->dstp_v, PLANAR_V, info_nv->env);
+        }
+        MemoryBarrier();
         mt_info_reset_pointers(info);
 
         SetEvent(info->work_complete_event);
@@ -183,8 +187,13 @@ PVideoFrame __stdcall f3kdb_avisynth::GetFrame(int n, IScriptEnvironment* env)
             _mt_info->dstp_u = dst->GetWritePtr(PLANAR_U);
             _mt_info->dstp_v = dst->GetWritePtr(PLANAR_V);
             _mt_info->env = env;
-            _mt_info->dst = dst;
-            _mt_info->src = src;
+            MemoryBarrier();
+            {
+                auto info_nv = const_cast<mt_info*>(_mt_info);
+                info_nv->dst = dst;
+                info_nv->src = src;
+            }
+            MemoryBarrier();
             if (!new_thread)
             {
                 SetEvent(_mt_info->work_event);
