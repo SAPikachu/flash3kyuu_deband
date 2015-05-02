@@ -8,6 +8,8 @@
 
 #include "compiler_compat.h"
 
+#include <emmintrin.h>
+
 #define DUMP_MAX_NAME_LENGTH 32
 #define DUMP_MAX_STAGES 32
 
