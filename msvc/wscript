@@ -8,6 +8,7 @@ def configure(conf):
 
     Logs.info("Will use msbuild to compile")
     conf.find_program("msbuild", path_list=conf.env.PATH, var="MSBUILD")
+    conf.env.MSBUILD = '\"%s\"' % (conf.env.MSBUILD,)
 
     if conf.options.mode not in ("debug", "release", "release_msvc"):
         conf.fatal("--mode must be either debug, release or release_msvc.")
