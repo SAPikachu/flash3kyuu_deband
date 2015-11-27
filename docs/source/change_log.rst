@@ -1,8 +1,8 @@
 Change log
 ----------
 
-git
-***
+2.0.0
+*****
 
 * Support Vapoursynth natively
 
