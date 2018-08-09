@@ -6,7 +6,7 @@ import waflib
 def build(bld):
     gen_filter_def = bld.path.find_node("gen_filter_def.py")
     gen_output = bld.cmd_and_log(
-        [bld.env["PYTHON3"], gen_filter_def.abspath(), "--list-outputs"],
+        [bld.env["PYTHON3"][0], gen_filter_def.abspath(), "--list-outputs"],
         quiet=waflib.Context.BOTH,
     )
     gen_output_list = re.split(r"\s+", gen_output.strip(), flags=re.S)
