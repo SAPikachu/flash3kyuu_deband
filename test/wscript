@@ -61,7 +61,7 @@ def build(bld):
     if not bld.env.BUILD_TEST:
         return
 
-    bld.post_mode = Build.POST_BOTH
+    bld.post_mode = Build.POST_LAZY
 
     bld.add_group()
     gtest_build = bld.path.get_bld().make_node("gtest")
