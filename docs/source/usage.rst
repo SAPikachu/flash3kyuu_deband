@@ -147,38 +147,15 @@ Parameters
 
 .. option:: input_mode
 
-    *Not available in Vapoursynth, since this can be inferred from clip properties*
-
-    Specify source video type.
-
-    * 0: Regular 8 bit video
-    
-    * 1: 9 ~ 16 bit high bit-depth video, stacked format
-    
-    * 2: 9 ~ 16 bit high bit-depth video, interleaved format
-
-    **Default:** 0 (:option:`input_depth` = 8 or not specified) / 1 (:option:`input_depth` > 8)
+    *Removed in 2.1, since this can be inferred from clip properties*
 
 .. option:: input_depth
 
-    *Not available in Vapoursynth, since this can be inferred from clip properties*
-
-    Specify bit-depth of source video.
-
-    **Range:** 8 ~ 16
-
-    **Default:** 8 (:option:`input_mode` = 0 or not specified) / 16 (:option:`input_mode` = 1 or 2)
+    *Removed in 2.1, since this can be inferred from clip properties*
 
 .. option:: output_mode
 
-    *Not available in Vapoursynth, f3kdb will only output high bitdepth clip in native format*
-
-    Specify output video type. Meaning of values are the same as :option:`input_mode`.
-
-    When :option:`output_mode` = 2, frames will be 2x wider and look garbled on preview,
-    it will return to normal after correctly encoded by high bit-depth x264)
-
-    **Default:** 0 (:option:`output_depth` = 8 or not specified) / 1 (:option:`output_depth` > 8)
+    *Removed in 2.1, f3kdb will only output high bitdepth clip in native format*
 
 .. option:: output_depth
 

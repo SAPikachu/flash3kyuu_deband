@@ -1,6 +1,11 @@
 Change log
 ----------
 
+2.1
+***
+
+* Support AviSynth+ native high bit depth
+
 2.0.0
 *****
 
