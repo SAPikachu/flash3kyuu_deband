@@ -104,7 +104,7 @@ f3kdb_avisynth::~f3kdb_avisynth()
     _core = NULL;
 }
 
-void f3kdb_avisynth::process_plane(int n, PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane, IScriptEnvironment* env)
+void f3kdb_avisynth::process_plane(int n, const PVideoFrame& src, const PVideoFrame& dst, unsigned char *dstp, int plane, IScriptEnvironment* env)
 {
     int f3kdb_plane;
     switch (plane & 7)

@@ -14,7 +14,7 @@ private:
     bool _mt;
     volatile mt_info* _mt_info;
 
-    void process_plane(int n, PVideoFrame src, PVideoFrame dst, unsigned char *dstp, int plane, IScriptEnvironment* env);
+    void process_plane(int n, const PVideoFrame& src, const PVideoFrame& dst, unsigned char *dstp, int plane, IScriptEnvironment* env);
 
 public:
     void mt_proc(void);
