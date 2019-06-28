@@ -89,7 +89,7 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
 }
 f3kdb_avisynth::f3kdb_avisynth(PClip child, f3kdb_core_t* core, int dst_width, int dst_height, bool mt) :
             GenericVideoFilter(child),
-            _mt_info(NULL),
+            _mt_info(NULL), _mt(mt),
             _core(core)
 {
     vi.width = dst_width;
