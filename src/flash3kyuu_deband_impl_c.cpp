@@ -40,20 +40,7 @@ static __inline int read_pixel(const process_plane_params& params, void* context
 
     int ret;
 
-    switch (params.input_mode)
-    {
-    case HIGH_BIT_DEPTH_STACKED:
-        ret = *ptr << 8 | *(ptr + params.plane_height_in_pixels * params.src_pitch);
-        break;
-    case HIGH_BIT_DEPTH_INTERLEAVED:
-        ret = *(unsigned short*)ptr;
-        break;
-    default:
-        // shouldn't happen!
-        abort();
-        return 0;
-    }
-
+    ret = *(unsigned short*)ptr;
     ret <<= (INTERNAL_BIT_DEPTH - params.input_depth);
     return ret;
 }
@@ -202,10 +189,6 @@ static __forceinline void __cdecl process_plane_plainc_mode12_high(const process
             case LOW_BIT_DEPTH:
                 *dst_px = (unsigned char)new_pixel;
                 break;
-            case HIGH_BIT_DEPTH_STACKED:
-                *dst_px = (unsigned char)((new_pixel >> 8) & 0xFF);
-                *(dst_px + params.plane_height_in_pixels * params.dst_pitch) = (unsigned char)(new_pixel & 0xFF);
-                break;
             case HIGH_BIT_DEPTH_INTERLEAVED:
                 *((unsigned short*)dst_px) = (unsigned short)(new_pixel & 0xFFFF);
                 dst_px++;
@@ -237,10 +220,6 @@ void __cdecl process_plane_plainc(const process_plane_params& params, process_pl
     {
     case LOW_BIT_DEPTH:
         process_plane_plainc_mode12_high<sample_mode, blur_first, mode, LOW_BIT_DEPTH>(params, context);
-        break;
-
-    case HIGH_BIT_DEPTH_STACKED:
-        process_plane_plainc_mode12_high<sample_mode, blur_first, mode, HIGH_BIT_DEPTH_STACKED>(params, context);
         break;
 
     case HIGH_BIT_DEPTH_INTERLEAVED:

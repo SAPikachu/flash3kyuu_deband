@@ -13,12 +13,13 @@ private:
     f3kdb_core_t* _core;
     bool _mt;
     volatile mt_info* _mt_info;
+    VideoInfo output_vi;
 
     void process_plane(int n, const PVideoFrame& src, const PVideoFrame& dst, unsigned char *dstp, int plane, IScriptEnvironment* env);
 
 public:
     void mt_proc(void);
-    f3kdb_avisynth(PClip child, f3kdb_core_t* core, int dst_width, int dst_height, bool mt);
+    f3kdb_avisynth(PClip child, f3kdb_core_t* core, VideoInfo output_vi, bool mt);
     ~f3kdb_avisynth();
 
     PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);

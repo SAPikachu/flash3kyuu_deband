@@ -48,13 +48,13 @@ typedef struct _process_plane_params
         return output_mode == HIGH_BIT_DEPTH_INTERLEAVED ? plane_width_in_pixels * 2 : plane_width_in_pixels;
     }
     inline int get_dst_height() const {
-        return output_mode == HIGH_BIT_DEPTH_STACKED ? plane_height_in_pixels * 2 : plane_height_in_pixels;
+        return plane_height_in_pixels;
     }
     inline int get_src_width() const {
         return input_mode == HIGH_BIT_DEPTH_INTERLEAVED ? plane_width_in_pixels * 2 : plane_width_in_pixels;
     }
     inline int get_src_height() const {
-        return input_mode == HIGH_BIT_DEPTH_STACKED ? plane_height_in_pixels * 2 : plane_height_in_pixels;
+        return plane_height_in_pixels;
     }
 } process_plane_params;
 

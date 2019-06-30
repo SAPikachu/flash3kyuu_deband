@@ -276,20 +276,6 @@ static int __forceinline store_pixels(
             return 8;
             break;
         }
-    case HIGH_BIT_DEPTH_STACKED:
-        {
-            pixels = _mm_srl_epi16(pixels, downshift_bits);
-            __m128i msb = _mm_srli_epi16(pixels, 8);
-            msb = _mm_packus_epi16(msb, msb);
-            _mm_storel_epi64((__m128i*)dst, msb);
-
-            __m128i mask = _mm_set1_epi16(0x00ff);
-            __m128i lsb = _mm_and_si128(pixels, mask);
-            lsb = _mm_packus_epi16(lsb, lsb);
-            _mm_storel_epi64((__m128i*)(dst + dst_pitch * height_in_pixels), lsb);
-            return 8;
-        }
-        break;
     case HIGH_BIT_DEPTH_INTERLEAVED:
         pixels = _mm_srl_epi16(pixels, downshift_bits);
         _mm_store_si128((__m128i*)dst, pixels);
@@ -331,11 +317,6 @@ static __m128i __forceinline read_pixels(
             return ret;
         }
         break;
-    case HIGH_BIT_DEPTH_STACKED:
-        ret = _mm_unpacklo_epi8(
-            _mm_loadl_epi64((__m128i*)(ptr + params.plane_height_in_pixels * params.src_pitch)),
-            _mm_loadl_epi64((__m128i*)ptr));
-        break;
     case HIGH_BIT_DEPTH_INTERLEAVED:
         ret = load_m128<aligned>(ptr);
         break;
@@ -359,9 +340,6 @@ static unsigned short __forceinline read_pixel(
     {
     case LOW_BIT_DEPTH:
         return *ptr;
-        break;
-    case HIGH_BIT_DEPTH_STACKED:
-        return *ptr << 8 | *(ptr + plane_height_in_pixels * src_pitch);
         break;
     case HIGH_BIT_DEPTH_INTERLEAVED:
         return *(unsigned short*)ptr;
@@ -617,10 +595,6 @@ static void __cdecl _process_plane_sse_impl(const process_plane_params& params, 
             {
                 READ_REFS(data_stream_block_start, HIGH_BIT_DEPTH_INTERLEAVED);
                 src_pixels = read_pixels<HIGH_BIT_DEPTH_INTERLEAVED, aligned>(params, src_px, upsample_to_16_shift_bits);
-            } else if (input_mode == HIGH_BIT_DEPTH_STACKED)
-            {
-                READ_REFS(data_stream_block_start, HIGH_BIT_DEPTH_STACKED);
-                src_pixels = read_pixels<HIGH_BIT_DEPTH_STACKED, aligned>(params, src_px, upsample_to_16_shift_bits);
             } else {
                 abort();
                 return;
@@ -685,9 +659,6 @@ static void process_plane_sse_impl_stub1(const process_plane_params& params, pro
     {
     case LOW_BIT_DEPTH:
         _process_plane_sse_impl<sample_mode, blur_first, dither_algo, aligned, LOW_BIT_DEPTH>(params, context);
-        break;
-    case HIGH_BIT_DEPTH_STACKED:
-        _process_plane_sse_impl<sample_mode, blur_first, dither_algo, aligned, HIGH_BIT_DEPTH_STACKED>(params, context);
         break;
     case HIGH_BIT_DEPTH_INTERLEAVED:
         _process_plane_sse_impl<sample_mode, blur_first, dither_algo, aligned, HIGH_BIT_DEPTH_INTERLEAVED>(params, context);

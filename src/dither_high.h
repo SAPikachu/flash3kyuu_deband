@@ -124,7 +124,6 @@ namespace dither_high
                 pixel_proc_high_f_s_dithering::next_pixel(context);
             }
             return _mm_load_si128((__m128i*)buffer);
-        case DA_16BIT_STACKED:
         case DA_16BIT_INTERLEAVED:
             return _mm_setzero_si128();
             break;
@@ -177,7 +176,6 @@ namespace dither_high
                 pixel_proc_high_f_s_dithering::next_pixel(cur_context);
             }
             return _mm_load_si128((__m128i*)buffer);
-        case DA_16BIT_STACKED:
         case DA_16BIT_INTERLEAVED:
             return _mm_setzero_si128();
             break;

@@ -287,7 +287,7 @@ int f3kdb_core_t::process_plane(int frame_index, int plane, unsigned char* dst_f
 
     params.input_mode = _video_info.pixel_mode;
     params.input_depth = _video_info.depth;
-    params.output_mode = _params.output_mode;
+    params.output_mode = _params.output_depth <= 8 ? LOW_BIT_DEPTH : HIGH_BIT_DEPTH_INTERLEAVED;
     params.output_depth = _params.output_depth;
 
     params.plane = plane;
@@ -344,8 +344,7 @@ int f3kdb_core_t::process_plane(int frame_index, int plane, unsigned char* dst_f
     }
 
     bool copy_plane = false;
-    if (_video_info.pixel_mode == _params.output_mode &&
-        _video_info.depth == _params.output_depth &&
+    if (_video_info.depth == _params.output_depth &&
         grain_setting == 0 &&
         params.threshold == 0)
     {

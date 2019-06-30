@@ -46,7 +46,6 @@
 	DEFINE_TEMPLATE_IMPL(c_high_no_dithering, process_plane_plainc, DA_HIGH_NO_DITHERING);
 	DEFINE_TEMPLATE_IMPL(c_high_ordered_dithering, process_plane_plainc, DA_HIGH_ORDERED_DITHERING);
 	DEFINE_TEMPLATE_IMPL(c_high_floyd_steinberg_dithering, process_plane_plainc, DA_HIGH_FLOYD_STEINBERG_DITHERING);
-	DEFINE_TEMPLATE_IMPL(c_16bit_stacked, process_plane_plainc, DA_16BIT_STACKED);
 	DEFINE_TEMPLATE_IMPL(c_16bit_interleaved, process_plane_plainc, DA_16BIT_INTERLEAVED);
 #endif
 
@@ -55,7 +54,6 @@
 	DEFINE_SSE_IMPL(sse4_high_no_dithering, DA_HIGH_NO_DITHERING);
 	DEFINE_SSE_IMPL(sse4_high_ordered_dithering, DA_HIGH_ORDERED_DITHERING);
 	DEFINE_SSE_IMPL(sse4_high_floyd_steinberg_dithering, DA_HIGH_FLOYD_STEINBERG_DITHERING);
-	DEFINE_SSE_IMPL(sse4_16bit_stacked, DA_16BIT_STACKED);
 	DEFINE_SSE_IMPL(sse4_16bit_interleaved, DA_16BIT_INTERLEAVED);
 #endif
 
@@ -64,7 +62,6 @@
 	DEFINE_SSE_IMPL(ssse3_high_no_dithering, DA_HIGH_NO_DITHERING);
 	DEFINE_SSE_IMPL(ssse3_high_ordered_dithering, DA_HIGH_ORDERED_DITHERING);
 	DEFINE_SSE_IMPL(ssse3_high_floyd_steinberg_dithering, DA_HIGH_FLOYD_STEINBERG_DITHERING);
-	DEFINE_SSE_IMPL(ssse3_16bit_stacked, DA_16BIT_STACKED);
 	DEFINE_SSE_IMPL(ssse3_16bit_interleaved, DA_16BIT_INTERLEAVED);
 #endif
 
@@ -73,7 +70,6 @@
 	DEFINE_SSE_IMPL(sse2_high_no_dithering, DA_HIGH_NO_DITHERING);
 	DEFINE_SSE_IMPL(sse2_high_ordered_dithering, DA_HIGH_ORDERED_DITHERING);
 	DEFINE_SSE_IMPL(sse2_high_floyd_steinberg_dithering, DA_HIGH_FLOYD_STEINBERG_DITHERING);
-	DEFINE_SSE_IMPL(sse2_16bit_stacked, DA_16BIT_STACKED);
 	DEFINE_SSE_IMPL(sse2_16bit_interleaved, DA_16BIT_INTERLEAVED);
 #endif
 
