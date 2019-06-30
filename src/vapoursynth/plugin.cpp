@@ -113,8 +113,8 @@ static void VS_CC f3kdbCreate(const VSMap *in, VSMap *out, void *userData, VSCor
         vsapi->freeNode(node);
         return;
     }
-    params.output_mode = params.output_depth <= 8 ? LOW_BIT_DEPTH : HIGH_BIT_DEPTH_INTERLEAVED;
-    f3kdb_params_sanitize(&params);
+    if (params.output_depth == -1)
+        params.output_depth = vi.format->bitsPerSample;
 
     f3kdb_video_info_t video_info;
     video_info.width = vi.width;

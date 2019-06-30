@@ -30,26 +30,37 @@
 // on Avisynth C Interface, such as 3rd-party filters, import and
 // export plugins, or graphical user interfaces.
 
-#ifndef AVS_CONFIG_H
-#define AVS_CONFIG_H
+#ifndef AVS_CAPI_H
+#define AVS_CAPI_H
 
-// Undefine this to get cdecl calling convention
-#define AVSC_USE_STDCALL 1
-
-// NOTE TO PLUGIN AUTHORS:
-// Because FRAME_ALIGN can be substantially higher than the alignment 
-// a plugin actually needs, plugins should not use FRAME_ALIGN to check for
-// alignment. They should always request the exact alignment value they need.
-// This is to make sure that plugins work over the widest range of AviSynth
-// builds possible.
-#define FRAME_ALIGN 32
-
-#if   defined(_M_AMD64) || defined(__x86_64)
-#   define X86_64
-#elif defined(_M_IX86) || defined(__i386__)
-#   define X86_32
+#ifdef __cplusplus
+#  define EXTERN_C extern "C"
 #else
-#   error Unsupported CPU architecture.
+#  define EXTERN_C
 #endif
 
-#endif //AVS_CONFIG_H
+#ifdef MSVC
+#ifndef AVSC_USE_STDCALL
+#  define AVSC_CC __cdecl
+#else
+#  define AVSC_CC __stdcall
+#endif
+#else
+#  define AVSC_CC
+#endif
+
+#define AVSC_INLINE static __inline
+
+#ifdef BUILDING_AVSCORE
+#  define AVSC_EXPORT __declspec(dllexport)
+#  define AVSC_API(ret, name) EXTERN_C AVSC_EXPORT ret AVSC_CC name
+#else
+#  define AVSC_EXPORT EXTERN_C __declspec(dllexport)
+#  ifndef AVSC_NO_DECLSPEC
+#    define AVSC_API(ret, name) EXTERN_C __declspec(dllimport) ret AVSC_CC name
+#  else
+#    define AVSC_API(ret, name) typedef ret (AVSC_CC *name##_func)
+#  endif
+#endif
+
+#endif //AVS_CAPI_H

@@ -170,7 +170,7 @@
       <UseMSVC>true</UseMSVC>
       <PreprocessToFile>false</PreprocessToFile>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <AdditionalIncludeDirectories>..\include;..\src\avisynth\include\interface_v6</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\src\avisynth</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -218,7 +218,7 @@
       <UseMSVC>true</UseMSVC>
       <PreprocessToFile>false</PreprocessToFile>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <AdditionalIncludeDirectories>..\include;..\src\avisynth\include\interface_v6</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\src\avisynth</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -272,7 +272,7 @@
       <UseProcessorExtensions>None</UseProcessorExtensions>
       <UseMSVC>false</UseMSVC>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <AdditionalIncludeDirectories>..\include;..\src\avisynth\include\interface_v6</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\src\avisynth</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -337,7 +337,7 @@
       <UseProcessorExtensions>None</UseProcessorExtensions>
       <UseMSVC>false</UseMSVC>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <AdditionalIncludeDirectories>..\include;..\src\avisynth\include\interface_v6</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\src\avisynth</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -389,7 +389,6 @@
     <ClInclude Include="..\src\auto_utils.h" />
     <ClInclude Include="..\src\auto_utils_helper.h" />
     <ClInclude Include="..\src\avisynth\avisynth.h" />
-    <ClInclude Include="..\src\avisynth\avisynth_plugin.hpp" />
     <ClInclude Include="..\src\avisynth\check.hpp" />
     <ClInclude Include="..\src\avisynth\filter_impl.hpp" />
     <ClInclude Include="..\src\avisynth\mt_info.hpp" />
@@ -480,7 +479,6 @@
     <ClCompile Include="..\src\vapoursynth\plugin.cpp" />
   </ItemGroup>
   <ItemGroup Condition="'$(DisableAvisynth)'!='true'">
-    <ClCompile Include="..\src\avisynth\avisynth_plugin_legacy_26.cpp" />
     <ClCompile Include="..\src\avisynth\avisynth_plugin_v6.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

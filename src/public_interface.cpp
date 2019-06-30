@@ -108,41 +108,6 @@ F3KDB_API(int) f3kdb_params_fill_by_string(f3kdb_params_t* params, const char* p
     });
 }
 
-static void sanitize_mode_and_depth(PIXEL_MODE* mode, int* depth) {
-    if (*mode == DEFAULT_PIXEL_MODE)
-    {
-        *mode = *depth <= 8 ? LOW_BIT_DEPTH : HIGH_BIT_DEPTH_STACKED;
-    }
-    if (*depth == -1)
-    {
-        *depth = *mode == LOW_BIT_DEPTH ? 8 : 16;
-    }
-}
-
-F3KDB_API(int) f3kdb_params_sanitize(f3kdb_params_t* params, int interface_version)
-{
-    if (interface_version != F3KDB_INTERFACE_VERSION)
-    {
-        return F3KDB_ERROR_INVALID_INTERFACE_VERSION;
-    }
-
-    sanitize_mode_and_depth(&params->output_mode, &params->output_depth);
-
-    return F3KDB_SUCCESS;
-}
-
-F3KDB_API(int) f3kdb_video_info_sanitize(f3kdb_video_info_t* vi, int interface_version)
-{
-    if (interface_version != F3KDB_INTERFACE_VERSION)
-    {
-        return F3KDB_ERROR_INVALID_INTERFACE_VERSION;
-    }
-
-    sanitize_mode_and_depth(&vi->pixel_mode, &vi->depth);
-
-    return F3KDB_SUCCESS;
-}
-
 static void print_error(char* buffer, size_t buffer_size, const char* format, ...)
 {
     if (!buffer || buffer_size <= 0)
@@ -180,7 +145,6 @@ F3KDB_API(int) f3kdb_create(const f3kdb_video_info_t* video_info_in, const f3kdb
 
     f3kdb_video_info_t video_info;
     memcpy(&video_info, video_info_in, sizeof(f3kdb_video_info_t));
-    f3kdb_video_info_sanitize(&video_info);
 
     INVALID_PARAM_IF(video_info.width < 16);
     INVALID_PARAM_IF(video_info.height < 16);
@@ -195,34 +159,10 @@ F3KDB_API(int) f3kdb_create(const f3kdb_video_info_t* video_info_in, const f3kdb
     f3kdb_params_t params;
     memcpy(&params, params_in, sizeof(f3kdb_params_t));
 
-    f3kdb_params_sanitize(&params);
-
-    if (params.output_depth == 8 && params.output_mode != LOW_BIT_DEPTH)
-    {
-        print_error(extra_error_msg, error_msg_size, "%s", "output_mode > 0 is only valid when output_depth > 8");
-        return F3KDB_ERROR_INVALID_ARGUMENT;
-    }
-    if (params.output_depth > 8 && params.output_mode == LOW_BIT_DEPTH)
-    {
-        print_error(extra_error_msg, error_msg_size, "%s", "output_mode = 0 is only valid when output_depth = 8");
-        return F3KDB_ERROR_INVALID_ARGUMENT;
-    }
     if (params.output_depth == 16)
     {
         // set to appropriate precision mode
-        switch (params.output_mode)
-        {
-        case HIGH_BIT_DEPTH_INTERLEAVED:
-            params.dither_algo = DA_16BIT_INTERLEAVED;
-            break;
-        case HIGH_BIT_DEPTH_STACKED:
-            params.dither_algo = DA_16BIT_STACKED;
-            break;
-        default:
-            // something is wrong here!
-            assert(false);
-            return F3KDB_ERROR_INVALID_STATE;
-        }
+        params.dither_algo = DA_16BIT_INTERLEAVED;
     }
 
     int threshold_upper_limit = 64 * 8 - 1;
@@ -242,13 +182,7 @@ F3KDB_API(int) f3kdb_create(const f3kdb_video_info_t* video_info_in, const f3kdb
     CHECK_PARAM(dither_algo, DA_HIGH_NO_DITHERING, (DA_COUNT - 1) );
     CHECK_PARAM(random_algo_ref, 0, (RANDOM_ALGORITHM_COUNT - 1) );
     CHECK_PARAM(random_algo_grain, 0, (RANDOM_ALGORITHM_COUNT - 1) );
-    CHECK_PARAM(output_mode, 0, PIXEL_MODE_COUNT - 1);
     
-
-    if (params.output_mode != LOW_BIT_DEPTH)
-    {
-        CHECK_PARAM(output_depth, 9, INTERNAL_BIT_DEPTH);
-    }
 
     // now the internal bit depth is 16, 
     // scale parameters to be consistent with 14bit range in previous versions

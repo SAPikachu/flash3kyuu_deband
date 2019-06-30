@@ -32,37 +32,17 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     }
 
     f3kdb_params_from_avs(args, &params);
-    f3kdb_params_sanitize(&params);
+    if (params.output_depth == -1)
+        params.output_depth = vi.BitsPerComponent();
 
     f3kdb_video_info_t video_info;
     video_info.num_frames = vi.num_frames;
-    video_info.pixel_mode = (PIXEL_MODE)ARG(input_mode).AsInt(DEFAULT_PIXEL_MODE);
-    video_info.depth = ARG(input_depth).AsInt(-1);
+    video_info.pixel_mode = vi.BitsPerComponent() == 8 ? LOW_BIT_DEPTH : HIGH_BIT_DEPTH_INTERLEAVED;
+    video_info.depth = vi.BitsPerComponent();
     video_info.chroma_width_subsampling  = vi.IsY8() ? 0 : vi.GetPlaneWidthSubsampling(PLANAR_U);
     video_info.chroma_height_subsampling = vi.IsY8() ? 0 : vi.GetPlaneHeightSubsampling(PLANAR_U);
-    f3kdb_video_info_sanitize(&video_info);
-
     video_info.width = vi.width;
-    if (video_info.pixel_mode == HIGH_BIT_DEPTH_INTERLEAVED)
-    {
-        int width_mod = 2 << video_info.chroma_width_subsampling;
-        if (video_info.width % width_mod != 0)
-        {
-            env->ThrowError("f3kdb: The clip does not appear to be an interleaved high bit depth clip. (width MOD)");
-        }
-        video_info.width /= 2;
-    }
-
     video_info.height = vi.height;
-    if (video_info.pixel_mode == HIGH_BIT_DEPTH_STACKED)
-    {
-        int height_mod = 2 << video_info.chroma_height_subsampling;
-        if (video_info.height % height_mod != 0)
-        {
-            env->ThrowError("f3kdb: The clip does not appear to be an stacked high bit depth clip. (height MOD)");
-        }
-        video_info.height /= 2;
-    }
 
     f3kdb_core_t* core = NULL;
     char error_msg[1024];
@@ -72,28 +52,41 @@ AVSValue __cdecl Create_flash3kyuu_deband(AVSValue args, void* user_data, IScrip
     {
         env->ThrowError("f3kdb: Initialization failed (code: %d). %s", result, error_msg);
     }
-
-    int dst_width = video_info.width;
-    if (params.output_mode == HIGH_BIT_DEPTH_INTERLEAVED)
-    {
-        dst_width *= 2;
+    VideoInfo output_vi = vi;
+	if (output_vi.pixel_type == VideoInfo::CS_I420)
+		output_vi.pixel_type = VideoInfo::CS_YV12;
+    output_vi.pixel_type &= ~VideoInfo::CS_Sample_Bits_Mask;
+    switch (params.output_depth) {
+        case 8:
+            output_vi.pixel_type |= VideoInfo::CS_Sample_Bits_8;
+            break;
+        case 10:
+            output_vi.pixel_type |= VideoInfo::CS_Sample_Bits_10;
+            break;
+        case 12:
+            output_vi.pixel_type |= VideoInfo::CS_Sample_Bits_12;
+            break;
+        case 14:
+            output_vi.pixel_type |= VideoInfo::CS_Sample_Bits_14;
+            break;
+        case 16:
+            output_vi.pixel_type |= VideoInfo::CS_Sample_Bits_16;
+            break;
+        default:
+            env->ThrowError("f3kdb: Unsupported output depth (%d).", params.output_depth);
+			break;
     }
 
-    int dst_height = video_info.height;
-    if (params.output_mode == HIGH_BIT_DEPTH_STACKED)
-    {
-        dst_height *= 2;
-    }
-    
-    return new f3kdb_avisynth(child, core, dst_width, dst_height, mt);
+    return new f3kdb_avisynth(child, core, output_vi, mt);
 }
-f3kdb_avisynth::f3kdb_avisynth(PClip child, f3kdb_core_t* core, int dst_width, int dst_height, bool mt) :
+f3kdb_avisynth::f3kdb_avisynth(PClip child, f3kdb_core_t* core, VideoInfo output_vi, bool mt) :
             GenericVideoFilter(child),
             _mt_info(NULL), _mt(mt),
             _core(core)
 {
-    vi.width = dst_width;
-    vi.height = dst_height;
+    vi.width = output_vi.width;
+    vi.height = output_vi.height;
+    vi.pixel_type = output_vi.pixel_type;
 }
 
 f3kdb_avisynth::~f3kdb_avisynth()
