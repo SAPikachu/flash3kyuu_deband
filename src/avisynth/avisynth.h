@@ -970,7 +970,7 @@ public:
   /* Need to check GetVersion first, pre v5 will return random crap from EAX reg. */
   virtual int __stdcall SetCacheHints(int cachehints,int frame_range) = 0 ;  // We do not pass cache requests upwards, only to the next filter.
   virtual const VideoInfo& __stdcall GetVideoInfo() = 0;
-  virtual AVSC_CC ~IClip() {}
+  virtual /*AVSC_CC*/ ~IClip() {}
 }; // end class IClip
 
 
@@ -1183,7 +1183,7 @@ public:
 
 class IScriptEnvironment {
 public:
-  virtual AVSC_CC ~IScriptEnvironment() {}
+  virtual /*AVSC_CC*/ ~IScriptEnvironment() {}
 
   virtual /*static*/ int __stdcall GetCPUFlags() = 0;
 
@@ -1266,7 +1266,7 @@ class IJobCompletion
 {
 public:
 
-  virtual __stdcall ~IJobCompletion() {}
+  virtual /*__stdcall*/ ~IJobCompletion() {}
   virtual void __stdcall Wait() = 0;
   virtual AVSValue __stdcall Get(size_t i) = 0;
   virtual size_t __stdcall Size() const = 0;
