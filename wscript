@@ -12,6 +12,8 @@ def options(opt):
     opt.load("compiler_cxx")
 
     conf_opt = opt.get_option_group("configure options")
+    if conf_opt is None:
+        conf_opt = opt.add_option_group("configure options")
 
     conf_opt.add_option("--libdir", action="store", default="${PREFIX}/lib",
                         help="library installation directory")
@@ -45,6 +47,8 @@ def options(opt):
                         help="disable Avisynth support")
 
     inst_opt = opt.get_option_group("install/uninstall options")
+    if inst_opt is None:
+        inst_opt = opt.add_option_group("install/uninstall options")
     inst_opt.add_option("--no-ldconfig", action="store_false",
                         dest="ldconfig", default=True,
                         help="don't run ldconfig after install "
@@ -127,7 +131,7 @@ def configure_gcc(conf):
 def configure(conf):
     conf.msg_feature = lambda feature, v: conf.msg(feature, "yes" if v else "no")
     for x in ["shared", "static"]:
-        val = conf.options.__dict__[x]
+        val = getattr(conf.options, x)
         conf.env[x.upper()] = val
         conf.msg_feature(x.title() + " library", val)
 
